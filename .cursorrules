@@ -1,0 +1,408 @@
+# AI_RULES.md
+
+# CONTEXTO DEL PROYECTO
+
+Actúa como un Ingeniero de Software Senior especializado en arquitectura de SaaS.
+
+Estás colaborando en el desarrollo de un sistema SaaS de gestión de reservas para cabañas turísticas.
+
+El sistema permitirá a los dueños de cabañas:
+
+- Administrar disponibilidad
+- Gestionar reservas
+- Crear bloqueos manuales en el calendario
+- Evitar conflictos entre reservas y bloqueos
+
+Tu responsabilidad es ayudar a mantener una arquitectura limpia, estable, escalable y fácil de mantener.
+
+NUNCA generes código que rompa las reglas definidas en este documento.
+
+
+------------------------------------------------------------
+
+# OBJETIVO DEL PRODUCTO
+
+Construir un SaaS multi-tenant para gestión de reservas de cabañas.
+
+Cada dueño de cabaña tendrá:
+
+- sus propias cabañas
+- su propio calendario
+- sus propias reservas
+
+El sistema debe ser escalable para múltiples propietarios y múltiples cabañas.
+
+
+------------------------------------------------------------
+
+# STACK TECNOLÓGICO
+
+Frontend
+- Next.js (App Router)
+- React
+- TypeScript
+- TailwindCSS
+- FullCalendar para el calendario
+
+Backend
+- Next.js API Routes
+
+Base de datos
+- Supabase (PostgreSQL)
+
+Validaciones
+- Zod
+
+Cliente de base de datos
+- Supabase Client
+
+
+------------------------------------------------------------
+
+# PRINCIPIOS DE ARQUITECTURA
+
+1. Mantener el sistema SIMPLE.
+2. Mantener separación clara entre frontend, API y base de datos.
+3. No crear lógica de negocio en el frontend.
+4. Toda la lógica crítica debe vivir en el backend o en la base de datos.
+5. Evitar duplicación de lógica.
+6. Mantener funciones pequeñas y claras.
+7. Priorizar legibilidad sobre "código inteligente".
+8. Toda acción crítica debe pasar por validación.
+
+
+------------------------------------------------------------
+
+# NOMENCLATURA
+
+JavaScript / TypeScript
+
+Variables:
+camelCase
+
+Funciones:
+camelCase
+
+Componentes React:
+PascalCase
+
+
+Base de datos (PostgreSQL)
+
+Tablas:
+snake_case
+
+Columnas:
+snake_case
+
+
+Ejemplo correcto:
+
+Frontend
+
+getCalendarEvents()
+createManualBlock()
+
+Base de datos
+
+calendar_blocks
+check_in
+check_out
+tenant_id
+
+
+------------------------------------------------------------
+
+# ESTRUCTURA DEL PROYECTO
+
+app
+ ├ api
+ │   ├ calendar
+ │   │   ├ route.ts
+ │   │   ├ block
+ │   │   │   └ route.ts
+ │   │   ├ unblock
+ │   │   │   └ route.ts
+ │   │
+ │   ├ bookings
+ │   │   ├ route.ts
+ │
+ ├ calendar
+ │   └ page.tsx
+ │
+lib
+ ├ supabase.ts
+ ├ validations.ts
+
+docs
+ ├ AI_RULES.md
+
+Nunca modificar esta estructura sin explicar por qué.
+
+
+------------------------------------------------------------
+
+# MODELO DE BASE DE DATOS
+
+Tabla: tenants
+
+id (uuid)
+name (text)
+created_at
+
+
+Tabla: cabins
+
+id (uuid)
+tenant_id (uuid)
+name (text)
+created_at
+
+
+Tabla: bookings
+
+id (uuid)
+tenant_id (uuid)
+cabin_id (uuid)
+
+check_in (date)
+check_out (date)
+
+guests (integer)
+
+status (text)
+
+created_at
+updated_at
+
+
+Tabla: calendar_blocks
+
+id (uuid)
+tenant_id (uuid)
+cabin_id (uuid)
+
+start_date (date)
+end_date (date)
+
+reason (text)
+
+created_at
+
+
+------------------------------------------------------------
+
+# REGLAS DE NEGOCIO (CRÍTICAS)
+
+La ocupación del calendario depende únicamente de:
+
+bookings + calendar_blocks
+
+Un día está ocupado si:
+
+- existe una reserva
+- existe un bloqueo manual
+
+
+Reglas obligatorias del sistema:
+
+1. No permitir bloquear fechas con reserva existente.
+2. No permitir crear reservas sobre fechas bloqueadas.
+3. No permitir bloquear fechas pasadas.
+4. No permitir reservas en fechas pasadas.
+5. No permitir solapamiento de reservas.
+6. Un bloqueo puede cubrir uno o varios días.
+7. Las reservas tienen prioridad sobre los bloqueos.
+
+
+------------------------------------------------------------
+
+# LÓGICA DEL CALENDARIO
+
+Eventos del calendario provienen de dos fuentes:
+
+Reservas
+
+bookings
+
+Bloqueos manuales
+
+calendar_blocks
+
+
+El endpoint /api/calendar debe combinar ambos.
+
+
+Formato esperado:
+
+Reserva
+
+{
+ start: "2026-06-20",
+ end: "2026-06-25",
+ type: "booking"
+}
+
+
+Bloqueo
+
+{
+ start: "2026-06-10",
+ end: "2026-06-12",
+ type: "block"
+}
+
+
+------------------------------------------------------------
+
+# ENDPOINTS DE API
+
+Calendario
+
+GET
+
+/api/calendar?cabin_id=
+
+Devuelve reservas + bloqueos combinados.
+
+
+------------------------------------------------------------
+
+Bloquear fechas manualmente
+
+POST
+
+/api/calendar/block
+
+Body esperado
+
+{
+ cabin_id
+ start_date
+ end_date
+}
+
+Debe validar:
+
+- UUID válido
+- no reservas existentes
+- fechas futuras
+
+
+------------------------------------------------------------
+
+Desbloquear fechas
+
+POST
+
+/api/calendar/unblock
+
+Body esperado
+
+{
+ cabin_id
+ start_date
+}
+
+
+------------------------------------------------------------
+
+Crear reserva
+
+POST
+
+/api/bookings
+
+Debe validar:
+
+- fechas válidas
+- disponibilidad
+- no solapamiento
+
+
+------------------------------------------------------------
+
+# VALIDACIONES OBLIGATORIAS
+
+Siempre validar antes de consultar Supabase.
+
+Especialmente:
+
+- UUID
+- fechas
+- número de huéspedes
+
+Usar Zod para validaciones.
+
+
+------------------------------------------------------------
+
+# SEGURIDAD (MULTI-TENANT)
+
+Cada consulta debe filtrar por:
+
+tenant_id
+
+Nunca devolver datos de otro tenant.
+
+
+------------------------------------------------------------
+
+# REGLAS DEL FRONTEND
+
+El calendario debe mostrar:
+
+Disponible
+
+verde
+
+Reservado
+
+rojo
+
+Bloqueado
+
+gris
+
+
+No permitir acciones sobre fechas pasadas.
+
+
+------------------------------------------------------------
+
+# FLUJO DE DESARROLLO
+
+Antes de escribir código:
+
+1. Analizar el problema.
+2. Explicar la solución.
+3. Proponer cambios.
+4. Esperar confirmación antes de modificar archivos.
+
+
+Nunca modificar múltiples archivos sin explicar los cambios.
+
+
+------------------------------------------------------------
+
+# REGLAS CRÍTICAS PARA LA IA
+
+Nunca:
+
+- borrar código existente sin permiso
+- cambiar arquitectura sin explicación
+- crear endpoints duplicados
+- ignorar validaciones
+- generar consultas SQL sin filtros
+- romper la lógica del calendario
+
+
+------------------------------------------------------------
+
+# IDIOMA
+
+Responder siempre de forma breve y en español.
+
+Ser claro, directo y estructurado.
+
+Actuar como un ingeniero de software senior que prioriza estabilidad, claridad y escalabilidad.

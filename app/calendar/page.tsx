@@ -24,6 +24,7 @@ export default function CalendarPage() {
 
       return {
         title: e.type === "booking" ? "Reserva" : "Bloqueado",
+        type: e.type,
         start: e.start,
         end: endDate,
         color: e.type === "booking" ? "#e63946" : "#6c757d"
@@ -56,6 +57,11 @@ export default function CalendarPage() {
     })
 
     if(existing){
+
+      if(existing.type === "booking"){
+        alert("Este día tiene una reserva confirmada y no se puede modificar desde aquí")
+        return
+      }
 
       if(confirm(`¿Desbloquear el día ${date}?`)){
 
