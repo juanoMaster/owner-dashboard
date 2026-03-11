@@ -9,8 +9,9 @@ export default async function Home({
     return <div>Missing token</div>;
   }
 
-  const res = await fetch(
-    `http://localhost:3000/api/dashboard?token=${token}`,
+  // ✅ DESPUÉS
+const res = await fetch(
+  `/api/dashboard?token=${token}`,
     { cache: "no-store" }
   );
 

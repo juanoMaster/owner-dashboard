@@ -21,151 +21,82 @@ export default function CalendarPage() {
     })
   }
 
-  async function loadEvents(){
-
+  async function loadEvents() {
     const res = await fetch(`/api/calendar?cabin_id=${cabinId}`)
     const data = await res.json()
+    const list = data.events || []
 
-    const eventsFormatted = data.events.map((e:any)=>{
-
+    const eventsFormatted = list.map((e: any) => {
       const endDate = new Date(e.end)
       endDate.setDate(endDate.getDate() + 1)
-
-      let title = "Bloqueado"
-      let color = "#4a4a4a" // manual_block por defecto
-
-      if (e.type === "system_booking" || e.type === "manual_booking") {
-        title = "Reserva"
-      }
-
-      if (e.type === "system_booking") {
-        color = "#2d6a4f" // verde
-      } else if (e.type === "manual_booking") {
-        color = "#e63946" // rojo
-      } else if (e.type === "manual_block") {
-        color = "#4a4a4a" // gris oscuro
-      }
-
       return {
         id: e.id,
-        title,
+        title: "Ocupado",
         start: e.start,
         end: endDate,
-        color,
+        color: "#e63946",
         allDay: true,
         display: "block",
-        extendedProps: { type: e.type }
+        extendedProps: {}
       }
-
     })
 
     setEvents(eventsFormatted)
-
   }
 
   useEffect(()=>{
     loadEvents()
   },[])
 
-  async function handleDateClick(info:any){
-
+  async function handleDateClick(info: any) {
     const date = info.dateStr
-
     const today = new Date().toISOString().split("T")[0]
-
-    if(date < today){
+    if (date < today) {
       alert("No se pueden modificar fechas pasadas")
       return
     }
 
     const existing = findEventForDate(date)
-
     if (existing) {
-      const type = existing?.extendedProps?.type
-
-      if (type === "system_booking" || type === "manual_booking") {
-        alert("Este día tiene una reserva confirmada y no se puede modificar")
-        return
-      }
-
-      if (type === "manual_block") {
-        if (confirm(`¿Desbloquear el día ${date}?`)) {
-          await fetch("/api/calendar/delete",{
-            method:"POST",
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-              cabin_id:cabinId,
-              id: existing.id
-            })
+      if (confirm("¿Liberar este día?")) {
+        await fetch("/api/calendar/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cabin_id: cabinId,
+            id: existing.id
           })
-          await loadEvents()
-        }
-        return
+        })
+        await loadEvents()
       }
-
-      alert("Ese día ya está ocupado")
       return
     }
 
-    // Decisión mediante confirms: primero intentamos crear reserva manual,
-    // si el usuario no acepta, preguntamos por bloqueo manual.
-    let actionType: "reserva" | "bloqueo" | null = null
+    if (!confirm("¿Marcar este día como ocupado?")) return
 
-    const wantsManualBooking = window.confirm(
-      `¿Crear Reserva Manual (Rojo) para el día ${date}?`
-    )
-
-    if (wantsManualBooking) {
-      actionType = "reserva"
-    } else {
-      const wantsManualBlock = window.confirm(
-        `¿Crear Bloqueo Manual (Gris) para el día ${date}?`
-      )
-      if (wantsManualBlock) {
-        actionType = "bloqueo"
-      }
-    }
-
-    if (!actionType) {
-      return
-    }
-
-    await fetch("/api/calendar",{
-      method:"POST",
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        cabin_id:cabinId,
-        date:date,
-        action_type: actionType
+    await fetch("/api/calendar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date,
+        cabin_id: cabinId
       })
     })
-
     await loadEvents()
-
   }
 
   async function handleEventClick(info: any) {
-    const type = info?.event?.extendedProps?.type
+    if (!confirm("¿Liberar este día?")) return
 
-    if (type === "system_booking") {
-      alert("Esta es una reserva del sistema y no se puede borrar desde aquí")
-      return
-    }
-
-    if (type === "manual_booking" || type === "manual_block") {
-      if (!confirm("¿Desbloquear este día?")) return
-
-      await fetch("/api/calendar/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cabin_id: cabinId,
-          id: info.event.id
-        })
+    await fetch("/api/calendar/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cabin_id: cabinId,
+        id: info.event.id
       })
-
-      await loadEvents()
-    }
+    })
+    await loadEvents()
   }
 
   return (

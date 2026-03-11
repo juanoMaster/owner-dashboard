@@ -9,13 +9,13 @@ const supabase = createClient(
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { cabin_id, date } = body
+    const { cabin_id, id } = body
 
-    if (!cabin_id || !date) {
+    if (!cabin_id || !id) {
       return NextResponse.json(
         {
           success: false,
-          message: "cabin_id y date son requeridos"
+          message: "cabin_id e id son requeridos"
         },
         { status: 400 }
       )
@@ -23,9 +23,12 @@ export async function POST(req: Request) {
 
     const { error } = await supabase
       .from("calendar_blocks")
-      .delete()
+      .update({
+        status: "cancelled",
+        cancelled_at: new Date().toISOString()
+      })
+      .eq("id", id)
       .eq("cabin_id", cabin_id)
-      .eq("start_date", date)
       .eq("tenant_id", "11518e5f-6a0b-4bdc-bb6a-a1b9c3d1e2f4")
 
     if (error) {
