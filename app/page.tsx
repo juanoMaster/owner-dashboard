@@ -1,42 +1,42 @@
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { token?: string };
+  searchParams: { token?: string }
 }) {
-  const token = searchParams.token;
+  const token = searchParams.token
+  if (!token) return <div>Missing token</div>
 
-  if (!token) {
-    return <div>Missing token</div>;
-  }
+  const { data: link } = await supabase
+    .from("dashboard_links")
+    .select("tenant_id")
+    .eq("token_hash", require("crypto").createHash("sha256").update(token).digest("hex"))
+    .eq("active", true)
+    .maybeSingle()
 
-  // ✅ DESPUÉS
-const res = await fetch(
-  `/api/dashboard?token=${token}`,
-    { cache: "no-store" }
-  );
+  if (!link) return <div>Token inválido</div>
 
-  if (!res.ok) {
-    const error = await res.json();
-    return <div>{error.error}</div>;
-  }
-
-  const { cabins } = await res.json();
+  const { data: cabins } = await supabase
+    .from("cabins")
+    .select("*")
+    .eq("tenant_id", link.tenant_id)
 
   return (
     <main style={{ padding: "40px", fontFamily: "sans-serif" }}>
       <h1>Panel del Propietario</h1>
-      <p>Sistema de Gestión de Cabañas</p>
-
-      {cabins.map((cabin: any) => (
+      {cabins?.map((cabin: any) => (
         <div key={cabin.id} style={{ marginTop: "30px" }}>
           <h2>{cabin.name}</h2>
           <p>Capacidad: {cabin.capacity}</p>
           <button>Ver Calendario</button>
-          <button style={{ marginLeft: "10px" }}>
-            Bloquear Fechas
-          </button>
         </div>
       ))}
     </main>
-  );
+  )
 }
