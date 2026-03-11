@@ -16,7 +16,7 @@ export default async function Home({
   const { data: link } = await supabase
     .from("dashboard_links")
     .select("tenant_id")
-    .eq("token_hash", require("crypto").createHash("sha256").update(token).digest("hex"))
+.eq("token_hash", require("crypto").createHash("sha256").update(token, "utf8").digest("hex"))
     .eq("active", true)
     .maybeSingle()
 
