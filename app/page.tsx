@@ -23,7 +23,12 @@ export default async function Home({
     .eq("active", true)
     .maybeSingle()
 
-  if (!link) return <div>Token inválido</div>
+    if (!link) return (
+      <div>
+        <p>Token recibido: {token}</p>
+        <p>Hash generado: {tokenHash}</p>
+      </div>
+    )
 
   const { data: cabins } = await supabase
     .from("cabins")
