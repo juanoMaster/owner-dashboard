@@ -1,34 +1,30 @@
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export default async function Home({
   searchParams,
 }: {
   searchParams: { token?: string }
 }) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const token = searchParams.token
   if (!token) return <div>Missing token</div>
 
   const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
 
-  const { data: link } = await supabase
+  const { data: link, error } = await supabase
     .from("dashboard_links")
     .select("tenant_id")
     .eq("token_hash", tokenHash)
     .eq("active", true)
     .maybeSingle()
 
-    if (!link) return (
-      <div>
-        <p>Token recibido: {token}</p>
-        <p>Hash generado: {tokenHash}</p>
-      </div>
-    )
+  if (error) return <div>Error: {error.message}</div>
+  if (!link) return <div>Token inválido — hash: {tokenHash}</div>
 
   const { data: cabins } = await supabase
     .from("cabins")
