@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import crypto from "crypto"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,10 +14,12 @@ export default async function Home({
   const token = searchParams.token
   if (!token) return <div>Missing token</div>
 
+  const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
+
   const { data: link } = await supabase
     .from("dashboard_links")
     .select("tenant_id")
-.eq("token_hash", require("crypto").createHash("sha256").update(token, "utf8").digest("hex"))
+    .eq("token_hash", tokenHash)
     .eq("active", true)
     .maybeSingle()
 
