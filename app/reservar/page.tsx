@@ -75,7 +75,7 @@ function ReservarInner() {
           tinajaDias > 0 ? ["Días de tinaja", `${tinajaDias} día${tinajaDias > 1 ? "s" : ""}`] : null,
           ["Precio por noche", `$${pricePerNight.toLocaleString("es-CL")}`],
           extraGuests > 0 ? ["Personas extra", `$${extraGuestCost.toLocaleString("es-CL")}`] : null,
-          tinaja ? ["Tinaja", `$${tinajaCost.toLocaleString("es-CL")}`] : null,
+          tinajaDias > 0 ? ["Tinaja", `$${tinajaCost.toLocaleString("es-CL")}`] : null, null,
           ["Total", `$${subtotal.toLocaleString("es-CL")}`],
           ["Adelanto (20%)", `$${deposit.toLocaleString("es-CL")}`],
         ].filter(Boolean).map((row: any) => (
