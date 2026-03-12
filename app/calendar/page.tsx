@@ -1,36 +1,36 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import esLocale from "@fullcalendar/core/locales/es"
 
-const CABIN_ID = "f935a02e-2572-4272-9a08-af40b29f0912"
 const TODAY = new Date().toISOString().split("T")[0]
 
-function getColor(reason: string) {
-  if (reason === "system_booking") return "#2e7d32"
-  return "#e07d2b"
-}
-
 export default function CalendarPage() {
+  const searchParams = useSearchParams()
+  const cabinId = searchParams.get("cabin_id") || ""
+
   const [events, setEvents] = useState<any[]>([])
   const [rangeStart, setRangeStart] = useState<string | null>(null)
   const [hoverDate, setHoverDate] = useState<string | null>(null)
 
   async function loadEvents() {
-    const res = await fetch(`/api/calendar?cabin_id=${CABIN_ID}`)
+    if (!cabinId) return
+    const res = await fetch(`/api/calendar?cabin_id=${cabinId}`)
     const data = await res.json()
     const formatted = (data.events || []).map((e: any) => {
       const endPlusOne = new Date(e.end + "T00:00:00")
       endPlusOne.setDate(endPlusOne.getDate() + 1)
+      const isBooking = e.reason === "system_booking"
       return {
         id: e.id,
-        title: e.reason === "system_booking" ? "✅ Reserva" : "🔒 Bloqueado",
+        title: isBooking ? "✅ Reserva" : "🔒 Bloqueado",
         start: e.start,
         end: endPlusOne.toISOString().split("T")[0],
-        color: getColor(e.reason),
+        color: isBooking ? "#2e7d32" : "#c0392b",
         allDay: true,
         display: "block",
         extendedProps: { reason: e.reason }
@@ -39,7 +39,7 @@ export default function CalendarPage() {
     setEvents(formatted)
   }
 
-  useEffect(() => { loadEvents() }, [])
+  useEffect(() => { loadEvents() }, [cabinId])
 
   function getPreviewEvents() {
     if (!rangeStart) return []
@@ -51,8 +51,8 @@ export default function CalendarPage() {
       title: "📅 Seleccionado",
       start: rangeStart,
       end: endPlusOne.toISOString().split("T")[0],
-      color: "rgba(220, 53, 69, 0.25)",
-      borderColor: "#dc3545",
+      backgroundColor: "rgba(192, 57, 43, 0.2)",
+      borderColor: "#c0392b",
       textColor: "#7f0010",
       allDay: true,
       display: "block",
@@ -72,7 +72,7 @@ export default function CalendarPage() {
     await fetch("/api/calendar/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cabin_id: CABIN_ID, id })
+      body: JSON.stringify({ cabin_id: cabinId, id })
     })
     await loadEvents()
   }
@@ -98,7 +98,7 @@ export default function CalendarPage() {
     const res = await fetch("/api/calendar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ start_date: start, end_date: end, cabin_id: CABIN_ID })
+      body: JSON.stringify({ start_date: start, end_date: end, cabin_id: cabinId })
     })
     const data = await res.json()
     if (data.error) alert("Error: " + data.error)
@@ -124,6 +124,8 @@ export default function CalendarPage() {
     if (date >= TODAY && !isDateBlocked(date)) setHoverDate(date)
   }
 
+  if (!cabinId) return <div style={{ padding: "32px" }}>Error: cabin_id no encontrado</div>
+
   return (
     <div style={{
       padding: "20px 16px",
@@ -138,11 +140,12 @@ export default function CalendarPage() {
         Toca una fecha libre para marcar entrada. Luego toca la fecha de salida.
       </p>
 
-      <div style={{ display: "flex", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
+      {/* Leyenda */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "14px", flexWrap: "wrap" }}>
         {[
-          { color: "#e07d2b", label: "Bloqueado por Johanna" },
+          { color: "#c0392b", label: "Bloqueado" },
           { color: "#2e7d32", label: "Reserva confirmada" },
-          { color: "rgba(220,53,69,0.2)", border: "#dc3545", label: "Selección activa" },
+          { color: "rgba(192,57,43,0.2)", border: "#c0392b", label: "Selección activa" },
         ].map(({ color, border, label }) => (
           <span key={label} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12px" }}>
             <span style={{
@@ -157,10 +160,11 @@ export default function CalendarPage() {
         ))}
       </div>
 
+      {/* Banner selección activa */}
       {rangeStart && (
         <div style={{
           background: "#fff0f0",
-          border: "1px solid #f5a8a8",
+          border: "1px solid #c0392b",
           borderRadius: "8px",
           padding: "10px 14px",
           marginBottom: "12px",

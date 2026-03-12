@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
+import Link from "next/link"
 export const revalidate = 0
 
 export default async function Home({
@@ -25,7 +26,7 @@ export default async function Home({
     .maybeSingle()
 
   if (error) return <div>Error: {error.message}</div>
-  if (!link) return <div>Token inválido — hash: {tokenHash}</div>
+  if (!link) return <div>Token inválido</div>
 
   const { data: cabins } = await supabase
     .from("cabins")
@@ -33,13 +34,46 @@ export default async function Home({
     .eq("tenant_id", link.tenant_id)
 
   return (
-    <main style={{ padding: "40px", fontFamily: "sans-serif" }}>
-      <h1>Panel del Propietario</h1>
+    <main style={{
+      padding: "32px 20px",
+      fontFamily: "'Segoe UI', sans-serif",
+      maxWidth: "680px",
+      margin: "0 auto"
+    }}>
+      <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "24px" }}>
+        🏡 Panel del Propietario
+      </h1>
+
       {cabins?.map((cabin: any) => (
-        <div key={cabin.id} style={{ marginTop: "30px" }}>
-          <h2>{cabin.name}</h2>
-          <p>Capacidad: {cabin.capacity}</p>
-          <button>Ver Calendario</button>
+        <div key={cabin.id} style={{
+          border: "1px solid #e0e0e0",
+          borderRadius: "12px",
+          padding: "20px",
+          marginBottom: "16px",
+          background: "#fff",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)"
+        }}>
+          <h2 style={{ fontSize: "17px", fontWeight: "700", marginBottom: "6px" }}>
+            {cabin.name}
+          </h2>
+          <p style={{ color: "#666", fontSize: "14px", marginBottom: "16px" }}>
+            👥 Capacidad: {cabin.capacity} personas
+          </p>
+          <Link href={`/calendar?cabin_id=${cabin.id}&token=${token}`}>
+            <button style={{
+              background: "#c0392b",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 20px",
+              fontSize: "14px",
+              fontWeight: "600",
+              cursor: "pointer",
+              width: "100%"
+            }}>
+              📅 Ver Calendario
+            </button>
+          </Link>
         </div>
       ))}
     </main>
