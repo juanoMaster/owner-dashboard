@@ -17,7 +17,7 @@ function ReservarInner() {
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(2)
-  const [tinaja, setTinaja] = useState(false)
+  const [tinajaDias, setTinajaDias] = useState(0)
   const [name, setName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
   const [step, setStep] = useState<"form" | "resumen" | "confirmado">("form")
@@ -28,7 +28,7 @@ function ReservarInner() {
     : 0
   const extraGuests = Math.max(0, guests - 4)
   const extraGuestCost = extraGuests * 5000 * nights
-  const tinajaCost = tinaja ? 30000 * nights : 0
+  const tinajaCost = tinajaDias * 30000
   const subtotal = pricePerNight * nights + extraGuestCost + tinajaCost
   const deposit = Math.round(subtotal * 0.2)
 
@@ -72,7 +72,7 @@ function ReservarInner() {
           ["Check-out", checkOut],
           ["Noches", `${nights}`],
           ["Huéspedes", `${guests}`],
-          ["Tinaja", tinaja ? "Sí" : "No"],
+          tinajaDias > 0 ? ["Días de tinaja", `${tinajaDias} día${tinajaDias > 1 ? "s" : ""}`] : null,
           ["Precio por noche", `$${pricePerNight.toLocaleString("es-CL")}`],
           extraGuests > 0 ? ["Personas extra", `$${extraGuestCost.toLocaleString("es-CL")}`] : null,
           tinaja ? ["Tinaja", `$${tinajaCost.toLocaleString("es-CL")}`] : null,
@@ -115,10 +115,13 @@ function ReservarInner() {
         {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} persona{n > 1 ? "s" : ""}</option>)}
       </select>
 
-      <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: "8px" }}>
-        <input type="checkbox" checked={tinaja} onChange={e => setTinaja(e.target.checked)} />
-        Agregar tinaja de madera (+$30.000/día)
-      </label>
+      <label style={labelStyle}>Días de tinaja de madera (+$30.000/día)</label>
+      <select value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))} style={inputStyle} disabled={nights < 2}>
+        <option value={0}>Sin tinaja</option>
+        {Array.from({ length: nights }, (_, i) => i + 1).map(n => (
+          <option key={n} value={n}>{n} día{n > 1 ? "s" : ""} — ${(n * 30000).toLocaleString("es-CL")}</option>
+        ))}
+      </select>
 
       <label style={labelStyle}>Tu nombre completo</label>
       <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: María González" style={inputStyle} />
