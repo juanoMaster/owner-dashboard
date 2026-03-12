@@ -111,7 +111,9 @@ function CalendarInner() {
     if (info.event.id === "__preview__") return
     const reason = info.event.extendedProps.reason
     if (reason === "system_booking") {
-      alert("Esta es una reserva confirmada. No se puede eliminar desde aquí.")
+      if (!confirm("Esta reserva ya esta pagada.\n\n¿Estas seguro que deseas cancelarla?")) return
+      if (!confirm("Segunda confirmacion: ¿Confirmas que quieres cancelar una reserva YA PAGADA?")) return
+      await deleteBlock(info.event.id)
       return
     }
     if (!confirm("¿Liberar este bloqueo?")) return
