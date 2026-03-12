@@ -25,7 +25,7 @@ export default async function Home({
     .maybeSingle()
 
   if (error) return <div>Error: {error.message}</div>
-  if (!link) return <div>Token inválido</div>
+  if (!link) return <div>Token invalido</div>
 
   const { data: cabins } = await supabase
     .from("cabins")
@@ -40,7 +40,7 @@ export default async function Home({
       margin: "0 auto"
     }}>
       <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "24px" }}>
-        🏡 Panel del Propietario
+        Panel del Propietario
       </h1>
       {cabins?.map((cabin: any) => (
         <div key={cabin.id} style={{
@@ -55,7 +55,7 @@ export default async function Home({
             {cabin.name}
           </h2>
           <p style={{ color: "#666", fontSize: "14px", marginBottom: "16px" }}>
-            👥 Capacidad: {cabin.capacity} personas
+            Capacidad: {cabin.capacity} personas
           </p>
           
             href={`/calendar?cabin_id=${cabin.id}&token=${token}`}
@@ -71,7 +71,7 @@ export default async function Home({
               textDecoration: "none"
             }}
           >
-            📅 Ver Calendario
+            Ver Calendario
           </a>
         </div>
       ))}
