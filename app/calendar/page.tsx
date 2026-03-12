@@ -9,6 +9,11 @@ import esLocale from "@fullcalendar/core/locales/es"
 const CABIN_ID = "f935a02e-2572-4272-9a08-af40b29f0912"
 const TODAY = new Date().toISOString().split("T")[0]
 
+function getColor(reason: string) {
+  if (reason === "system_booking") return "#e63946"  // rojo — reserva del sistema
+  return "#e07d2b"                                    // naranja — bloqueo manual Johanna
+}
+
 export default function CalendarPage() {
   const [events, setEvents] = useState<any[]>([])
   const [rangeStart, setRangeStart] = useState<string | null>(null)
@@ -18,17 +23,17 @@ export default function CalendarPage() {
     const data = await res.json()
 
     const formatted = (data.events || []).map((e: any) => {
-      // FullCalendar end es exclusivo, sumamos 1 día para que pinte el último día
       const endPlusOne = new Date(e.end + "T00:00:00")
       endPlusOne.setDate(endPlusOne.getDate() + 1)
       return {
         id: e.id,
-        title: "Ocupado",
+        title: e.reason === "system_booking" ? "🔴 Reserva" : "🟠 Bloqueado",
         start: e.start,
         end: endPlusOne.toISOString().split("T")[0],
-        color: "#e63946",
+        color: getColor(e.reason),
         allDay: true,
         display: "block",
+        extendedProps: { reason: e.reason }
       }
     })
 
@@ -37,13 +42,22 @@ export default function CalendarPage() {
 
   useEffect(() => { loadEvents() }, [])
 
-  function findEventForDate(dateStr: string) {
-    return events.find((e: any) => {
+  function isDateBlocked(dateStr: string) {
+    return events.some((e: any) => {
       const start = new Date(e.start + "T00:00:00")
-      const end = new Date(e.end + "T00:00:00") // ya tiene +1 día
+      const end = new Date(e.end + "T00:00:00")
       const clicked = new Date(dateStr + "T00:00:00")
       return clicked >= start && clicked < end
     })
+  }
+
+  async function deleteBlock(id: string) {
+    await fetch("/api/calendar/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cabin_id: CABIN_ID, id })
+    })
+    await loadEvents()
   }
 
   async function handleDateClick(info: any) {
@@ -54,24 +68,10 @@ export default function CalendarPage() {
       return
     }
 
-    // Si hay un bloque en esa fecha → preguntar si liberar
-    const existing = findEventForDate(date)
-    if (existing) {
-      if (confirm("¿Liberar este bloque?")) {
-        await fetch("/api/calendar/delete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cabin_id: CABIN_ID, id: existing.id })
-        })
-        await loadEvents()
-      }
-      return
-    }
+    if (isDateBlocked(date)) return // el click sobre un bloque lo maneja eventClick
 
-    // Flujo de rango: primer clic = inicio, segundo clic = fin
     if (!rangeStart) {
       setRangeStart(date)
-      alert(`Fecha de inicio seleccionada: ${date}\nAhora haz clic en la fecha de salida.`)
       return
     }
 
@@ -83,33 +83,82 @@ export default function CalendarPage() {
       return
     }
 
-    await fetch("/api/calendar", {
+    const res = await fetch("/api/calendar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ start_date: start, end_date: end, cabin_id: CABIN_ID })
     })
 
+    const data = await res.json()
+    if (data.error) {
+      alert("Error: " + data.error)
+    }
+
     setRangeStart(null)
     await loadEvents()
   }
 
-  return (
-    <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
-      <h1>Calendario de Reservas</h1>
+  async function handleEventClick(info: any) {
+    const reason = info.event.extendedProps.reason
+    if (reason === "system_booking") {
+      alert("Este bloque es una reserva confirmada. No se puede eliminar desde aquí.")
+      return
+    }
+    if (!confirm("¿Liberar este bloqueo?")) return
+    await deleteBlock(info.event.id)
+  }
 
+  return (
+    <div style={{
+      padding: "32px",
+      fontFamily: "'Segoe UI', sans-serif",
+      maxWidth: "900px",
+      margin: "0 auto"
+    }}>
+      <h1 style={{ fontSize: "24px", marginBottom: "8px" }}>📅 Calendario de Reservas</h1>
+      <p style={{ color: "#666", marginBottom: "16px", fontSize: "14px" }}>
+        Haz clic en una fecha libre para iniciar un bloqueo. Haz clic en un bloque para eliminarlo.
+      </p>
+
+      {/* Leyenda */}
+      <div style={{ display: "flex", gap: "20px", marginBottom: "16px", fontSize: "14px" }}>
+        <span>
+          <span style={{ background: "#e07d2b", borderRadius: "4px", padding: "2px 10px", color: "white" }}>
+            🟠 Bloqueado por Johanna
+          </span>
+        </span>
+        <span>
+          <span style={{ background: "#e63946", borderRadius: "4px", padding: "2px 10px", color: "white" }}>
+            🔴 Reserva confirmada
+          </span>
+        </span>
+      </div>
+
+      {/* Aviso de rango activo */}
       {rangeStart && (
         <div style={{
-          background: "#fff3cd",
+          background: "#fff8e1",
           border: "1px solid #ffc107",
           borderRadius: "8px",
           padding: "12px 16px",
           marginBottom: "16px",
-          fontSize: "15px"
+          fontSize: "14px",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px"
         }}>
-          📅 Fecha de entrada seleccionada: <strong>{rangeStart}</strong> — Ahora haz clic en la fecha de salida.
+          📅 Entrada seleccionada: <strong>{rangeStart}</strong> — Ahora haz clic en la fecha de salida.
           <button
             onClick={() => setRangeStart(null)}
-            style={{ marginLeft: "16px", cursor: "pointer", color: "#666" }}
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "1px solid #ccc",
+              borderRadius: "6px",
+              padding: "4px 10px",
+              cursor: "pointer",
+              fontSize: "13px"
+            }}
           >
             Cancelar
           </button>
@@ -121,9 +170,21 @@ export default function CalendarPage() {
         initialView="dayGridMonth"
         locale={esLocale}
         dateClick={handleDateClick}
+        eventClick={handleEventClick}
         events={events}
         height="auto"
+        dayCellClassNames={(arg) => {
+          const d = arg.date.toISOString().split("T")[0]
+          if (d === rangeStart) return ["fc-day-selected"]
+          return []
+        }}
       />
+
+      <style>{`
+        .fc-day-selected { background: #fff3cd !important; }
+        .fc-daygrid-event { border-radius: 4px !important; font-size: 12px !important; }
+        .fc-toolbar-title { font-size: 18px !important; }
+      `}</style>
     </div>
   )
 }

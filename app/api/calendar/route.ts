@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   const { data: blocks, error } = await supabase
     .from('calendar_blocks')
-    .select('id, start_date, end_date')
+    .select('id, start_date, end_date, reason')
     .eq('cabin_id', cabinId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -24,6 +24,7 @@ export async function GET(req: Request) {
     id: b.id,
     start: b.start_date,
     end: b.end_date,
+    reason: b.reason
   }));
 
   return NextResponse.json({ events });
@@ -37,6 +38,21 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'start_date, end_date y cabin_id son requeridos' },
         { status: 400 }
+      );
+    }
+
+    // Verificar que no haya bloques que se superpongan
+    const { data: overlapping } = await supabase
+      .from('calendar_blocks')
+      .select('id')
+      .eq('cabin_id', cabin_id)
+      .lte('start_date', end_date)
+      .gte('end_date', start_date);
+
+    if (overlapping && overlapping.length > 0) {
+      return NextResponse.json(
+        { error: 'Ya existe un bloqueo en esas fechas' },
+        { status: 409 }
       );
     }
 
