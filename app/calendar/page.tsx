@@ -12,6 +12,8 @@ const TODAY = new Date().toISOString().split("T")[0]
 function CalendarInner() {
   const searchParams = useSearchParams()
   const cabinId = searchParams.get("cabin_id") || ""
+  const cabinName = searchParams.get("cabin_name") || "Cabaña"
+  const token = searchParams.get("token") || ""
 
   const [events, setEvents] = useState<any[]>([])
   const [rangeStart, setRangeStart] = useState<string | null>(null)
@@ -135,8 +137,11 @@ function CalendarInner() {
       maxWidth: "680px",
       margin: "0 auto"
     }}>
+      <a href={`/?token=${token}`} style={{ display: "inline-block", marginBottom: "16px", fontSize: "13px", color: "#c0392b", textDecoration: "none", fontWeight: "600" }}>
+        ← Volver a mis cabañas
+      </a>
       <h1 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "4px" }}>
-        📅 Calendario de Reservas
+        Calendario — {decodeURIComponent(cabinName)}
       </h1>
       <p style={{ color: "#888", fontSize: "12px", marginBottom: "12px" }}>
         Toca una fecha libre para marcar entrada. Luego toca la fecha de salida.
