@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
@@ -9,7 +9,7 @@ import esLocale from "@fullcalendar/core/locales/es"
 
 const TODAY = new Date().toISOString().split("T")[0]
 
-export default function CalendarPage() {
+function CalendarInner() {
   const searchParams = useSearchParams()
   const cabinId = searchParams.get("cabin_id") || ""
 
@@ -140,7 +140,6 @@ export default function CalendarPage() {
         Toca una fecha libre para marcar entrada. Luego toca la fecha de salida.
       </p>
 
-      {/* Leyenda */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "14px", flexWrap: "wrap" }}>
         {[
           { color: "#c0392b", label: "Bloqueado" },
@@ -160,7 +159,6 @@ export default function CalendarPage() {
         ))}
       </div>
 
-      {/* Banner selección activa */}
       {rangeStart && (
         <div style={{
           background: "#fff0f0",
@@ -215,5 +213,13 @@ export default function CalendarPage() {
         .fc-day-past .fc-daygrid-day-number { color: #bbb !important; }
       `}</style>
     </div>
+  )
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "32px" }}>Cargando calendario...</div>}>
+      <CalendarInner />
+    </Suspense>
   )
 }
