@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
+export const revalidate = 0
 
 export default async function Home({
   searchParams,
