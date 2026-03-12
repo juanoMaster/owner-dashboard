@@ -58,7 +58,7 @@ export default async function Home({
             Capacidad: {cabin.capacity} personas
           </p>
           
-            href={`/calendar?cabin_id=${cabin.id}&token=${token}`}
+          <a href={`/calendar?cabin_id=${cabin.id}&token=${token}`}
             style={{
               display: "block",
               background: "#c0392b",
