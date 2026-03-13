@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         commission_percent: 10,
         commission_amount: Math.round(total * 0.1),
         commission_status: "pending",
-        status: "pending",
+        status: "draft",
         notes: `Nombre: ${nombre} | WhatsApp: ${whatsapp} | Tinaja: ${tinaja_days} días | Código: ${codigo}`
       }])
       .select("id")
