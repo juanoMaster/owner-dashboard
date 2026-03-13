@@ -108,7 +108,7 @@ function ReservarInner() {
       <input type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
 
       <label style={labelStyle}>Fecha de salida</label>
-      <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+      <input type="date" value={checkOut} min={checkIn} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
 
       <label style={labelStyle}>Cantidad de huéspedes</label>
       <select value={guests} onChange={e => setGuests(Number(e.target.value))} style={inputStyle}>
