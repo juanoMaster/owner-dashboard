@@ -1,14 +1,12 @@
 "use client"
-
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Suspense } from "react"
 
-const PRICE_CABIN: Record<string, number> = {
+const PRECIOS: Record<string, number> = {
   "f935a02e-2572-4272-9a08-af40b29f0912": 30000,
   "100598b1-5232-46a0-adf5-6dc969ce2f9f": 40000,
 }
-const CAPACITY_CABIN: Record<string, number> = {
+const CAPACIDAD: Record<string, number> = {
   "f935a02e-2572-4272-9a08-af40b29f0912": 4,
   "100598b1-5232-46a0-adf5-6dc969ce2f9f": 5,
 }
@@ -17,414 +15,358 @@ const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#0d1a12;min-height:100vh;}
-.rk{font-family:'Inter',sans-serif;color:#f0ede8;min-height:100vh;background:#0d1a12;}
-.rk-nav{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #ffffff0f;}
-.rk-nav-logo{font-family:'Playfair Display',serif;font-size:20px;letter-spacing:3px;color:#e8d5a3;text-transform:uppercase;}
-.rk-nav-logo em{color:#7ab87a;font-style:normal;}
-.rk-nav-pill{background:#ffffff0a;border:1px solid #ffffff15;color:#a8b8a0;font-size:11px;padding:5px 14px;border-radius:20px;letter-spacing:1.5px;text-transform:uppercase;}
-.rk-hero{position:relative;padding:44px 24px 40px;background:linear-gradient(180deg,#0d1a12 0%,#162618 60%,#1a3020 100%);overflow:hidden;}
-.rk-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#7ab87a33,transparent);}
-.rk-hero-eyebrow{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#7ab87a;margin-bottom:12px;}
-.rk-hero-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;line-height:1.1;color:#f0ede8;margin-bottom:8px;}
-.rk-hero-sub{font-size:13px;color:#8a9e88;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.rk-hero-dot{color:#7ab87a;}
-.rk-steps{display:flex;gap:0;border-bottom:1px solid #ffffff0a;background:#0d1a12;}
-.rk-step{flex:1;padding:14px 8px;text-align:center;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#4a5a48;border-bottom:2px solid transparent;transition:all .2s;cursor:default;}
+.rk{font-family:'Inter',sans-serif;color:#f0ede8;background:#0d1a12;min-height:100vh;}
+.rk-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #ffffff0f;background:#0a1510;}
+.rk-logo{font-family:'Playfair Display',serif;font-size:20px;letter-spacing:3px;color:#e8d5a3;text-transform:uppercase;}
+.rk-logo em{color:#7ab87a;font-style:normal;}
+.rk-back{background:transparent;border:1px solid #2a3e28;color:#8a9e88;font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;}
+.rk-steps{display:flex;background:#0a1510;border-bottom:1px solid #ffffff08;}
+.rk-step{flex:1;padding:14px 6px;text-align:center;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#2a3e28;border-bottom:2px solid transparent;transition:all .3s;}
 .rk-step.active{color:#7ab87a;border-bottom-color:#7ab87a;}
-.rk-step.done{color:#4a7a48;}
-.rk-body{padding:24px 20px 40px;max-width:520px;margin:0 auto;}
-.rk-card{background:#162618;border:1px solid #ffffff0d;border-radius:16px;padding:22px 20px;margin-bottom:16px;}
-.rk-card-title{font-family:'Playfair Display',serif;font-size:17px;color:#e8d5a3;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #ffffff0a;}
-.rk-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.rk-field{margin-bottom:0;}
-.rk-label{display:block;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#6a7e68;margin-bottom:8px;}
-.rk-input{width:100%;padding:13px 14px;background:#0d1a12;border:1px solid #2a3e28;border-radius:10px;font-size:15px;font-family:'Inter',sans-serif;color:#f0ede8;outline:none;transition:border-color .2s;-webkit-appearance:none;color-scheme:dark;}
-.rk-input:focus{border-color:#7ab87a;}
-.rk-input option{background:#162618;}
-.rk-price-display{background:#0d1a12;border:1px solid #2a3e28;border-radius:14px;padding:20px;margin-bottom:16px;}
-.rk-price-line{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px;}
-.rk-price-line-key{color:#6a7e68;}
-.rk-price-line-val{color:#c8d8c0;font-weight:500;}
-.rk-price-divider{border:none;border-top:1px solid #ffffff0a;margin:8px 0;}
-.rk-price-total{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 0;}
-.rk-price-total-key{font-size:13px;color:#8a9e88;}
-.rk-price-total-val{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#e8d5a3;}
-.rk-deposit{display:flex;justify-content:space-between;align-items:center;background:#7ab87a18;border:1px solid #7ab87a33;border-radius:12px;padding:14px 16px;margin-bottom:20px;}
-.rk-deposit-key{font-size:13px;color:#8ab888;}
-.rk-deposit-val{font-size:17px;font-weight:700;color:#7ab87a;}
-.rk-btn{width:100%;background:#7ab87a;color:#0d1a12;border:none;border-radius:12px;padding:16px;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;letter-spacing:.3px;transition:background .2s;}
+.rk-step.done{color:#4a6e48;border-bottom-color:#4a6e48;}
+.rk-body{padding:24px 20px;max-width:480px;margin:0 auto;}
+.rk-cabin-header{margin-bottom:24px;}
+.rk-cabin-eye{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7ab87a;margin-bottom:6px;}
+.rk-cabin-title{font-family:'Playfair Display',serif;font-size:28px;color:#e8d5a3;}
+.rk-card{background:#162618;border:1px solid #2a3e28;border-radius:16px;padding:20px;margin-bottom:14px;}
+.rk-card-title{font-family:'Playfair Display',serif;font-size:16px;color:#e8d5a3;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #ffffff0a;}
+.rk-g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.rk-lbl{display:block;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#5a7058;margin-bottom:6px;}
+.rk-inp{width:100%;padding:12px 14px;background:#0d1a12;border:1px solid #2a3e28;border-radius:10px;font-size:14px;color:#c8d8c0;font-family:'Inter',sans-serif;outline:none;}
+.rk-inp:focus{border-color:#7ab87a55;}
+.rk-sel{width:100%;padding:12px 14px;background:#0d1a12;border:1px solid #2a3e28;border-radius:10px;font-size:14px;color:#c8d8c0;font-family:'Inter',sans-serif;outline:none;margin-bottom:14px;}
+.rk-price-box{background:#0d1a12;border:1px solid #2a3e28;border-radius:12px;padding:16px;}
+.rk-price-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;}
+.rk-price-key{color:#6a7e68;}
+.rk-price-val{color:#c8d8c0;font-weight:500;}
+.rk-divider{border:none;border-top:1px solid #ffffff0a;margin:10px 0;}
+.rk-total-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0 0;}
+.rk-total-key{font-size:12px;color:#8a9e88;}
+.rk-total-val{font-family:'Playfair Display',serif;font-size:28px;color:#e8d5a3;}
+.rk-deposit{display:flex;justify-content:space-between;align-items:center;background:#7ab87a14;border:1px solid #7ab87a2a;border-radius:10px;padding:12px 14px;margin:14px 0;}
+.rk-dep-key{font-size:12px;color:#7ab87a;}
+.rk-dep-val{font-size:17px;font-weight:700;color:#7ab87a;}
+.rk-btn{width:100%;background:#7ab87a;color:#0d1a12;border:none;border-radius:12px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;}
 .rk-btn:hover{background:#8ecb8e;}
-.rk-btn-ghost{width:100%;background:transparent;color:#6a7e68;border:1px solid #2a3e28;border-radius:12px;padding:13px;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;margin-top:10px;transition:all .2s;}
-.rk-btn-ghost:hover{border-color:#7ab87a55;color:#8ab888;}
-.rk-summary-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #ffffff07;font-size:14px;}
-.rk-summary-row:last-child{border-bottom:none;}
-.rk-sk{color:#6a7e68;}
-.rk-sv{color:#c8d8c0;font-weight:500;text-align:right;max-width:60%;}
-.rk-pay-opt{border:1px solid #2a3e28;border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all .2s;}
-.rk-pay-opt:hover{border-color:#7ab87a55;}
-.rk-pay-opt.sel{border-color:#7ab87a;background:#7ab87a08;}
-.rk-pay-head{display:flex;align-items:center;gap:12px;}
-.rk-pay-ico{width:42px;height:42px;border-radius:10px;background:#0d1a12;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.rk-pay-info{flex:1;}
-.rk-pay-name{font-size:15px;font-weight:600;color:#e0ddd8;}
-.rk-pay-hint{font-size:12px;color:#6a7e68;margin-top:2px;}
-.rk-pay-check{width:20px;height:20px;border-radius:50%;border:2px solid #2a3e28;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
-.rk-pay-opt.sel .rk-pay-check{background:#7ab87a;border-color:#7ab87a;color:#0d1a12;font-size:12px;}
-.rk-transfer-box{background:#0d1a12;border-radius:12px;padding:16px;margin-top:16px;}
-.rk-tr-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px solid #ffffff07;}
-.rk-tr-row:last-child{border-bottom:none;}
-.rk-tr-key{color:#6a7e68;}
-.rk-tr-val{font-weight:600;color:#c8d8c0;}
-.rk-soon{background:#ffffff09;color:#6a7e68;font-size:10px;padding:3px 9px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;}
-.rk-rules{background:#0d1a12;border-radius:12px;padding:16px;}
-.rk-rule{font-size:12px;color:#6a7e68;padding:5px 0;display:flex;gap:8px;border-bottom:1px solid #ffffff05;}
-.rk-rule:last-child{border-bottom:none;}
-.rk-rule-dot{color:#7ab87a;flex-shrink:0;}
-.rk-success{text-align:center;padding:32px 16px;}
-.rk-success-ring{width:80px;height:80px;border-radius:50%;border:2px solid #7ab87a;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:32px;}
-.rk-footer{text-align:center;padding:24px 20px;font-size:11px;color:#3a4e38;letter-spacing:1px;text-transform:uppercase;}
+.rk-btn:disabled{background:#2a3e28;color:#4a6e48;cursor:not-allowed;}
+.rk-error{background:#e6394615;border:1px solid #e6394633;border-radius:10px;padding:12px 14px;font-size:13px;color:#e67a7a;margin-bottom:14px;}
+.rk-success{text-align:center;padding:48px 24px;}
+.rk-success-ico{font-size:48px;margin-bottom:20px;}
+.rk-success-title{font-family:'Playfair Display',serif;font-size:30px;color:#e8d5a3;margin-bottom:10px;}
+.rk-success-code{font-family:'Playfair Display',serif;font-size:22px;color:#7ab87a;background:#7ab87a14;border:1px solid #7ab87a2a;border-radius:12px;padding:14px 20px;margin:20px 0;letter-spacing:2px;}
+.rk-success-desc{font-size:14px;color:#8a9e88;line-height:1.75;margin-bottom:24px;}
+.rk-success-bank{background:#162618;border:1px solid #2a3e28;border-radius:14px;padding:18px;text-align:left;}
+.rk-bank-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#5a7058;margin-bottom:12px;}
+.rk-bank-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #ffffff07;}
+.rk-bank-row:last-child{border-bottom:none;}
+.rk-bank-key{color:#6a7e68;}
+.rk-bank-val{color:#c8d8c0;font-weight:500;}
+.rk-resumen-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ffffff07;}
+.rk-resumen-item:last-child{border-bottom:none;}
+.rk-resumen-key{font-size:13px;color:#6a7e68;}
+.rk-resumen-val{font-size:13px;color:#c8d8c0;font-weight:500;}
 `
 
-function fmt(n: number) { return "$" + n.toLocaleString("es-CL") }
-function fmtDate(d: string) {
-  if (!d) return ""
-  const [y, m, day] = d.split("-")
-  return `${day}/${m}/${y}`
+function fmt(n: number) {
+  return "$" + n.toLocaleString("es-CL")
 }
 
 function ReservarInner() {
-  const searchParams = useSearchParams()
-  const cabinId = searchParams.get("cabin_id") || ""
-  const cabinName = decodeURIComponent(searchParams.get("cabin_name") || "Cabaña")
+  const params = useSearchParams()
+  const cabin_id = params.get("cabin_id") || ""
+  const cabin_name = params.get("cabin_name") || "Cabaña"
 
+  const precio_noche = PRECIOS[cabin_id] || 30000
+  const capacidad = CAPACIDAD[cabin_id] || 4
+
+  const today = new Date().toISOString().split("T")[0]
+
+  const [paso, setPaso] = useState(1)
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(2)
   const [tinajaDias, setTinajaDias] = useState(0)
-  const [guestName, setGuestName] = useState("")
+  const [nombre, setNombre] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
-  const [step, setStep] = useState<"form"|"resumen"|"pago">("form")
-  const [payMethod, setPayMethod] = useState<"transfer"|"card"|null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [codigo, setCodigo] = useState("")
 
-  const pricePerNight = PRICE_CABIN[cabinId] || 30000
-  const capacity = CAPACITY_CABIN[cabinId] || 4
-  const nights = checkIn && checkOut
+  // Cálculos
+  const noches = checkIn && checkOut
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
-  const extraGuests = Math.max(0, guests - capacity)
-  const extraCost = extraGuests * 5000 * nights
-  const tinajaCost = tinajaDias * 30000
-  const subtotal = pricePerNight * nights + extraCost + tinajaCost
-  const deposit = Math.round(subtotal * 0.2)
+  const extrasPersonas = Math.max(0, guests - capacidad) * 5000 * noches
+  const subtotal = precio_noche * noches + extrasPersonas
+  const tinaja = tinajaDias * 30000
+  const total = subtotal + tinaja
+  const deposito = Math.round(total * 0.2)
 
-  function validate() {
-    if (!checkIn || !checkOut) { alert("Selecciona fechas de entrada y salida"); return false }
-    if (nights < 2) { alert("La estadía mínima es 2 noches"); return false }
-    if (!guestName.trim()) { alert("Ingresa tu nombre"); return false }
-    if (!whatsapp.trim()) { alert("Ingresa tu WhatsApp"); return false }
-    return true
+  const noches_ok = noches >= 2
+  const form_ok = checkIn && checkOut && noches_ok && nombre.trim() && whatsapp.trim()
+
+  async function confirmar() {
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cabin_id,
+          check_in: checkIn,
+          check_out: checkOut,
+          guests,
+          nights: noches,
+          subtotal,
+          total,
+          deposit: deposito,
+          tinaja_days: tinajaDias,
+          nombre: nombre.trim(),
+          whatsapp: whatsapp.trim(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Error al confirmar")
+      setCodigo(data.codigo)
+      setPaso(4)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const Nav = () => (
-    <nav className="rk-nav">
-      <div className="rk-nav-logo">Ruka<em>traro</em></div>
-      <div className="rk-nav-pill">Reserva directa</div>
-    </nav>
-  )
+  return (
+    <div className="rk">
+      <style>{CSS}</style>
 
-  const Hero = () => (
-    <div className="rk-hero">
-      <div className="rk-hero-eyebrow">Cabaña en el lago</div>
-      <div className="rk-hero-title">{cabinName}</div>
-      <div className="rk-hero-sub">
-        <span>Licanray</span>
-        <span className="rk-hero-dot">·</span>
-        <span>Lago Calafquén</span>
-        <span className="rk-hero-dot">·</span>
-        <span>Región de Los Ríos</span>
-      </div>
-    </div>
-  )
-
-  const Steps = ({ current }: { current: number }) => (
-    <div className="rk-steps">
-      {["Datos", "Resumen", "Pago"].map((s, i) => (
-        <div key={s} className={`rk-step${i + 1 === current ? " active" : ""}${i + 1 < current ? " done" : ""}`}>
-          {i + 1 < current ? "✓ " : `${i + 1}. `}{s}
-        </div>
-      ))}
-    </div>
-  )
-
-  // PAGO
-  if (step === "pago") return (
-    <div className="rk"><style>{CSS}</style>
-      <Nav />
-      <Steps current={3} />
-      <div className="rk-body">
-        <div className="rk-card">
-          <div className="rk-success">
-            <div className="rk-success-ring">✓</div>
-            <p style={{ fontFamily: "Playfair Display, serif", fontSize: "24px", marginBottom: "8px", color: "#e8d5a3" }}>
-              ¡Solicitud recibida!
-            </p>
-            <p style={{ fontSize: "14px", color: "#8a9e88", lineHeight: "1.6" }}>
-              Hola <strong style={{ color: "#c8d8c0" }}>{guestName}</strong> — ya tenemos tu solicitud para <strong style={{ color: "#c8d8c0" }}>{cabinName}</strong>.
-            </p>
-            <p style={{ fontSize: "13px", color: "#4a5a48", marginTop: "8px" }}>
-              {fmtDate(checkIn)} → {fmtDate(checkOut)} · {nights} noche{nights > 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
-
-        <div className="rk-card">
-          <div className="rk-card-title">Confirma pagando el adelanto</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#0d1a12", borderRadius: "12px", padding: "16px", marginBottom: "20px" }}>
-            <span style={{ fontSize: "13px", color: "#6a7e68" }}>Adelanto requerido (20%)</span>
-            <span style={{ fontFamily: "Playfair Display, serif", fontSize: "26px", color: "#e8d5a3" }}>{fmt(deposit)}</span>
-          </div>
-
-          <div className={`rk-pay-opt${payMethod === "transfer" ? " sel" : ""}`} onClick={() => setPayMethod("transfer")}>
-            <div className="rk-pay-head">
-              <div className="rk-pay-ico">🏦</div>
-              <div className="rk-pay-info">
-                <div className="rk-pay-name">Transferencia Bancaria</div>
-                <div className="rk-pay-hint">BancoEstado · Inmediato</div>
-              </div>
-              <div className="rk-pay-check">{payMethod === "transfer" ? "✓" : ""}</div>
-            </div>
-            {payMethod === "transfer" && (
-              <div className="rk-transfer-box">
-                {[
-                  ["Banco", "BancoEstado"],
-                  ["Tipo de cuenta", "Cuenta RUT"],
-                  ["RUT / Número", "15.665.466-3"],
-                  ["Nombre", "Johanna Medina"],
-                  ["Monto exacto", fmt(deposit)],
-                  ["Asunto / Glosa", `Reserva ${cabinName}`],
-                ].map(([k, v]) => (
-                  <div className="rk-tr-row" key={k}>
-                    <span className="rk-tr-key">{k}</span>
-                    <span className="rk-tr-val">{v}</span>
-                  </div>
-                ))}
-                <p style={{ fontSize: "12px", color: "#4a5a48", marginTop: "12px", lineHeight: "1.6" }}>
-                  Envía el comprobante por WhatsApp a Johanna y ella confirmará tu reserva en menos de 24 horas.
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="rk-pay-opt" style={{ opacity: 0.5, cursor: "default" }}>
-            <div className="rk-pay-head">
-              <div className="rk-pay-ico">💳</div>
-              <div className="rk-pay-info">
-                <div className="rk-pay-name">Tarjeta / Débito online</div>
-                <div className="rk-pay-hint">Pago seguro con Mercado Pago</div>
-              </div>
-              <div className="rk-soon">Próximo</div>
-            </div>
-          </div>
-        </div>
-
-        {payMethod === "transfer" && (
-          <div className="rk-card">
-            <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#7ab87a22", border: "1px solid #7ab87a44", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>💬</div>
-              <div>
-                <p style={{ fontSize: "13px", color: "#8a9e88", marginBottom: "2px" }}>Después de transferir, escríbele a</p>
-                <p style={{ fontSize: "15px", fontWeight: "600", color: "#c8d8c0" }}>Johanna — Rukatraro</p>
-                <p style={{ fontSize: "12px", color: "#4a5a48" }}>WhatsApp · responde en menos de 24 hrs</p>
-              </div>
-            </div>
-          </div>
+      <nav className="rk-nav">
+        <div className="rk-logo">Ruka<em>traro</em></div>
+        {paso > 1 && paso < 4 && (
+          <button className="rk-back" onClick={() => { setPaso(p => p - 1); setError("") }}>
+            ← Volver
+          </button>
         )}
-        <div className="rk-footer">Rukatraro · Licanray · Chile</div>
-      </div>
-    </div>
-  )
+      </nav>
 
-  // RESUMEN
-  if (step === "resumen") return (
-    <div className="rk"><style>{CSS}</style>
-      <Nav />
-      <Steps current={2} />
-      <div className="rk-body">
-        <button className="rk-btn-ghost" style={{ width: "auto", padding: "8px 16px", marginBottom: "16px" }} onClick={() => setStep("form")}>
-          ← Volver
-        </button>
-
-        <div className="rk-card">
-          <div className="rk-card-title">Tu reserva</div>
-          {[
-            ["Cabaña", cabinName],
-            ["Huésped", guestName],
-            ["WhatsApp", whatsapp],
-            ["Check-in", `${fmtDate(checkIn)} — 14:00 hrs`],
-            ["Check-out", `${fmtDate(checkOut)} — 12:00 hrs`],
-            ["Noches", `${nights}`],
-            [`Huéspedes`, `${guests} persona${guests > 1 ? "s" : ""}`],
-            tinajaDias > 0 ? ["Tinaja", `${tinajaDias} día${tinajaDias > 1 ? "s" : ""}`] : null,
-          ].filter(Boolean).map((row: any) => (
-            <div className="rk-summary-row" key={row[0]}>
-              <span className="rk-sk">{row[0]}</span>
-              <span className="rk-sv">{row[1]}</span>
+      {paso < 4 && (
+        <div className="rk-steps">
+          {["Datos", "Resumen", "Confirmar"].map((s, i) => (
+            <div key={s} className={`rk-step ${paso === i + 1 ? "active" : paso > i + 1 ? "done" : ""}`}>
+              {s}
             </div>
           ))}
         </div>
+      )}
 
-        <div className="rk-price-display">
-          <div className="rk-price-line">
-            <span className="rk-price-line-key">{fmt(pricePerNight)} × {nights} noche{nights > 1 ? "s" : ""}</span>
-            <span className="rk-price-line-val">{fmt(pricePerNight * nights)}</span>
-          </div>
-          {extraCost > 0 && (
-            <div className="rk-price-line">
-              <span className="rk-price-line-key">{extraGuests} persona{extraGuests > 1 ? "s" : ""} extra</span>
-              <span className="rk-price-line-val">{fmt(extraCost)}</span>
-            </div>
-          )}
-          {tinajaCost > 0 && (
-            <div className="rk-price-line">
-              <span className="rk-price-line-key">Tinaja {tinajaDias} día{tinajaDias > 1 ? "s" : ""}</span>
-              <span className="rk-price-line-val">{fmt(tinajaCost)}</span>
-            </div>
-          )}
-          <hr className="rk-price-divider" />
-          <div className="rk-price-total">
-            <span className="rk-price-total-key">Total estadía</span>
-            <span className="rk-price-total-val">{fmt(subtotal)}</span>
-          </div>
-        </div>
-
-        <div className="rk-deposit">
-          <span className="rk-deposit-key">Adelanto para confirmar (20%)</span>
-          <span className="rk-deposit-val">{fmt(deposit)}</span>
-        </div>
-
-        <div className="rk-card">
-          <div className="rk-card-title" style={{ marginBottom: "12px" }}>Reglamento</div>
-          <div className="rk-rules">
-            {[
-              "No mascotas",
-              "No fiestas ni visitas externas",
-              "No fumar dentro de la cabaña",
-              "No música a alto volumen",
-              "No papeles al inodoro",
-              "Cancelación: 50% devuelto con 14+ días de anticipación",
-            ].map(r => (
-              <div className="rk-rule" key={r}>
-                <span className="rk-rule-dot">·</span>
-                <span>{r}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button className="rk-btn" onClick={() => setStep("pago")}>
-          Continuar al pago →
-        </button>
-        <div className="rk-footer">Rukatraro · Licanray · Chile</div>
-      </div>
-    </div>
-  )
-
-  // FORMULARIO
-  return (
-    <div className="rk"><style>{CSS}</style>
-      <Nav />
-      <Hero />
-      <Steps current={1} />
       <div className="rk-body">
-        <div className="rk-card">
-          <div className="rk-card-title">Fechas</div>
-          <div className="rk-grid2" style={{ marginBottom: "16px" }}>
-            <div className="rk-field">
-              <label className="rk-label">Check-in</label>
-              <input className="rk-input" type="date" value={checkIn}
-                min={new Date().toISOString().split("T")[0]}
-                onChange={e => { setCheckIn(e.target.value); setCheckOut(""); setTinajaDias(0) }} />
-            </div>
-            <div className="rk-field">
-              <label className="rk-label">Check-out</label>
-              <input className="rk-input" type="date" value={checkOut}
-                min={checkIn}
-                onChange={e => setCheckOut(e.target.value)} />
-            </div>
-          </div>
-          <div style={{ marginBottom: "16px" }}>
-            <label className="rk-label">Huéspedes</label>
-            <select className="rk-input" value={guests} onChange={e => setGuests(Number(e.target.value))}>
-              {[1,2,3,4,5,6].map(n => (
-                <option key={n} value={n}>
-                  {n} persona{n > 1 ? "s" : ""}{n > capacity ? ` — +${fmt(5000)}/noche extra` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="rk-label">Tinaja de madera (+$30.000/día)</label>
-            <select className="rk-input" value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))} disabled={nights < 2}>
-              <option value={0}>Sin tinaja</option>
-              {Array.from({ length: nights }, (_, i) => i + 1).map(n => (
-                <option key={n} value={n}>{n} día{n > 1 ? "s" : ""} — {fmt(n * 30000)}</option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        <div className="rk-card">
-          <div className="rk-card-title">Tus datos</div>
-          <div style={{ marginBottom: "16px" }}>
-            <label className="rk-label">Nombre completo</label>
-            <input className="rk-input" type="text" value={guestName}
-              onChange={e => setGuestName(e.target.value)}
-              placeholder="Ej: María González" />
-          </div>
-          <div>
-            <label className="rk-label">WhatsApp</label>
-            <input className="rk-input" type="tel" value={whatsapp}
-              onChange={e => setWhatsapp(e.target.value)}
-              placeholder="+56 9 1234 5678" />
-          </div>
-        </div>
-
-        {nights >= 2 && (
+        {/* PASO 1 — DATOS */}
+        {paso === 1 && (
           <>
-            <div className="rk-price-display">
-              <div className="rk-price-line">
-                <span className="rk-price-line-key">{fmt(pricePerNight)} × {nights} noche{nights > 1 ? "s" : ""}</span>
-                <span className="rk-price-line-val">{fmt(pricePerNight * nights)}</span>
+            <div className="rk-cabin-header">
+              <div className="rk-cabin-eye">Reserva directa</div>
+              <div className="rk-cabin-title">{cabin_name}</div>
+            </div>
+
+            <div className="rk-card">
+              <div className="rk-card-title">Fechas de estadía</div>
+              <div className="rk-g2">
+                <div>
+                  <span className="rk-lbl">Check-in</span>
+                  <input className="rk-inp" type="date" min={today} value={checkIn}
+                    onChange={e => { setCheckIn(e.target.value); setCheckOut("") }} />
+                </div>
+                <div>
+                  <span className="rk-lbl">Check-out</span>
+                  <input className="rk-inp" type="date" min={checkIn || today} value={checkOut}
+                    onChange={e => setCheckOut(e.target.value)} />
+                </div>
               </div>
-              {extraCost > 0 && (
-                <div className="rk-price-line">
-                  <span className="rk-price-line-key">{extraGuests} persona{extraGuests > 1 ? "s" : ""} extra</span>
-                  <span className="rk-price-line-val">{fmt(extraCost)}</span>
+              {checkIn && checkOut && !noches_ok && (
+                <div className="rk-error">La estadía mínima es de 2 noches</div>
+              )}
+              {noches >= 2 && (
+                <div style={{ fontSize: "12px", color: "#7ab87a", marginBottom: "4px" }}>
+                  {noches} {noches === 1 ? "noche" : "noches"} seleccionadas
                 </div>
               )}
-              {tinajaCost > 0 && (
-                <div className="rk-price-line">
-                  <span className="rk-price-line-key">Tinaja</span>
-                  <span className="rk-price-line-val">{fmt(tinajaCost)}</span>
-                </div>
-              )}
-              <hr className="rk-price-divider" />
-              <div className="rk-price-total">
-                <span className="rk-price-total-key">Total estadía</span>
-                <span className="rk-price-total-val">{fmt(subtotal)}</span>
-              </div>
             </div>
-            <div className="rk-deposit">
-              <span className="rk-deposit-key">Adelanto para confirmar (20%)</span>
-              <span className="rk-deposit-val">{fmt(deposit)}</span>
+
+            <div className="rk-card">
+              <div className="rk-card-title">Huéspedes y extras</div>
+              <span className="rk-lbl">Número de personas (cap. {capacidad})</span>
+              <select className="rk-sel" value={guests} onChange={e => setGuests(Number(e.target.value))}>
+                {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}{n > capacidad ? " (+$5.000/noche)" : ""}</option>
+                ))}
+              </select>
+              <span className="rk-lbl">Tinaja de madera (+$30.000/día)</span>
+              <select className="rk-sel" value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
+                <option value={0}>Sin tinaja</option>
+                {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n} {n === 1 ? "día" : "días"} — {fmt(n * 30000)}</option>
+                ))}
+              </select>
             </div>
+
+            <div className="rk-card">
+              <div className="rk-card-title">Tus datos</div>
+              <span className="rk-lbl">Nombre completo</span>
+              <input className="rk-inp" type="text" placeholder="María González"
+                value={nombre} onChange={e => setNombre(e.target.value)}
+                style={{ marginBottom: "14px" }} />
+              <span className="rk-lbl">WhatsApp</span>
+              <input className="rk-inp" type="tel" placeholder="+56 9 1234 5678"
+                value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
+            </div>
+
+            <button className="rk-btn" disabled={!form_ok} onClick={() => setPaso(2)}>
+              Ver resumen →
+            </button>
           </>
         )}
 
-        <button className="rk-btn" onClick={() => { if (validate()) setStep("resumen") }}>
-          Ver resumen →
-        </button>
-        <div className="rk-footer">Rukatraro · Licanray · Chile</div>
+        {/* PASO 2 — RESUMEN */}
+        {paso === 2 && (
+          <>
+            <div className="rk-cabin-header">
+              <div className="rk-cabin-eye">Resumen de tu reserva</div>
+              <div className="rk-cabin-title">{cabin_name}</div>
+            </div>
+
+            <div className="rk-card">
+              <div className="rk-card-title">Detalle</div>
+              {[
+                ["Huésped", nombre],
+                ["WhatsApp", whatsapp],
+                ["Check-in", checkIn],
+                ["Check-out", checkOut],
+                ["Noches", `${noches}`],
+                ["Personas", `${guests}`],
+                ["Tinaja", tinajaDias > 0 ? `${tinajaDias} días` : "Sin tinaja"],
+              ].map(([k, v]) => (
+                <div className="rk-resumen-item" key={k}>
+                  <span className="rk-resumen-key">{k}</span>
+                  <span className="rk-resumen-val">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="rk-card">
+              <div className="rk-card-title">Precio</div>
+              <div className="rk-price-box">
+                <div className="rk-price-row">
+                  <span className="rk-price-key">{fmt(precio_noche)} × {noches} noches</span>
+                  <span className="rk-price-val">{fmt(precio_noche * noches)}</span>
+                </div>
+                {extrasPersonas > 0 && (
+                  <div className="rk-price-row">
+                    <span className="rk-price-key">Personas extra</span>
+                    <span className="rk-price-val">{fmt(extrasPersonas)}</span>
+                  </div>
+                )}
+                {tinaja > 0 && (
+                  <div className="rk-price-row">
+                    <span className="rk-price-key">Tinaja {tinajaDias} días</span>
+                    <span className="rk-price-val">{fmt(tinaja)}</span>
+                  </div>
+                )}
+                <hr className="rk-divider" />
+                <div className="rk-total-row">
+                  <span className="rk-total-key">Total estadía</span>
+                  <span className="rk-total-val">{fmt(total)}</span>
+                </div>
+              </div>
+              <div className="rk-deposit">
+                <span className="rk-dep-key">Adelanto para confirmar (20%)</span>
+                <span className="rk-dep-val">{fmt(deposito)}</span>
+              </div>
+            </div>
+
+            <button className="rk-btn" onClick={() => setPaso(3)}>
+              Confirmar reserva →
+            </button>
+          </>
+        )}
+
+        {/* PASO 3 — PAGO */}
+        {paso === 3 && (
+          <>
+            <div className="rk-cabin-header">
+              <div className="rk-cabin-eye">Último paso</div>
+              <div className="rk-cabin-title">Realiza el adelanto</div>
+            </div>
+
+            <div className="rk-card">
+              <div className="rk-card-title">Transferencia bancaria</div>
+              <div className="rk-price-box">
+                {[
+                  ["Banco", "BancoEstado"],
+                  ["Tipo", "Cuenta RUT"],
+                  ["Número", "15.665.466-3"],
+                  ["Nombre", "Johanna Medina"],
+                  ["Monto", fmt(deposito)],
+                  ["Concepto", `Reserva ${cabin_name}`],
+                ].map(([k, v]) => (
+                  <div className="rk-price-row" key={k}>
+                    <span className="rk-price-key">{k}</span>
+                    <span className="rk-price-val">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rk-card" style={{ opacity: 0.5 }}>
+              <div className="rk-card-title">Tarjeta de crédito / débito</div>
+              <div style={{ fontSize: "13px", color: "#5a7058", textAlign: "center", padding: "12px 0" }}>
+                Próximamente disponible
+              </div>
+            </div>
+
+            {error && <div className="rk-error">{error}</div>}
+
+            <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: "1.6" }}>
+              Al confirmar, recibirás un código de reserva. Johanna se contactará contigo por WhatsApp para verificar el pago.
+            </div>
+
+            <button className="rk-btn" disabled={loading} onClick={confirmar}>
+              {loading ? "Guardando reserva..." : `Confirmar y enviar reserva →`}
+            </button>
+          </>
+        )}
+
+        {/* PASO 4 — ÉXITO */}
+        {paso === 4 && (
+          <div className="rk-success">
+            <div className="rk-success-ico">🌿</div>
+            <div className="rk-success-title">¡Reserva enviada!</div>
+            <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" }}>Tu código de reserva</div>
+            <div className="rk-success-code">{codigo}</div>
+            <div className="rk-success-desc">
+              Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br />
+              Johanna te contactará por WhatsApp al <strong style={{ color: "#c8d8c0" }}>{whatsapp}</strong>
+              {" "}para confirmar tu pago de <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>.
+            </div>
+            <div className="rk-success-bank">
+              <div className="rk-bank-title">Datos para transferir el adelanto</div>
+              {[
+                ["Banco", "BancoEstado"],
+                ["Cuenta RUT", "15.665.466-3"],
+                ["Titular", "Johanna Medina"],
+                ["Monto", fmt(deposito)],
+                ["Concepto", codigo],
+              ].map(([k, v]) => (
+                <div className="rk-bank-row" key={k}>
+                  <span className="rk-bank-key">{k}</span>
+                  <span className="rk-bank-val">{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )
@@ -432,7 +374,7 @@ function ReservarInner() {
 
 export default function ReservarPage() {
   return (
-    <Suspense fallback={<div style={{ padding: "32px", fontFamily: "sans-serif", color: "#f0ede8", background: "#0d1a12", minHeight: "100vh" }}>Cargando...</div>}>
+    <Suspense fallback={<div style={{ padding: "32px", background: "#0d1a12", minHeight: "100vh" }} />}>
       <ReservarInner />
     </Suspense>
   )
