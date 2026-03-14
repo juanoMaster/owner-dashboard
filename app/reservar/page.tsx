@@ -19,13 +19,13 @@ html,body{background:#0d1a12;min-height:100vh;}
 .rk-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #ffffff0f;background:#0a1510;}
 .rk-logo{font-family:'Playfair Display',serif;font-size:20px;letter-spacing:3px;color:#e8d5a3;text-transform:uppercase;}
 .rk-logo em{color:#7ab87a;font-style:normal;}
-.rk-back{background:transparent;border:1px solid #2a3e28;color:#8a9e88;font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;}
+.rk-back{background:transparent;border:1px solid #2a3e28;color:#8a9e88;font-size:12px;padding:7px 16px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;}
 .rk-steps{display:flex;background:#0a1510;border-bottom:1px solid #ffffff08;}
 .rk-step{flex:1;padding:14px 6px;text-align:center;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#2a3e28;border-bottom:2px solid transparent;transition:all .3s;}
 .rk-step.active{color:#7ab87a;border-bottom-color:#7ab87a;}
 .rk-step.done{color:#4a6e48;border-bottom-color:#4a6e48;}
 .rk-body{padding:24px 20px;max-width:480px;margin:0 auto;}
-.rk-cabin-header{margin-bottom:24px;}
+.rk-cabin-header{margin-bottom:20px;}
 .rk-cabin-eye{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7ab87a;margin-bottom:6px;}
 .rk-cabin-title{font-family:'Playfair Display',serif;font-size:28px;color:#e8d5a3;}
 .rk-card{background:#162618;border:1px solid #2a3e28;border-radius:16px;padding:20px;margin-bottom:14px;}
@@ -49,22 +49,28 @@ html,body{background:#0d1a12;min-height:100vh;}
 .rk-btn{width:100%;background:#7ab87a;color:#0d1a12;border:none;border-radius:12px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;}
 .rk-btn:hover{background:#8ecb8e;}
 .rk-btn:disabled{background:#2a3e28;color:#4a6e48;cursor:not-allowed;}
+.rk-btn-back{width:100%;background:transparent;color:#8a9e88;border:1px solid #2a3e28;border-radius:12px;padding:14px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;}
 .rk-error{background:#e6394615;border:1px solid #e6394633;border-radius:10px;padding:12px 14px;font-size:13px;color:#e67a7a;margin-bottom:14px;}
-.rk-success{text-align:center;padding:48px 24px;}
-.rk-success-ico{font-size:48px;margin-bottom:20px;}
-.rk-success-title{font-family:'Playfair Display',serif;font-size:30px;color:#e8d5a3;margin-bottom:10px;}
-.rk-success-code{font-family:'Playfair Display',serif;font-size:22px;color:#7ab87a;background:#7ab87a14;border:1px solid #7ab87a2a;border-radius:12px;padding:14px 20px;margin:20px 0;letter-spacing:2px;}
-.rk-success-desc{font-size:14px;color:#8a9e88;line-height:1.75;margin-bottom:24px;}
-.rk-success-bank{background:#162618;border:1px solid #2a3e28;border-radius:14px;padding:18px;text-align:left;}
-.rk-bank-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#5a7058;margin-bottom:12px;}
-.rk-bank-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #ffffff07;}
-.rk-bank-row:last-child{border-bottom:none;}
-.rk-bank-key{color:#6a7e68;}
-.rk-bank-val{color:#c8d8c0;font-weight:500;}
+.rk-alert{background:#e8a21a18;border:1px solid #e8a21a33;border-radius:10px;padding:14px;margin-bottom:14px;}
+.rk-alert-title{font-size:13px;font-weight:600;color:#e8b84a;margin-bottom:4px;}
+.rk-alert-desc{font-size:12px;color:#c8a060;line-height:1.6;}
+.rk-info{background:#7ab87a10;border:1px solid #7ab87a22;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#7ab87a;line-height:1.6;}
 .rk-resumen-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ffffff07;}
 .rk-resumen-item:last-child{border-bottom:none;}
 .rk-resumen-key{font-size:13px;color:#6a7e68;}
 .rk-resumen-val{font-size:13px;color:#c8d8c0;font-weight:500;}
+.rk-success{text-align:center;padding:40px 20px;}
+.rk-success-ico{font-size:48px;margin-bottom:20px;}
+.rk-success-title{font-family:'Playfair Display',serif;font-size:28px;color:#e8d5a3;margin-bottom:10px;}
+.rk-success-code{font-family:'Playfair Display',serif;font-size:22px;color:#7ab87a;background:#7ab87a14;border:1px solid #7ab87a2a;border-radius:12px;padding:14px 20px;margin:16px 0;letter-spacing:2px;}
+.rk-success-desc{font-size:13px;color:#8a9e88;line-height:1.75;margin-bottom:20px;}
+.rk-success-bank{background:#162618;border:1px solid #2a3e28;border-radius:14px;padding:18px;text-align:left;}
+.rk-bank-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#5a7058;margin-bottom:12px;}
+.rk-bank-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #ffffff07;}
+.rk-bank-row:last-child{border-bottom:none;}
+.rk-bank-key{color:#6a7e68;}
+.rk-bank-val{color:#c8d8c0;font-weight:500;}
+.rk-warning{background:#e6394612;border:1px solid #e6394622;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#c87a7a;line-height:1.6;}
 `
 
 function fmt(n: number) {
@@ -78,7 +84,6 @@ function ReservarInner() {
 
   const precio_noche = PRECIOS[cabin_id] || 30000
   const capacidad = CAPACIDAD[cabin_id] || 4
-
   const today = new Date().toISOString().split("T")[0]
 
   const [paso, setPaso] = useState(1)
@@ -88,11 +93,11 @@ function ReservarInner() {
   const [tinajaDias, setTinajaDias] = useState(0)
   const [nombre, setNombre] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
+  const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [codigo, setCodigo] = useState("")
 
-  // Cálculos
   const noches = checkIn && checkOut
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
@@ -104,6 +109,16 @@ function ReservarInner() {
 
   const noches_ok = noches >= 2
   const form_ok = checkIn && checkOut && noches_ok && nombre.trim() && whatsapp.trim()
+
+  function irAlResumen() {
+    setError("")
+    setPaso(2)
+  }
+
+  function volverADatos() {
+    setError("")
+    setPaso(1)
+  }
 
   async function confirmar() {
     setLoading(true)
@@ -124,6 +139,7 @@ function ReservarInner() {
           tinaja_days: tinajaDias,
           nombre: nombre.trim(),
           whatsapp: whatsapp.trim(),
+          email: email.trim(),
         }),
       })
       const data = await res.json()
@@ -144,17 +160,15 @@ function ReservarInner() {
       <nav className="rk-nav">
         <div className="rk-logo">Ruka<em>traro</em></div>
         {paso > 1 && paso < 4 && (
-          <button className="rk-back" onClick={() => { setPaso(p => p - 1); setError("") }}>
-            ← Volver
-          </button>
+          <button className="rk-back" onClick={volverADatos}>← Volver</button>
         )}
       </nav>
 
       {paso < 4 && (
         <div className="rk-steps">
-          {["Datos", "Resumen", "Confirmar"].map((s, i) => (
+          {["Datos", "Resumen", "Pago"].map((s, i) => (
             <div key={s} className={`rk-step ${paso === i + 1 ? "active" : paso > i + 1 ? "done" : ""}`}>
-              {s}
+              {paso > i + 1 ? "✓ " : ""}{s}
             </div>
           ))}
         </div>
@@ -185,11 +199,11 @@ function ReservarInner() {
                 </div>
               </div>
               {checkIn && checkOut && !noches_ok && (
-                <div className="rk-error">La estadía mínima es de 2 noches</div>
+                <div className="rk-error">La estadía mínima es de 2 noches.</div>
               )}
               {noches >= 2 && (
                 <div style={{ fontSize: "12px", color: "#7ab87a", marginBottom: "4px" }}>
-                  {noches} {noches === 1 ? "noche" : "noches"} seleccionadas
+                  ✓ {noches} noches seleccionadas
                 </div>
               )}
             </div>
@@ -199,7 +213,9 @@ function ReservarInner() {
               <span className="rk-lbl">Número de personas (cap. {capacidad})</span>
               <select className="rk-sel" value={guests} onChange={e => setGuests(Number(e.target.value))}>
                 {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
-                  <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}{n > capacidad ? " (+$5.000/noche)" : ""}</option>
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? "persona" : "personas"}{n > capacidad ? ` (+${fmt(5000)}/noche)` : ""}
+                  </option>
                 ))}
               </select>
               <span className="rk-lbl">Tinaja de madera (+$30.000/día)</span>
@@ -212,17 +228,24 @@ function ReservarInner() {
             </div>
 
             <div className="rk-card">
-              <div className="rk-card-title">Tus datos</div>
+              <div className="rk-card-title">Tus datos de contacto</div>
+              <div className="rk-info">
+                📌 Revisa bien tu número de WhatsApp y correo. Ahí recibirás la confirmación de tu reserva.
+              </div>
               <span className="rk-lbl">Nombre completo</span>
               <input className="rk-inp" type="text" placeholder="María González"
                 value={nombre} onChange={e => setNombre(e.target.value)}
                 style={{ marginBottom: "14px" }} />
               <span className="rk-lbl">WhatsApp</span>
               <input className="rk-inp" type="tel" placeholder="+56 9 1234 5678"
-                value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
+                value={whatsapp} onChange={e => setWhatsapp(e.target.value)}
+                style={{ marginBottom: "14px" }} />
+              <span className="rk-lbl">Correo electrónico</span>
+              <input className="rk-inp" type="email" placeholder="tu@correo.com"
+                value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
-            <button className="rk-btn" disabled={!form_ok} onClick={() => setPaso(2)}>
+            <button className="rk-btn" disabled={!form_ok} onClick={irAlResumen}>
               Ver resumen →
             </button>
           </>
@@ -236,11 +259,23 @@ function ReservarInner() {
               <div className="rk-cabin-title">{cabin_name}</div>
             </div>
 
+            {/* Alerta tinaja si no seleccionó */}
+            {tinajaDias === 0 && (
+              <div className="rk-alert">
+                <div className="rk-alert-title">🪵 ¿Olvidaste la tinaja?</div>
+                <div className="rk-alert-desc">
+                  Rukatraro cuenta con una tinaja de madera calentada a leña, ideal para disfrutar las noches del sur.
+                  Si quieres agregarla, vuelve al paso anterior — cuesta solo $30.000/día.
+                </div>
+              </div>
+            )}
+
             <div className="rk-card">
-              <div className="rk-card-title">Detalle</div>
+              <div className="rk-card-title">Detalle de la reserva</div>
               {[
                 ["Huésped", nombre],
                 ["WhatsApp", whatsapp],
+                ["Correo", email || "—"],
                 ["Check-in", checkIn],
                 ["Check-out", checkOut],
                 ["Noches", `${noches}`],
@@ -285,8 +320,11 @@ function ReservarInner() {
               </div>
             </div>
 
-            <button className="rk-btn" onClick={() => setPaso(3)}>
-              Confirmar reserva →
+            <button className="rk-btn" onClick={() => { setError(""); setPaso(3) }}>
+              Continuar al pago →
+            </button>
+            <button className="rk-btn-back" onClick={volverADatos}>
+              ← Volver y modificar
             </button>
           </>
         )}
@@ -307,7 +345,7 @@ function ReservarInner() {
                   ["Tipo", "Cuenta RUT"],
                   ["Número", "15.665.466-3"],
                   ["Nombre", "Johanna Medina"],
-                  ["Monto", fmt(deposito)],
+                  ["Monto exacto", fmt(deposito)],
                   ["Concepto", `Reserva ${cabin_name}`],
                 ].map(([k, v]) => (
                   <div className="rk-price-row" key={k}>
@@ -316,6 +354,10 @@ function ReservarInner() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="rk-warning">
+              ⚠️ Transfiere exactamente <strong>{fmt(deposito)}</strong> — una vez que Johanna verifique tu pago, te contactará por WhatsApp al número que indicaste para confirmar tu reserva.
             </div>
 
             <div className="rk-card" style={{ opacity: 0.5 }}>
@@ -328,11 +370,14 @@ function ReservarInner() {
             {error && <div className="rk-error">{error}</div>}
 
             <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: "1.6" }}>
-              Al confirmar, recibirás un código de reserva. Johanna se contactará contigo por WhatsApp para verificar el pago.
+              Al confirmar, quedará registrada tu solicitud de reserva con el código RKT. Johanna verificará tu transferencia y se pondrá en contacto contigo.
             </div>
 
             <button className="rk-btn" disabled={loading} onClick={confirmar}>
-              {loading ? "Guardando reserva..." : `Confirmar y enviar reserva →`}
+              {loading ? "Registrando reserva..." : "Confirmar solicitud de reserva →"}
+            </button>
+            <button className="rk-btn-back" onClick={() => { setError(""); setPaso(2) }}>
+              ← Volver al resumen
             </button>
           </>
         )}
@@ -341,13 +386,12 @@ function ReservarInner() {
         {paso === 4 && (
           <div className="rk-success">
             <div className="rk-success-ico">🌿</div>
-            <div className="rk-success-title">¡Reserva enviada!</div>
+            <div className="rk-success-title">¡Solicitud enviada!</div>
             <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" }}>Tu código de reserva</div>
             <div className="rk-success-code">{codigo}</div>
             <div className="rk-success-desc">
-              Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br />
-              Johanna te contactará por WhatsApp al <strong style={{ color: "#c8d8c0" }}>{whatsapp}</strong>
-              {" "}para confirmar tu pago de <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>.
+              Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida correctamente.<br /><br />
+              Una vez que Johanna verifique tu transferencia de <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>, recibirás la confirmación por WhatsApp al número <strong style={{ color: "#c8d8c0" }}>{whatsapp}</strong>.
             </div>
             <div className="rk-success-bank">
               <div className="rk-bank-title">Datos para transferir el adelanto</div>
@@ -355,14 +399,17 @@ function ReservarInner() {
                 ["Banco", "BancoEstado"],
                 ["Cuenta RUT", "15.665.466-3"],
                 ["Titular", "Johanna Medina"],
-                ["Monto", fmt(deposito)],
-                ["Concepto", codigo],
+                ["Monto exacto", fmt(deposito)],
+                ["Concepto / Glosa", codigo],
               ].map(([k, v]) => (
                 <div className="rk-bank-row" key={k}>
                   <span className="rk-bank-key">{k}</span>
                   <span className="rk-bank-val">{v}</span>
                 </div>
               ))}
+            </div>
+            <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: "1.6" }}>
+              Guarda tu código <strong style={{ color: "#7ab87a" }}>{codigo}</strong> — úsalo como concepto de la transferencia para que Johanna identifique tu pago.
             </div>
           </div>
         )}
