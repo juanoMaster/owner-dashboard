@@ -1,6 +1,7 @@
 "use client"
 import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
+import type { CSSProperties } from "react"
 
 const PRECIOS = {
   "f935a02e-2572-4272-9a08-af40b29f0912": 30000,
@@ -140,7 +141,7 @@ function ReservarInner() {
 
   const newVisited = [...visitedCabins, cabin_id].join(",")
 
-  const s = {
+  const s: Record<string, CSSProperties> = {
     page: { fontFamily: "sans-serif", color: "#f0ede8", background: "#0d1a12", minHeight: "100vh" },
     nav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" },
     logo: { fontFamily: "Georgia,serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" },
