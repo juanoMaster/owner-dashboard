@@ -214,6 +214,9 @@ function ReservarInner() {
     <div style={s.page}>
       <nav style={s.nav}>
         <div style={s.logo}>Ruka<span style={s.logoSpan}>traro</span></div>
+        {paso === 1 && (
+          <a href="/inicio" style={{ ...s.backBtn, textDecoration: "none" }}>&#8592; Volver</a>
+        )}
         {paso > 1 && paso < 4 && (
           <button style={s.backBtn} onClick={() => { setSubmitError(""); setPaso(p => p - 1) }}>Volver</button>
         )}
