@@ -11,8 +11,16 @@ function InicioInner() {
   return (
     <div style={{ fontFamily: "Georgia, serif", background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
 
-      <div style={{ position: "relative", width: "100%", overflow: "hidden", background: "#0a1208" }}>
-        <svg style={{ display: "block", width: "100%", height: "auto", minHeight: "280px" }} viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax slice">
+      <style>{"\
+        @media (min-width: 768px) {\
+          .hero-wrap { max-height: 360px !important; }\
+          .hero-wrap svg { max-height: 360px !important; }\
+          .hero-text { padding-top: 30px !important; padding-bottom: 10px !important; }\
+        }\
+      "}</style>
+
+      <div className="hero-wrap" style={{ position: "relative", width: "100%", overflow: "hidden", background: "#0a1208" }}>
+        <svg style={{ display: "block", width: "100%", height: "auto", minHeight: "340px" }} viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax slice">
           <defs>
             <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#080e08"/><stop offset="60%" stopColor="#0a1208"/><stop offset="100%" stopColor="#0c160c"/></linearGradient>
             <linearGradient id="mt1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#14241a"/><stop offset="100%" stopColor="#0e1a0c"/></linearGradient>
@@ -110,7 +118,7 @@ function InicioInner() {
           <div style={{ fontSize: "11px", color: "#a8c8a055", letterSpacing: "2px", textTransform: "uppercase" as const }}>Licanray</div>
         </div>
 
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "40px 20px 16px" }}>
+        <div className="hero-text" style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "40px 20px 16px" }}>
           <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Caba\u00f1as en la naturaleza"}</div>
           <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
             {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
