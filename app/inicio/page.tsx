@@ -11,122 +11,95 @@ function InicioInner() {
   return (
     <div style={{ fontFamily: "Georgia, serif", background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
 
-      {/* HERO */}
       <div style={{ position: "relative", width: "100%", overflow: "hidden", background: "#0a1208" }}>
-        <div style={{ position: "relative", width: "100%", maxWidth: "1400px", margin: "0 auto" }}>
-          <svg style={{ display: "block", width: "100%", height: "auto" }} viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax meet">
-            <defs>
-              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#080e08"/><stop offset="60%" stopColor="#0a1208"/><stop offset="100%" stopColor="#0c160c"/></linearGradient>
-              <linearGradient id="mt1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#14241a"/><stop offset="100%" stopColor="#0e1a0c"/></linearGradient>
-              <linearGradient id="mt2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0f1c0e"/><stop offset="100%" stopColor="#0a1208"/></linearGradient>
-              <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0a0f0a" stopOpacity="0"/><stop offset="100%" stopColor="#0a0f0a" stopOpacity="1"/></linearGradient>
-              <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#c8d8a0" stopOpacity="0.08"/><stop offset="100%" stopColor="#c8d8a0" stopOpacity="0"/></radialGradient>
-            </defs>
+        <svg style={{ display: "block", width: "100%", height: "auto", minHeight: "380px" }} viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#080e08"/><stop offset="60%" stopColor="#0a1208"/><stop offset="100%" stopColor="#0c160c"/></linearGradient>
+            <linearGradient id="mt1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#14241a"/><stop offset="100%" stopColor="#0e1a0c"/></linearGradient>
+            <linearGradient id="mt2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0f1c0e"/><stop offset="100%" stopColor="#0a1208"/></linearGradient>
+            <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0a0f0a" stopOpacity="0"/><stop offset="100%" stopColor="#0a0f0a" stopOpacity="1"/></linearGradient>
+            <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#c8d8a0" stopOpacity="0.08"/><stop offset="100%" stopColor="#c8d8a0" stopOpacity="0"/></radialGradient>
+          </defs>
 
-            <rect width="1200" height="520" fill="url(#sky)"/>
+          <rect width="1200" height="520" fill="url(#sky)"/>
 
-            <circle cx="80" cy="30" r="0.8" fill="#ffffff30"/><circle cx="150" cy="55" r="0.6" fill="#ffffff20"/>
-            <circle cx="260" cy="22" r="1" fill="#ffffff38"/><circle cx="370" cy="45" r="0.7" fill="#ffffff28"/>
-            <circle cx="480" cy="18" r="0.9" fill="#ffffff22"/><circle cx="560" cy="52" r="0.6" fill="#ffffff1a"/>
-            <circle cx="650" cy="28" r="0.8" fill="#ffffff30"/><circle cx="740" cy="60" r="0.7" fill="#ffffff20"/>
-            <circle cx="830" cy="15" r="1" fill="#ffffff35"/><circle cx="920" cy="42" r="0.6" fill="#ffffff1a"/>
-            <circle cx="1010" cy="25" r="0.8" fill="#ffffff28"/><circle cx="1100" cy="50" r="0.7" fill="#ffffff20"/>
-            <circle cx="200" cy="70" r="0.5" fill="#ffffff15"/><circle cx="440" cy="72" r="0.6" fill="#ffffff18"/>
-            <circle cx="700" cy="68" r="0.5" fill="#ffffff15"/><circle cx="980" cy="65" r="0.6" fill="#ffffff1a"/>
-            <circle cx="1140" cy="35" r="0.9" fill="#ffffff25"/><circle cx="50" cy="65" r="0.7" fill="#ffffff18"/>
+          <circle cx="80" cy="30" r="0.8" fill="#ffffff30"/><circle cx="150" cy="55" r="0.6" fill="#ffffff20"/>
+          <circle cx="260" cy="22" r="1" fill="#ffffff38"/><circle cx="370" cy="45" r="0.7" fill="#ffffff28"/>
+          <circle cx="480" cy="18" r="0.9" fill="#ffffff22"/><circle cx="560" cy="52" r="0.6" fill="#ffffff1a"/>
+          <circle cx="650" cy="28" r="0.8" fill="#ffffff30"/><circle cx="740" cy="60" r="0.7" fill="#ffffff20"/>
+          <circle cx="830" cy="15" r="1" fill="#ffffff35"/><circle cx="920" cy="42" r="0.6" fill="#ffffff1a"/>
+          <circle cx="1010" cy="25" r="0.8" fill="#ffffff28"/><circle cx="1100" cy="50" r="0.7" fill="#ffffff20"/>
+          <circle cx="200" cy="70" r="0.5" fill="#ffffff15"/><circle cx="440" cy="72" r="0.6" fill="#ffffff18"/>
+          <circle cx="700" cy="68" r="0.5" fill="#ffffff15"/><circle cx="980" cy="65" r="0.6" fill="#ffffff1a"/>
+          <circle cx="1140" cy="35" r="0.9" fill="#ffffff25"/><circle cx="50" cy="65" r="0.7" fill="#ffffff18"/>
 
-            <circle cx="950" cy="80" r="80" fill="url(#moonGlow)"/>
-            <circle cx="950" cy="80" r="3" fill="#d8e8c0" opacity="0.25"/>
+          <circle cx="950" cy="80" r="80" fill="url(#moonGlow)"/>
+          <circle cx="950" cy="80" r="3" fill="#d8e8c0" opacity="0.25"/>
 
-            <path d="M0 340 L100 260 L180 290 L280 220 L360 255 L460 195 L540 230 L600 180 L660 215 L740 240 L820 200 L900 230 L960 210 L1040 245 L1120 225 L1200 260 L1200 520 L0 520Z" fill="url(#mt1)" opacity="0.5"/>
+          <path d="M0 340 L100 260 L180 290 L280 220 L360 255 L460 195 L540 230 L600 210 L660 215 L740 240 L820 200 L900 230 L960 210 L1040 245 L1120 225 L1200 260 L1200 520 L0 520Z" fill="url(#mt1)" opacity="0.5"/>
+          <path d="M0 380 L80 320 L160 350 L240 310 L320 340 L400 305 L480 335 L560 300 L640 325 L720 310 L800 330 L880 295 L960 320 L1040 305 L1120 325 L1200 300 L1200 520 L0 520Z" fill="url(#mt2)" opacity="0.85"/>
+          <path d="M0 420 L100 385 L200 400 L300 378 L400 395 L500 372 L600 390 L700 375 L800 392 L900 370 L1000 388 L1100 376 L1200 385 L1200 520 L0 520Z" fill="#0d1a0b" opacity="0.95"/>
 
-            <path d="M540 195 L600 130 L660 195" fill="#182818" opacity="0.6" stroke="#1e3418" strokeWidth="0.5"/>
-            <ellipse cx="600" cy="133" rx="8" ry="3" fill="#ffffff06"/>
+          <rect x="55" y="330" width="4" height="130" fill="#0f1a0e" opacity="0.9"/>
+          <line x1="57" y1="420" x2="28" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="420" x2="86" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
+          <line x1="57" y1="400" x2="24" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="400" x2="90" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
+          <line x1="57" y1="380" x2="30" y2="366" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/><line x1="57" y1="380" x2="84" y2="366" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/>
+          <line x1="57" y1="362" x2="36" y2="350" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/><line x1="57" y1="362" x2="78" y2="350" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/>
+          <circle cx="28" cy="401" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="86" cy="401" r="5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="24" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="90" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="30" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/><circle cx="84" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="57" cy="328" r="7" fill="#0f1a0e" opacity="0.9"/>
 
-            <path d="M0 380 L80 320 L160 350 L240 310 L320 340 L400 305 L480 335 L560 300 L640 325 L720 310 L800 330 L880 295 L960 320 L1040 305 L1120 325 L1200 300 L1200 520 L0 520Z" fill="url(#mt2)" opacity="0.85"/>
+          <rect x="1128" y="310" width="5" height="150" fill="#0f1a0e" opacity="0.9"/>
+          <line x1="1130" y1="418" x2="1098" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="418" x2="1162" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
+          <line x1="1130" y1="396" x2="1094" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="396" x2="1166" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
+          <line x1="1130" y1="376" x2="1100" y2="362" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/><line x1="1130" y1="376" x2="1160" y2="362" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/>
+          <line x1="1130" y1="358" x2="1108" y2="346" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/><line x1="1130" y1="358" x2="1152" y2="346" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/>
+          <circle cx="1098" cy="399" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1162" cy="399" r="5.5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="1094" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1166" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="1100" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1160" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="1130" cy="308" r="8" fill="#0f1a0e" opacity="0.9"/>
 
-            <path d="M0 420 L100 385 L200 400 L300 378 L400 395 L500 372 L600 390 L700 375 L800 392 L900 370 L1000 388 L1100 376 L1200 385 L1200 520 L0 520Z" fill="#0d1a0b" opacity="0.95"/>
+          <rect x="265" y="375" width="3" height="90" fill="#0f1a0e" opacity="0.75"/>
+          <line x1="266" y1="430" x2="248" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="430" x2="284" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
+          <line x1="266" y1="416" x2="250" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="416" x2="282" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
+          <line x1="266" y1="402" x2="254" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/><line x1="266" y1="402" x2="278" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/>
+          <circle cx="248" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/><circle cx="284" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/>
+          <circle cx="266" cy="373" r="5" fill="#0f1a0e" opacity="0.75"/>
 
-            <rect x="55" y="330" width="4" height="130" fill="#0f1a0e" opacity="0.9"/>
-            <line x1="57" y1="420" x2="28" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="420" x2="86" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
-            <line x1="57" y1="400" x2="24" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="400" x2="90" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
-            <line x1="57" y1="380" x2="30" y2="366" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/><line x1="57" y1="380" x2="84" y2="366" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/>
-            <line x1="57" y1="362" x2="36" y2="350" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/><line x1="57" y1="362" x2="78" y2="350" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/>
-            <circle cx="28" cy="401" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="86" cy="401" r="5" fill="#0f1a0e" opacity="0.85"/>
-            <circle cx="24" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="90" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/>
-            <circle cx="30" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/><circle cx="84" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/>
-            <circle cx="57" cy="328" r="7" fill="#0f1a0e" opacity="0.9"/>
+          <line x1="170" y1="460" x2="170" y2="385" stroke="#142610" strokeWidth="2.5"/>
+          <polygon points="170,385 155,412 185,412" fill="#142610" opacity="0.85"/>
+          <polygon points="170,398 152,428 188,428" fill="#162812" opacity="0.85"/>
+          <polygon points="170,412 148,448 192,448" fill="#1a2e14" opacity="0.85"/>
 
-            <rect x="1128" y="310" width="5" height="150" fill="#0f1a0e" opacity="0.9"/>
-            <line x1="1130" y1="418" x2="1098" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="418" x2="1162" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
-            <line x1="1130" y1="396" x2="1094" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="396" x2="1166" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
-            <line x1="1130" y1="376" x2="1100" y2="362" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/><line x1="1130" y1="376" x2="1160" y2="362" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/>
-            <line x1="1130" y1="358" x2="1108" y2="346" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/><line x1="1130" y1="358" x2="1152" y2="346" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/>
-            <circle cx="1098" cy="399" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1162" cy="399" r="5.5" fill="#0f1a0e" opacity="0.85"/>
-            <circle cx="1094" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1166" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/>
-            <circle cx="1100" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1160" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/>
-            <circle cx="1130" cy="308" r="8" fill="#0f1a0e" opacity="0.9"/>
+          <line x1="420" y1="465" x2="420" y2="395" stroke="#142610" strokeWidth="2.2"/>
+          <polygon points="420,395 408,418 432,418" fill="#142610" opacity="0.8"/>
+          <polygon points="420,406 405,432 435,432" fill="#162812" opacity="0.8"/>
+          <polygon points="420,418 402,450 438,450" fill="#1a2e14" opacity="0.8"/>
 
-            <rect x="265" y="375" width="3" height="90" fill="#0f1a0e" opacity="0.75"/>
-            <line x1="266" y1="430" x2="248" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="430" x2="284" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
-            <line x1="266" y1="416" x2="250" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="416" x2="282" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
-            <line x1="266" y1="402" x2="254" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/><line x1="266" y1="402" x2="278" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/>
-            <circle cx="248" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/><circle cx="284" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/>
-            <circle cx="266" cy="373" r="5" fill="#0f1a0e" opacity="0.75"/>
+          <line x1="780" y1="465" x2="780" y2="370" stroke="#142610" strokeWidth="2.8"/>
+          <polygon points="780,370 764,400 796,400" fill="#142610" opacity="0.85"/>
+          <polygon points="780,385 760,418 800,418" fill="#162812" opacity="0.85"/>
+          <polygon points="780,400 756,440 804,440" fill="#1a2e14" opacity="0.85"/>
+          <polygon points="780,418 752,458 808,458" fill="#1c3016" opacity="0.85"/>
 
-            <line x1="170" y1="460" x2="170" y2="385" stroke="#142610" strokeWidth="2.5"/>
-            <polygon points="170,385 155,412 185,412" fill="#142610" opacity="0.85"/>
-            <polygon points="170,398 152,428 188,428" fill="#162812" opacity="0.85"/>
-            <polygon points="170,412 148,448 192,448" fill="#1a2e14" opacity="0.85"/>
+          <line x1="1020" y1="462" x2="1020" y2="408" stroke="#142610" strokeWidth="2"/>
+          <polygon points="1020,408 1010,426 1030,426" fill="#142610" opacity="0.75"/>
+          <polygon points="1020,416 1008,438 1032,438" fill="#162812" opacity="0.75"/>
+          <polygon points="1020,426 1005,452 1035,452" fill="#1a2e14" opacity="0.75"/>
 
-            <line x1="420" y1="465" x2="420" y2="395" stroke="#142610" strokeWidth="2.2"/>
-            <polygon points="420,395 408,418 432,418" fill="#142610" opacity="0.8"/>
-            <polygon points="420,406 405,432 435,432" fill="#162812" opacity="0.8"/>
-            <polygon points="420,418 402,450 438,450" fill="#1a2e14" opacity="0.8"/>
+          <line x1="650" y1="455" x2="650" y2="402" stroke="#121e10" strokeWidth="1.8"/>
+          <polygon points="650,402 641,420 659,420" fill="#121e10" opacity="0.65"/>
+          <polygon points="650,410 639,432 661,432" fill="#142210" opacity="0.65"/>
+          <polygon points="650,420 636,446 664,446" fill="#162610" opacity="0.65"/>
 
-            <line x1="780" y1="465" x2="780" y2="370" stroke="#142610" strokeWidth="2.8"/>
-            <polygon points="780,370 764,400 796,400" fill="#142610" opacity="0.85"/>
-            <polygon points="780,385 760,418 800,418" fill="#162812" opacity="0.85"/>
-            <polygon points="780,400 756,440 804,440" fill="#1a2e14" opacity="0.85"/>
-            <polygon points="780,418 752,458 808,458" fill="#1c3016" opacity="0.85"/>
+          <line x1="520" y1="462" x2="520" y2="415" stroke="#121e10" strokeWidth="1.5"/>
+          <polygon points="520,415 512,430 528,430" fill="#121e10" opacity="0.6"/>
+          <polygon points="520,422 510,440 530,440" fill="#142210" opacity="0.6"/>
+          <polygon points="520,432 508,454 532,454" fill="#162610" opacity="0.6"/>
 
-            <line x1="1020" y1="462" x2="1020" y2="408" stroke="#142610" strokeWidth="2"/>
-            <polygon points="1020,408 1010,426 1030,426" fill="#142610" opacity="0.75"/>
-            <polygon points="1020,416 1008,438 1032,438" fill="#162812" opacity="0.75"/>
-            <polygon points="1020,426 1005,452 1035,452" fill="#1a2e14" opacity="0.75"/>
-
-            <line x1="650" y1="455" x2="650" y2="402" stroke="#121e10" strokeWidth="1.8"/>
-            <polygon points="650,402 641,420 659,420" fill="#121e10" opacity="0.65"/>
-            <polygon points="650,410 639,432 661,432" fill="#142210" opacity="0.65"/>
-            <polygon points="650,420 636,446 664,446" fill="#162610" opacity="0.65"/>
-
-            <g transform="translate(320, 120)" opacity="0.18">
-              <path d="M0 0 Q-12 -6 -26 2 Q-12 -2 0 0 Q12 -2 26 2 Q12 -6 0 0Z" fill="#c8d8c0"/>
-            </g>
-            <g transform="translate(780, 95)" opacity="0.14">
-              <path d="M0 0 Q-9 -5 -20 1 Q-9 -1 0 0 Q9 -1 20 1 Q9 -5 0 0Z" fill="#c8d8c0"/>
-            </g>
-            <g transform="translate(550, 105)" opacity="0.12">
-              <path d="M0 0 Q-7 -3 -14 1 Q-7 -1 0 0 Q7 -1 14 1 Q7 -3 0 0Z" fill="#c8d8c0"/>
-            </g>
-
-            <g transform="translate(880, 380)" opacity="0.12">
-              <ellipse cx="0" cy="0" rx="12" ry="7" fill="#a0c090"/>
-              <ellipse cx="14" cy="-6" rx="4" ry="3.5" fill="#a0c090"/>
-              <line x1="-6" y1="6" x2="-7" y2="18" stroke="#a0c090" strokeWidth="1.5"/>
-              <line x1="0" y1="6" x2="-1" y2="18" stroke="#a0c090" strokeWidth="1.5"/>
-              <line x1="6" y1="6" x2="5" y2="18" stroke="#a0c090" strokeWidth="1.5"/>
-              <line x1="10" y1="5" x2="10" y2="17" stroke="#a0c090" strokeWidth="1.5"/>
-              <line x1="15" y1="-9" x2="18" y2="-18" stroke="#a0c090" strokeWidth="1"/>
-              <line x1="18" y1="-18" x2="21" y2="-20" stroke="#a0c090" strokeWidth="0.8"/>
-              <line x1="18" y1="-18" x2="16" y2="-21" stroke="#a0c090" strokeWidth="0.8"/>
-              <line x1="16" y1="-9" x2="20" y2="-16" stroke="#a0c090" strokeWidth="1"/>
-              <line x1="20" y1="-16" x2="23" y2="-17" stroke="#a0c090" strokeWidth="0.8"/>
-            </g>
-
-            <rect x="0" y="440" width="1200" height="80" fill="url(#mist)"/>
-          </svg>
-        </div>
+          <rect x="0" y="440" width="1200" height="80" fill="url(#mist)"/>
+        </svg>
 
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #080e08 0%, transparent 20%, transparent 55%, #0a0f0a 100%)", pointerEvents: "none" }}/>
 
@@ -137,33 +110,32 @@ function InicioInner() {
           <div style={{ fontSize: "11px", color: "#a8c8a055", letterSpacing: "2px", textTransform: "uppercase" as const }}>Licanray</div>
         </div>
 
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "60px 28px 20px" }}>
-          <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "12px" }}>{"Caba\u00f1as en la naturaleza"}</div>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.1, marginBottom: "12px" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "60px 20px 20px" }}>
+          <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Caba\u00f1as en la naturaleza"}</div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
             {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
           </div>
-          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(13px, 1.8vw, 16px)", color: "#8ab888", lineHeight: 1.65, maxWidth: "420px", margin: "0 auto 18px" }}>
+          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 20px" }}>
             {"Bosque nativo, Lago Calafqu\u00e9n y el Volc\u00e1n Villarrica como tel\u00f3n de fondo."}
           </div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "12px", color: "#9ab898" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "11px", color: "#9ab898" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7ab87a", flexShrink: 0, display: "inline-block" }}/>
             {"Licanray \u00b7 Regi\u00f3n de La Araucan\u00eda \u00b7 5 min del lago"}
           </div>
         </div>
       </div>
 
-      {/* CABANAS */}
-      <div style={{ padding: "24px 20px 10px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
-        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "12px" }}>{"Reserva tu caba\u00f1a"}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px", marginBottom: "6px" }}>
+      <div style={{ padding: "16px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "10px" }}>{"Reserva tu caba\u00f1a"}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "4px" }}>
           {cabins.map(c => (
-            <div key={c.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "18px 16px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "#7ab87a14", border: "1px solid #7ab87a22", color: "#7ab87a", fontSize: "9px", padding: "2px 8px", borderRadius: "10px", marginBottom: "10px" }}>
+            <div key={c.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "14px 13px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "#7ab87a14", border: "1px solid #7ab87a22", color: "#7ab87a", fontSize: "9px", padding: "2px 7px", borderRadius: "10px", marginBottom: "8px" }}>
                 <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#7ab87a", display: "inline-block" }}/>
                 Disponible
               </div>
-              <div style={{ marginBottom: "10px" }}>
-                <svg width="40" height="34" viewBox="0 0 48 40" fill="none">
+              <div style={{ marginBottom: "8px" }}>
+                <svg width="36" height="32" viewBox="0 0 48 40" fill="none">
                   <path d="M24 4 L44 20 L44 38 L4 38 L4 20 Z" fill="#162618" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
                   <path d="M24 4 L44 20 L4 20 Z" fill="#1e3020" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
                   <rect x="18" y="26" width="12" height="12" rx="2" fill="#0d1a0d" stroke="#3a5a38" strokeWidth="1"/>
@@ -171,12 +143,12 @@ function InicioInner() {
                   <line x1="12" y1="24" x2="12" y2="30" stroke="#3a5a38" strokeWidth="0.8"/>
                 </svg>
               </div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "6px" }}>{c.name}</div>
-              <div style={{ fontSize: "12px", color: "#6a8a68", marginBottom: "8px" }}>Hasta {c.cap} personas</div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "24px", color: "#c8d8c0" }}>{fmt(c.price)}</div>
-              <div style={{ fontSize: "10px", color: "#4a6a48", marginBottom: "12px" }}>por noche</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#e8d5a3", marginBottom: "5px" }}>{c.name}</div>
+              <div style={{ fontSize: "11px", color: "#6a8a68", marginBottom: "7px" }}>Hasta {c.cap} personas</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#c8d8c0" }}>{fmt(c.price)}</div>
+              <div style={{ fontSize: "10px", color: "#4a6a48", marginBottom: "9px" }}>por noche</div>
               <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name)}
-                style={{ display: "block", width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "8px", padding: "10px", fontSize: "13px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                style={{ display: "block", width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "12px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
                 {"Reservar \u2192"}
               </a>
             </div>
@@ -184,48 +156,45 @@ function InicioInner() {
         </div>
       </div>
 
-      {/* ICONOS */}
-      <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "8px", padding: "6px 20px 18px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+      <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "7px", padding: "4px 16px 14px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
         {[
           { ico: "\uD83C\uDFDE\uFE0F", name: "Lago" }, { ico: "\uD83C\uDF0B", name: "Volc\u00e1n" },
           { ico: "\uD83E\uDEB5", name: "Tinaja" }, { ico: "\u2668\uFE0F", name: "Termas" },
           { ico: "\uD83D\uDEA3", name: "Kayak" }, { ico: "\uD83E\uDD7E", name: "Trekking" },
         ].map(f => (
-          <div key={f.name} style={{ background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "12px", padding: "10px 14px", textAlign: "center" as const, minWidth: "72px" }}>
+          <div key={f.name} style={{ background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "12px", padding: "9px 11px", textAlign: "center" as const, width: "70px" }}>
             <div style={{ fontSize: "18px", marginBottom: "4px" }}>{f.ico}</div>
             <div style={{ fontSize: "10px", color: "#6a8a68", fontWeight: 500 }}>{f.name}</div>
           </div>
         ))}
       </div>
 
-      {/* ATRACTIVOS */}
-      <div style={{ background: "#0d140d", padding: "20px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+      <div style={{ background: "#0d140d", padding: "16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: "18px", color: "#e8d5a3", marginBottom: "14px" }}>{"Qu\u00e9 hacer en Licanray"}</div>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "12px" }}>{"Qu\u00e9 hacer en Licanray"}</div>
           {[
             { ico: "\uD83C\uDFDE\uFE0F", name: "Lago Calafqu\u00e9n", desc: "Aguas de origen glaciar a 5 min \u2014 kayak, pesca y ba\u00f1os en verano" },
             { ico: "\uD83C\uDF0B", name: "Volc\u00e1n Villarrica", desc: "A 45 min \u2014 trekking hasta uno de los volcanes m\u00e1s activos de Sudam\u00e9rica" },
             { ico: "\u2668\uFE0F", name: "Termas de Co\u00f1aripe", desc: "Aguas termales naturales rodeadas de monta\u00f1a y bosque, a solo 20 min" },
             { ico: "\uD83E\uDD7E", name: "Senderismo y miradores", desc: "Rutas en bosque nativo con vistas panor\u00e1micas a la cordillera andina" },
           ].map(a => (
-            <div key={a.name} style={{ display: "flex", gap: "12px", alignItems: "flex-start", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #ffffff07" }}>
-              <div style={{ width: "38px", height: "38px", background: "#162618", border: "1px solid #2a3820", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>{a.ico}</div>
+            <div key={a.name} style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #ffffff07" }}>
+              <div style={{ width: "36px", height: "36px", background: "#162618", border: "1px solid #2a3820", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>{a.ico}</div>
               <div>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "#c8d8c0", marginBottom: "3px" }}>{a.name}</div>
-                <div style={{ fontSize: "12px", color: "#4a6a48", lineHeight: 1.55 }}>{a.desc}</div>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#c8d8c0", marginBottom: "2px" }}>{a.name}</div>
+                <div style={{ fontSize: "11px", color: "#4a6a48", lineHeight: 1.5 }}>{a.desc}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* NORMAS */}
-      <div style={{ background: "#0a0f0a", padding: "16px 20px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+      <div style={{ background: "#0a0f0a", padding: "13px 16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <div style={{ fontSize: "10px", fontWeight: 600, color: "#6a8a68", letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "8px" }}>Normas del lugar</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
+          <div style={{ fontSize: "10px", fontWeight: 600, color: "#6a8a68", letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "7px" }}>Normas del lugar</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px" }}>
             {["No mascotas", "No fiestas", "No visitas externas", "No fumar adentro", "No papeles al WC", "M\u00fasica moderada"].map(r => (
-              <div key={r} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "#4a5a48" }}>
+              <div key={r} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "#4a5a48" }}>
                 <span style={{ color: "#c0504855", fontSize: "11px", fontWeight: 700 }}>{"\u2715"}</span>
                 {r}
               </div>
@@ -234,21 +203,20 @@ function InicioInner() {
         </div>
       </div>
 
-      {/* REDES */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "14px", padding: "16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
-        <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "8px 16px", fontSize: "12px", color: "#6a8a68", textDecoration: "none" }}>
-          <span style={{ width: "18px", height: "18px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "11px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
+      <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "13px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+        <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#6a8a68", textDecoration: "none" }}>
+          <span style={{ width: "16px", height: "16px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "10px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
           Facebook
         </a>
-        <a href="https://instagram.com/rukatraro" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "8px 16px", fontSize: "12px", color: "#6a8a68", textDecoration: "none" }}>
-          <span style={{ width: "18px", height: "18px", borderRadius: "4px", background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <a href="https://instagram.com/rukatraro" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#6a8a68", textDecoration: "none" }}>
+          <span style={{ width: "16px", height: "16px", borderRadius: "4px", background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="white" strokeWidth="2.2"/><circle cx="12" cy="12" r="5" stroke="white" strokeWidth="2"/><circle cx="17.5" cy="6.5" r="1.8" fill="white"/></svg>
           </span>
           @rukatraro
         </a>
       </div>
 
-      <div style={{ textAlign: "center" as const, padding: "14px", fontSize: "9px", color: "#1e2e1e", letterSpacing: "2px", textTransform: "uppercase" as const, borderTop: "1px solid #111a11", fontFamily: "sans-serif" }}>
+      <div style={{ textAlign: "center" as const, padding: "12px", fontSize: "9px", color: "#1e2e1e", letterSpacing: "1.5px", textTransform: "uppercase" as const, borderTop: "1px solid #111a11", fontFamily: "sans-serif" }}>
         {"Rukatraro \u00b7 Licanray \u00b7 Lago Calafqu\u00e9n \u00b7 Chile"}
       </div>
     </div>
