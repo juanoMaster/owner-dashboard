@@ -336,8 +336,14 @@ function ReservarInner() {
 
             {tinajaDias === 0 && (
               <div style={s.warn}>
-                <div style={s.warnTitle}>Olvidaste la tinaja?</div>
-                <div style={s.warnDesc}>Rukatraro tiene una tinaja de madera calentada a lena, ideal para las noches del sur. Solo $30.000/dia — usa el boton Volver para agregarla.</div>
+                <div style={s.warnTitle}>{"¿Olvidaste la tinaja?"}</div>
+                <div style={s.warnDesc}>{"Rukatraro tiene una tinaja de madera calentada a leña, ideal para las noches del sur. Solo $30.000/día."}</div>
+                <select style={{ width: "100%", padding: "10px 12px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "13px", color: "#c8d8c0", fontFamily: "sans-serif", marginTop: "10px", outline: "none" }} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
+                  <option value={0}>Sin tinaja</option>
+                  {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
+                    <option key={n} value={n}>{n} {n === 1 ? "día" : "días"} — {fmt(n * 30000)}</option>
+                  ))}
+                </select>
               </div>
             )}
 
@@ -404,7 +410,7 @@ function ReservarInner() {
                     ))}
                   </div>
                   <div style={{ marginTop: "12px", fontSize: "12px", color: "#8a9e88", lineHeight: 1.6 }}>
-                    Una vez que Johanna verifique tu transferencia, recibiras la confirmacion de reserva en tu WhatsApp {whatsapp ? "(" + whatsapp + ")" : ""} {email ? "y correo (" + email + ")" : ""}.
+                    Una vez que Johanna verifique tu transferencia, recibirás la confirmación de reserva en tu WhatsApp {whatsapp ? "(" + whatsapp + ")" : ""} {email ? "y correo (" + email + ")" : ""}.
                   </div>
                 </div>
               )}
@@ -413,7 +419,7 @@ function ReservarInner() {
             {submitError && <div style={s.err}>{submitError}</div>}
 
             <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: 1.6 }}>
-              Al confirmar quedara registrada tu solicitud con un codigo unico. Usalo como glosa en tu transferencia.
+              Al confirmar quedará registrada tu solicitud con un código único. Úsalo como glosa en tu transferencia.
             </div>
 
             <button style={loading || metodoPago === "tarjeta" ? s.btnDisabled : s.btn}
