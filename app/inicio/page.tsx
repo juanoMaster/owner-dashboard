@@ -148,7 +148,7 @@ function InicioInner() {
               <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#c8d8c0" }}>{fmt(c.price)}</div>
               <div style={{ fontSize: "10px", color: "#4a6a48", marginBottom: "9px" }}>por noche</div>
               <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name)}
-                style={{ display: "block", width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "12px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "12px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
                 {"Reservar \u2192"}
               </a>
             </div>
@@ -159,7 +159,7 @@ function InicioInner() {
       <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "7px", padding: "4px 16px 14px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
         {[
           { ico: "\uD83C\uDFDE\uFE0F", name: "Lago" }, { ico: "\uD83C\uDF0B", name: "Volc\u00e1n" },
-          { ico: "\uD83E\uDEB5", name: "Tinaja" }, { ico: "\u2668\uFE0F", name: "Termas" },
+          { ico: "\uD83D\uDEC1", name: "Tinaja" }, { ico: "\u2668\uFE0F", name: "Termas" },
           { ico: "\uD83D\uDEA3", name: "Kayak" }, { ico: "\uD83E\uDD7E", name: "Trekking" },
         ].map(f => (
           <div key={f.name} style={{ background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "12px", padding: "9px 11px", textAlign: "center" as const, width: "70px" }}>
@@ -206,7 +206,7 @@ function InicioInner() {
       <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "13px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#6a8a68", textDecoration: "none" }}>
           <span style={{ width: "16px", height: "16px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "10px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
-          Facebook
+          @rukatraro
         </a>
         <a href="https://instagram.com/rukatraro" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#6a8a68", textDecoration: "none" }}>
           <span style={{ width: "16px", height: "16px", borderRadius: "4px", background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -230,3 +230,4 @@ export default function InicioPage() {
     </Suspense>
   )
 }
+```
