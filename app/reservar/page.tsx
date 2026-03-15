@@ -307,7 +307,7 @@ function ReservarInner() {
 
             <div style={s.card}>
               <div style={s.cardTitle}>Tus datos de contacto</div>
-              <div style={s.info}>Revisa bien tu numero de WhatsApp y correo. Ahi recibiras la confirmacion de tu reserva.</div>
+              <div style={s.info}>Revisa bien tu número de WhatsApp y correo. Ahí recibirás la confirmación de tu reserva.</div>
               <span style={s.lbl}>Nombre completo</span>
               <input style={{ ...s.inp, marginBottom: "14px" }} type="text" placeholder="Maria Gonzalez"
                 value={nombre} onChange={e => setNombre(e.target.value)} />
