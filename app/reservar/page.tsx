@@ -212,6 +212,7 @@ function ReservarInner() {
 
   return (
     <div style={s.page}>
+      <style>{"@media (min-width: 768px) { .reservar-body { max-width: 820px !important; } .paso1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .paso1-grid > div:nth-child(2) { grid-column: 1; grid-row: 2; } .paso1-grid > div:nth-child(3) { grid-column: 2; grid-row: 1 / 3; align-self: start; } }"}</style>
       <nav style={s.nav}>
         <div style={s.logo}>Ruka<span style={s.logoSpan}>traro</span></div>
         {paso === 1 && (
@@ -230,13 +231,14 @@ function ReservarInner() {
         </div>
       )}
 
-      <div style={s.body}>
+      <div className="reservar-body" style={s.body}>
 
         {paso === 1 && (
           <>
             <div style={s.eye}>Reserva directa</div>
             <div style={s.title}>{cabin_name}</div>
 
+            <div className="paso1-grid">
             <div style={s.card}>
               <div style={s.cardTitle}>Fechas de estadia</div>
               <div style={s.g2}>
@@ -319,6 +321,7 @@ function ReservarInner() {
                 value={email} onChange={e => setEmail(e.target.value)} />
             </div>
 
+            </div>
             <button style={form_ok ? s.btn : s.btnDisabled} disabled={!form_ok} onClick={() => setPaso(2)}>
               Reservar ahora con 20% de anticipo
             </button>
