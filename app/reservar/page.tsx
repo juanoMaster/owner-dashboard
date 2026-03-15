@@ -240,7 +240,7 @@ function ReservarInner() {
 
             <div className="paso1-grid">
             <div style={s.card}>
-              <div style={s.cardTitle}>Fechas de estadia</div>
+              <div style={s.cardTitle}>{"Fechas de estad\u00eda"}</div>
               <div style={s.g2}>
                 <div>
                   <span style={s.lbl}>Check-in</span>
@@ -255,7 +255,7 @@ function ReservarInner() {
               </div>
 
               {checkIn && checkOut && !noches_ok && (
-                <div style={s.err}>La estadia minima es de 2 noches.</div>
+                <div style={s.err}>{"La estad\u00eda m\u00ednima es de 2 noches."}</div>
               )}
               {dispStatus === "checking" && (
                 <div style={{ fontSize: "12px", color: "#6a7e68", padding: "8px 0" }}>Verificando disponibilidad...</div>
@@ -270,7 +270,7 @@ function ReservarInner() {
                   Puedes probar con:<br /><br />
                   <a href={"/reservar?cabin_id=" + suggest.cabin_id + "&cabin_name=" + encodeURIComponent(suggest.cabin_name) + "&visited=" + encodeURIComponent(newVisited)}
                     style={{ color: "#e8b84a", textDecoration: "underline", fontWeight: 600 }}>
-                    {suggest.cabin_name} — hasta {suggest.capacity} personas — {fmt(suggest.price || PRECIOS[suggest.cabin_id] || 0)}/noche
+                    {suggest.cabin_name} {" \u2014 hasta "}{suggest.capacity}{" personas \u2014 "}{fmt(suggest.price || PRECIOS[suggest.cabin_id] || 0)}/noche
                   </a>
                   <br /><br />
                   O elige otras fechas para {cabin_name}.
@@ -278,19 +278,19 @@ function ReservarInner() {
               )}
               {dispStatus === "occupied" && redTakai && (
                 <div style={s.err}>
-                  <strong>Todas las cabañas de Rukatraro están ocupadas para esas fechas.</strong>
+                  <strong>{"Todas las caba\u00f1as de Rukatraro est\u00e1n ocupadas para esas fechas."}</strong>
                   <br /><br />
-                  Te recomendamos elegir otras fechas. Pronto podrás ver otras cabañas disponibles en la zona.
+                  {"Te recomendamos elegir otras fechas. Pronto podr\u00e1s ver otras caba\u00f1as disponibles en la zona."}
                 </div>
               )}
               {dispStatus === "occupied" && !suggest && !redTakai && (
-                <div style={s.err}>Estas fechas no estan disponibles. Por favor elige otras.</div>
+                <div style={s.err}>{"Estas fechas no est\u00e1n disponibles. Por favor elige otras."}</div>
               )}
             </div>
 
             <div style={s.card}>
-              <div style={s.cardTitle}>Huespedes y extras</div>
-              <span style={s.lbl}>Numero de personas (cap. {capacidad})</span>
+              <div style={s.cardTitle}>{"Hu\u00e9spedes y extras"}</div>
+              <span style={s.lbl}>{"N\u00famero de personas (cap. "}{capacidad}{")"}</span>
               <select style={s.sel} value={guests} onChange={e => setGuests(Number(e.target.value))}>
                 {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>
@@ -298,25 +298,25 @@ function ReservarInner() {
                   </option>
                 ))}
               </select>
-              <span style={s.lbl}>Tinaja de madera (+$30.000/dia)</span>
+              <span style={s.lbl}>{"Tinaja de madera (+$30.000/d\u00eda)"}</span>
               <select style={s.sel} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
                 <option value={0}>Sin tinaja</option>
                 {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
-                  <option key={n} value={n}>{n} {n === 1 ? "dia" : "dias"} — {fmt(n * 30000)}</option>
+                  <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"} {"\u2014"} {fmt(n * 30000)}</option>
                 ))}
               </select>
             </div>
 
             <div style={s.card}>
               <div style={s.cardTitle}>Tus datos de contacto</div>
-              <div style={s.info}>Revisa bien tu número de WhatsApp y correo. Ahí recibirás la confirmación de tu reserva.</div>
+              <div style={s.info}>{"Revisa bien tu n\u00famero de WhatsApp y correo. Ah\u00ed recibir\u00e1s la confirmaci\u00f3n de tu reserva."}</div>
               <span style={s.lbl}>Nombre completo</span>
               <input style={{ ...s.inp, marginBottom: "14px" }} type="text" placeholder="Maria Gonzalez"
                 value={nombre} onChange={e => setNombre(e.target.value)} />
               <span style={s.lbl}>WhatsApp</span>
               <input style={{ ...s.inp, marginBottom: "14px" }} type="tel" placeholder="+56 9 1234 5678"
                 value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
-              <span style={s.lbl}>Correo electronico</span>
+              <span style={s.lbl}>{"Correo electr\u00f3nico"}</span>
               <input style={s.inp} type="email" placeholder="tu@correo.com"
                 value={email} onChange={e => setEmail(e.target.value)} />
             </div>
@@ -325,7 +325,7 @@ function ReservarInner() {
             <button style={form_ok ? s.btn : s.btnDisabled} disabled={!form_ok} onClick={() => setPaso(2)}>
               Reservar ahora con 20% de anticipo
             </button>
-            <a href="/inicio" style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif", marginTop: "10px", cursor: "pointer" }}>{"← Volver"}</a>
+            <a href="/inicio" style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif", marginTop: "10px", cursor: "pointer" }}>{"\u2190 Volver"}</a>
           </>
         )}
 
@@ -336,12 +336,12 @@ function ReservarInner() {
 
             {tinajaDias === 0 && (
               <div style={s.warn}>
-                <div style={s.warnTitle}>{"¿Olvidaste la tinaja?"}</div>
-                <div style={s.warnDesc}>{"Rukatraro tiene una tinaja de madera calentada a leña, ideal para las noches del sur. Solo $30.000/día."}</div>
+                <div style={s.warnTitle}>{"\u00bfOlvidaste la tinaja?"}</div>
+                <div style={s.warnDesc}>{"Rukatraro tiene una tinaja de madera calentada a le\u00f1a, ideal para las noches del sur. Solo $30.000/d\u00eda."}</div>
                 <select style={{ width: "100%", padding: "10px 12px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "13px", color: "#c8d8c0", fontFamily: "sans-serif", marginTop: "10px", outline: "none" }} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
                   <option value={0}>Sin tinaja</option>
                   {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
-                    <option key={n} value={n}>{n} {n === 1 ? "día" : "días"} — {fmt(n * 30000)}</option>
+                    <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"} {"\u2014"} {fmt(n * 30000)}</option>
                   ))}
                 </select>
               </div>
@@ -350,10 +350,10 @@ function ReservarInner() {
             <div style={s.card}>
               <div style={s.cardTitle}>Detalle</div>
               {[
-                ["Huesped", nombre], ["WhatsApp", whatsapp], ["Correo", email || "—"],
+                ["Hu\u00e9sped", nombre], ["WhatsApp", whatsapp], ["Correo", email || "\u2014"],
                 ["Check-in", checkIn], ["Check-out", checkOut],
                 ["Noches", String(noches)], ["Personas", String(guests)],
-                ["Tinaja", tinajaDias > 0 ? tinajaDias + " dias" : "Sin tinaja"],
+                ["Tinaja", tinajaDias > 0 ? tinajaDias + (tinajaDias === 1 ? " d\u00eda" : " d\u00edas") : "Sin tinaja"],
               ].map(([k, v], idx) => (
                 <div key={k} style={{ ...s.resItem, borderBottom: idx === 7 ? "none" : "1px solid #ffffff07" }}>
                   <span style={s.resKey}>{k}</span>
@@ -367,9 +367,9 @@ function ReservarInner() {
               <div style={s.priceBox}>
                 <div style={s.priceRow}><span style={s.priceKey}>{fmt(precio_noche)} x {noches} noches</span><span style={s.priceVal}>{fmt(precio_noche * noches)}</span></div>
                 {extrasPersonas > 0 && <div style={s.priceRow}><span style={s.priceKey}>Personas extra</span><span style={s.priceVal}>{fmt(extrasPersonas)}</span></div>}
-                {tinaja > 0 && <div style={s.priceRow}><span style={s.priceKey}>Tinaja {tinajaDias} dias</span><span style={s.priceVal}>{fmt(tinaja)}</span></div>}
+                {tinaja > 0 && <div style={s.priceRow}><span style={s.priceKey}>Tinaja {tinajaDias} {tinajaDias === 1 ? "d\u00eda" : "d\u00edas"}</span><span style={s.priceVal}>{fmt(tinaja)}</span></div>}
                 <hr style={s.hr} />
-                <div style={s.totalRow}><span style={s.totalKey}>Total estadia</span><span style={s.totalVal}>{fmt(total)}</span></div>
+                <div style={s.totalRow}><span style={s.totalKey}>{"Total estad\u00eda"}</span><span style={s.totalVal}>{fmt(total)}</span></div>
               </div>
               <div style={s.deposit}><span style={s.depKey}>Adelanto para confirmar (20%)</span><span style={s.depVal}>{fmt(deposito)}</span></div>
             </div>
@@ -381,18 +381,18 @@ function ReservarInner() {
 
         {paso === 3 && (
           <>
-            <div style={s.eye}>Elige como pagar</div>
+            <div style={s.eye}>{"Elige c\u00f3mo pagar"}</div>
             <div style={s.title}>Adelanto: {fmt(deposito)}</div>
 
             <div style={metodoPago === "tarjeta" ? s.payOptSel : s.payOpt} onClick={() => setMetodoPago("tarjeta")}>
               <div style={s.payHead}>
                 <div style={metodoPago === "tarjeta" ? s.radioSel : s.radio}>{metodoPago === "tarjeta" && <div style={s.radioDot} />}</div>
-                <div><div style={s.payTitle}>Tarjeta de credito o debito</div><div style={s.paySub}>Proximamente disponible</div></div>
+                <div><div style={s.payTitle}>{"Tarjeta de cr\u00e9dito o d\u00e9bito"}</div><div style={s.paySub}>{"Pr\u00f3ximamente disponible"}</div></div>
               </div>
               {metodoPago === "tarjeta" && (
                 <div style={s.payBody}>
-                  Tu reserva se <strong>confirma automaticamente</strong> al pagar. Recibiras el comprobante en tu WhatsApp {whatsapp ? "(" + whatsapp + ")" : ""} {email ? "y correo (" + email + ")" : ""}.
-                  <br /><br /><em style={{ color: "#e8a21a", fontSize: "11px" }}>Esta opcion estara disponible muy pronto.</em>
+                  {"Tu reserva se "}<strong>{"confirma autom\u00e1ticamente"}</strong>{" al pagar. Recibir\u00e1s el comprobante en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""} {email ? "y correo (" + email + ")" : ""}.
+                  <br /><br /><em style={{ color: "#e8a21a", fontSize: "11px" }}>{"Esta opci\u00f3n estar\u00e1 disponible muy pronto."}</em>
                 </div>
               )}
             </div>
@@ -400,17 +400,17 @@ function ReservarInner() {
             <div style={metodoPago === "transferencia" ? s.payOptSel : s.payOpt} onClick={() => setMetodoPago("transferencia")}>
               <div style={s.payHead}>
                 <div style={metodoPago === "transferencia" ? s.radioSel : s.radio}>{metodoPago === "transferencia" && <div style={s.radioDot} />}</div>
-                <div><div style={s.payTitle}>Transferencia bancaria</div><div style={s.paySub}>BancoEstado · Cuenta RUT · Inmediato</div></div>
+                <div><div style={s.payTitle}>Transferencia bancaria</div><div style={s.paySub}>{"BancoEstado \u00b7 Cuenta RUT \u00b7 Inmediato"}</div></div>
               </div>
               {metodoPago === "transferencia" && (
                 <div style={s.payBody}>
                   <div style={{ ...s.priceBox, marginTop: "10px" }}>
-                    {[["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["Numero","15.665.466-3"],["Nombre","Johanna Medina"],["Monto exacto",fmt(deposito)]].map(([k,v]) => (
+                    {[["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.665.466-3"],["Nombre","Johanna Medina"],["Monto exacto",fmt(deposito)]].map(([k,v]) => (
                       <div key={k} style={s.priceRow}><span style={s.priceKey}>{k}</span><span style={s.priceVal}>{v}</span></div>
                     ))}
                   </div>
                   <div style={{ marginTop: "12px", fontSize: "12px", color: "#8a9e88", lineHeight: 1.6 }}>
-                    Una vez que Johanna verifique tu transferencia, recibirás la confirmación de reserva en tu WhatsApp {whatsapp ? "(" + whatsapp + ")" : ""} {email ? "y correo (" + email + ")" : ""}.
+                    {"Una vez que Johanna verifique tu transferencia, recibir\u00e1s la confirmaci\u00f3n de reserva en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""} {email ? "y correo (" + email + ")" : ""}.
                   </div>
                 </div>
               )}
@@ -419,12 +419,12 @@ function ReservarInner() {
             {submitError && <div style={s.err}>{submitError}</div>}
 
             <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: 1.6 }}>
-              Al confirmar quedará registrada tu solicitud con un código único. Úsalo como glosa en tu transferencia.
+              {"Al confirmar quedar\u00e1 registrada tu solicitud con un c\u00f3digo \u00fanico. \u00dasalo como glosa en tu transferencia."}
             </div>
 
             <button style={loading || metodoPago === "tarjeta" ? s.btnDisabled : s.btn}
               disabled={loading || metodoPago === "tarjeta"} onClick={confirmar}>
-              {loading ? "Registrando..." : metodoPago === "tarjeta" ? "Proximamente disponible" : "Reservar ahora con 20% de anticipo"}
+              {loading ? "Registrando..." : metodoPago === "tarjeta" ? "Pr\u00f3ximamente disponible" : "Reservar ahora con 20% de anticipo"}
             </button>
             <button style={s.btnBack} onClick={() => setPaso(2)}>Volver al resumen</button>
           </>
@@ -434,12 +434,12 @@ function ReservarInner() {
           <div style={s.successWrap}>
             <div style={s.successIco}>&#127807;</div>
             <div style={s.successTitle}>Solicitud enviada</div>
-            <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" }}>Tu codigo de reserva</div>
+            <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" }}>{"Tu c\u00f3digo de reserva"}</div>
             <div style={s.successCode}>{codigo}</div>
             <div style={s.successDesc}>
               Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
-              Una vez que Johanna verifique tu transferencia de <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
-              recibiras la confirmacion en tu WhatsApp {whatsapp ? "(" + whatsapp + ")" : ""}
+              {"Una vez que Johanna verifique tu transferencia de "}<strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
+              {" recibir\u00e1s la confirmaci\u00f3n en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}
               {email ? " y correo (" + email + ")" : ""}.
             </div>
             <div style={s.bank}>
@@ -451,7 +451,7 @@ function ReservarInner() {
               ))}
             </div>
             <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
-              Usa <strong style={{ color: "#7ab87a" }}>{codigo}</strong> como glosa para que Johanna identifique tu pago.
+              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que Johanna identifique tu pago."}
             </div>
           </div>
         )}
