@@ -191,7 +191,7 @@ function ReservarInner() {
     payTitle: { fontSize: "14px", fontWeight: 600, color: "#e8d5a3" },
     paySub: { fontSize: "11px", color: "#5a7058" },
     payBody: { fontSize: "12px", color: "#8a9e88", lineHeight: 1.6, paddingLeft: "30px", marginTop: "8px" },
-    successWrap: { textAlign: "center", padding: "40px 20px" },
+    successWrap: { textAlign: "center" as const, padding: "40px 20px" },
     successIco: { fontSize: "48px", marginBottom: "20px" },
     successTitle: { fontFamily: "Georgia,serif", fontSize: "28px", color: "#e8d5a3", marginBottom: "10px" },
     successCode: { fontFamily: "Georgia,serif", fontSize: "22px", color: "#7ab87a", background: "#7ab87a14", border: "1px solid #7ab87a2a", borderRadius: "12px", padding: "14px 20px", margin: "16px 0", letterSpacing: "2px" },
