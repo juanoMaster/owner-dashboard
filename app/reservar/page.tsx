@@ -268,7 +268,7 @@ function ReservarInner() {
                   Puedes probar con:<br /><br />
                   <a href={"/reservar?cabin_id=" + suggest.cabin_id + "&cabin_name=" + encodeURIComponent(suggest.cabin_name) + "&visited=" + encodeURIComponent(newVisited)}
                     style={{ color: "#e8b84a", textDecoration: "underline", fontWeight: 600 }}>
-                    {suggest.cabin_name} — hasta {suggest.capacity} personas — {fmt(suggest.price)}/noche
+                    {suggest.cabin_name} — hasta {suggest.capacity} personas — {fmt(suggest.price || PRECIOS[suggest.cabin_id] || 0)}/noche
                   </a>
                   <br /><br />
                   O elige otras fechas para {cabin_name}.
@@ -276,9 +276,9 @@ function ReservarInner() {
               )}
               {dispStatus === "occupied" && redTakai && (
                 <div style={s.err}>
-                  <strong>Todas las cabanas de Rukatraro estan ocupadas para esas fechas.</strong>
+                  <strong>Todas las cabañas de Rukatraro están ocupadas para esas fechas.</strong>
                   <br /><br />
-                  Te recomendamos elegir otras fechas o contactar directamente a Johanna.
+                  Te recomendamos elegir otras fechas. Pronto podrás ver otras cabañas disponibles en la zona.
                 </div>
               )}
               {dispStatus === "occupied" && !suggest && !redTakai && (
