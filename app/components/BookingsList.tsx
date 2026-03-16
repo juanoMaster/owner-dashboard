@@ -110,7 +110,8 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
           const nombre = info["Nombre"] || "Sin nombre"
           const whatsapp = info["WhatsApp"] || ""
           const codigo = info["Codigo"] || info["C\u00f3digo"] || ""
-          const tinaja = info["Tinaja"] || ""
+          const tinajaRaw = info["Tinaja"] || ""
+          const tinajaDias = parseInt(tinajaRaw) || 0
           const isLoading = loadingId === b.id
           const phone = cleanPhone(whatsapp)
 
@@ -133,10 +134,10 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
                   <span style={{ color: "#5a7058" }}>Total</span>
                   <span style={{ color: "#c8d8c0", fontWeight: 600 }}>{fmt(b.total_amount)}</span>
                 </div>
-                {tinaja && tinaja !== "0" && (
+                {tinajaDias > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
                     <span style={{ color: "#5a7058" }}>Tinaja</span>
-                    <span style={{ color: "#c8d8c0" }}>{tinaja} {Number(tinaja) === 1 ? "d\u00eda" : "d\u00edas"}</span>
+                    <span style={{ color: "#c8d8c0" }}>{tinajaDias} {tinajaDias === 1 ? "d\u00eda" : "d\u00edas"}</span>
                   </div>
                 )}
               </div>
