@@ -16,6 +16,46 @@ function fmt(n: number) {
   return "$" + n.toLocaleString("es-CL")
 }
 
+function PaymentLogos() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "8px", background: "white", borderRadius: "10px", padding: "14px 16px", marginTop: "12px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="#6B21A8" strokeWidth="1.5"/><path d="M3 10h18" stroke="#6B21A8" strokeWidth="1.5"/></svg>
+        <span style={{ fontFamily: "system-ui,sans-serif", fontSize: "13px", fontWeight: 700, color: "#6B21A8", letterSpacing: "-0.3px" }}>webpay</span>
+        <span style={{ fontFamily: "system-ui,sans-serif", fontSize: "9px", fontWeight: 600, color: "#6B21A8", background: "#f3e8ff", borderRadius: "3px", padding: "1px 4px" }}>PLUS</span>
+        <span style={{ fontSize: "9px", color: "#999", marginLeft: "2px" }}>by Transbank</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const, justifyContent: "center" }}>
+        <svg width="46" height="15" viewBox="0 0 46 15" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.4.8L14.4 14h-3.6L13.8.8h3.6zm15.8.4c-.8-.3-2-.6-3.5-.6-3.9 0-6.6 2-6.6 4.9 0 2.1 2 3.3 3.5 4 1.5.7 2 1.2 2 1.8 0 1-.8 1.4-2 1.4-1.6 0-2.5-.2-3.8-.8l-.5-.3-.6 3.5c1 .4 2.8.8 4.7.8 4.1 0 6.8-2 6.8-5 0-1.7-1-3-3.3-4-1.4-.7-2.2-1.2-2.2-1.9 0-.6.7-1.3 2.2-1.3 1.3 0 2.2.3 2.9.6l.3.2.6-3.5zM39 .8c-.9 0-1.5.3-1.9 1.2L31 14h4.1l.8-2.2h5l.4 2.2H45L42 .8h-3zm-1.8 9.3c.3-.9 1.6-4.3 1.6-4.3l.4-1.2.3 1.1s.8 3.6.9 4.4h-3.2zM13.3.8L9.5 9.6l-.4-2C8.4 5.4 6 2.7 3.3 1.3L6.7 14h4.2L17.5.8h-4.2z" fill="#1A1F71"/>
+          <path d="M6.5.8H.5L.4 1.1C5 2.2 8 4.9 8.9 8.2l-1-4.8C7.7 1.6 7.1 1 6.5.8z" fill="#F7A600"/>
+        </svg>
+        <svg width="30" height="19" viewBox="0 0 30 19" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="9.5" r="8.5" fill="#EB001B"/>
+          <circle cx="19" cy="9.5" r="8.5" fill="#F79E1B"/>
+          <path d="M15 2.6a8.5 8.5 0 010 13.8 8.5 8.5 0 000-13.8z" fill="#FF5F00"/>
+        </svg>
+        <svg width="30" height="19" viewBox="0 0 30 19" xmlns="http://www.w3.org/2000/svg">
+          <rect width="30" height="19" rx="2" fill="#016FD0"/>
+          <text x="15" y="10" fontFamily="Arial,sans-serif" fontSize="5" fontWeight="700" fill="white" textAnchor="middle" dominantBaseline="central">AMEX</text>
+        </svg>
+        <svg width="30" height="19" viewBox="0 0 30 19" xmlns="http://www.w3.org/2000/svg">
+          <rect width="30" height="19" rx="2" fill="#1D1D1B"/>
+          <circle cx="10" cy="9.5" r="4.5" fill="#E30613"/>
+          <text x="20" y="10" fontFamily="Arial,sans-serif" fontSize="3.5" fontWeight="600" fill="white" textAnchor="middle" dominantBaseline="central">débito</text>
+        </svg>
+        <svg width="30" height="19" viewBox="0 0 30 19" xmlns="http://www.w3.org/2000/svg">
+          <rect width="30" height="19" rx="2" fill="#00447C"/>
+          <rect x="4" y="5" width="3" height="9" rx="1" fill="#0072CE"/>
+          <rect x="8.5" y="3" width="3" height="11" rx="1" fill="#4DA3E0"/>
+          <text x="19" y="10" fontFamily="Arial,sans-serif" fontSize="3.8" fontWeight="700" fill="white" textAnchor="middle" dominantBaseline="central">tbk</text>
+        </svg>
+      </div>
+      <div style={{ fontSize: "9px", color: "#aaa", letterSpacing: "0.5px" }}>{"Pago seguro procesado por Transbank"}</div>
+    </div>
+  )
+}
+
 function ReservarInner() {
   const params = useSearchParams()
   const cabin_id = params.get("cabin_id") || ""
@@ -401,9 +441,7 @@ function ReservarInner() {
                 <div style={metodoPago === "tarjeta" ? s.radioSel : s.radio}>{metodoPago === "tarjeta" && <div style={s.radioDot} />}</div>
                 <div><div style={s.payTitle}>{"Tarjeta de cr\u00e9dito o d\u00e9bito"}</div><div style={s.paySub}>{"Pr\u00f3ximamente disponible"}</div></div>
               </div>
-              <div style={{ display: "flex", justifyContent: "center", marginTop: "12px", marginBottom: "4px", background: "white", borderRadius: "8px", padding: "8px 12px" }}>
-                <img src="/webpay-plus.png" alt="Webpay Plus - Visa, Mastercard, Redcompra" style={{ maxWidth: "100%", height: "40px", objectFit: "contain" as const }} />
-              </div>
+              <PaymentLogos />
               {metodoPago === "tarjeta" && (
                 <div style={s.payBody}>
                   {"Tu reserva se "}<strong>{"confirma autom\u00e1ticamente"}</strong>{" al pagar. Recibir\u00e1s el comprobante en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
