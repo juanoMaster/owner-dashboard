@@ -41,55 +41,63 @@ export default async function Home({
     .order("created_at", { ascending: false })
 
   return (
-    <main style={{
-      padding: "32px 20px",
-      fontFamily: "'Segoe UI', sans-serif",
-      maxWidth: "680px",
-      margin: "0 auto"
-    }}>
-      <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "24px" }}>
-        Panel del Propietario
-      </h1>
-
-      {cabins?.map((cabin: any) => (
-        <div key={cabin.id} style={{
-          border: "1px solid #e0e0e0",
-          borderRadius: "12px",
-          padding: "20px",
-          marginBottom: "16px",
-          background: "#fff",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)"
-        }}>
-          <h2 style={{ fontSize: "17px", fontWeight: "700", marginBottom: "6px" }}>
-            {cabin.name}
-          </h2>
-          <p style={{ color: "#666", fontSize: "14px", marginBottom: "16px" }}>
-            Capacidad: {cabin.capacity} personas
-          </p>
-
-          <a href={"/calendar?cabin_id=" + cabin.id + "&token=" + token + "&cabin_name=" + encodeURIComponent(cabin.name)}
-            style={{
-              display: "block",
-              background: "#c0392b",
-              color: "white",
-              borderRadius: "8px",
-              padding: "10px 20px",
-              fontSize: "14px",
-              fontWeight: "600",
-              textAlign: "center" as const,
-              textDecoration: "none"
-            }}
-          >
-            Ver Calendario
-          </a>
+    <div style={{ background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
+        <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
+          Ruka<span style={{ color: "#7ab87a" }}>traro</span>
         </div>
-      ))}
+        <div style={{ fontSize: "10px", color: "#5a7058", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Panel administrador</div>
+      </div>
 
-      <BookingsList
-        bookings={bookings || []}
-        cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
-        tenantId={link.tenant_id}
-      />
-    </main>
+      <main style={{ padding: "24px 20px", maxWidth: "700px", margin: "0 auto", fontFamily: "sans-serif" }}>
+
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "14px" }}>Mis caba{"\u00f1"}as</div>
+
+        {cabins?.map((cabin: any) => (
+          <div key={cabin.id} style={{
+            background: "#111a11",
+            border: "1px solid #2a3a2a",
+            borderRadius: "14px",
+            padding: "18px 16px",
+            marginBottom: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px"
+          }}>
+            <div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "4px" }}>
+                {cabin.name}
+              </div>
+              <div style={{ fontSize: "12px", color: "#6a8a68" }}>
+                Capacidad: {cabin.capacity} personas
+              </div>
+            </div>
+            <a href={"/calendar?cabin_id=" + cabin.id + "&token=" + token + "&cabin_name=" + encodeURIComponent(cabin.name)}
+              style={{
+                display: "inline-block",
+                background: "#7ab87a",
+                color: "#0a0f0a",
+                borderRadius: "8px",
+                padding: "9px 16px",
+                fontSize: "12px",
+                fontWeight: 700,
+                textDecoration: "none",
+                whiteSpace: "nowrap" as const,
+                flexShrink: 0
+              }}
+            >
+              Ver calendario
+            </a>
+          </div>
+        ))}
+
+        <BookingsList
+          bookings={bookings || []}
+          cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
+          tenantId={link.tenant_id}
+        />
+      </main>
+    </div>
   )
 }

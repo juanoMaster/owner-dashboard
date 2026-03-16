@@ -47,24 +47,6 @@ function cleanPhone(phone: string): string {
   return phone.replace(/[^0-9+]/g, "")
 }
 
-const st = {
-  section: { marginTop: "32px" },
-  title: { fontSize: "18px", fontWeight: "700" as const, marginBottom: "16px" },
-  empty: { color: "#999", fontSize: "14px", textAlign: "center" as const, padding: "24px", background: "#f9f9f9", borderRadius: "12px" },
-  card: { border: "1px solid #e0e0e0", borderRadius: "12px", padding: "16px", marginBottom: "12px", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  code: { fontSize: "12px", color: "#888", marginBottom: "8px" },
-  name: { fontSize: "16px", fontWeight: "700" as const, marginBottom: "4px" },
-  cabin: { fontSize: "13px", color: "#666", marginBottom: "8px" },
-  dates: { fontSize: "14px", color: "#333", marginBottom: "4px" },
-  money: { fontSize: "14px", color: "#333", marginBottom: "4px" },
-  deposit: { fontSize: "14px", fontWeight: "600" as const, color: "#c0392b", marginBottom: "12px" },
-  whatsapp: { display: "inline-block" as const, background: "#25d366", color: "white", borderRadius: "6px", padding: "6px 14px", fontSize: "13px", fontWeight: "600" as const, textDecoration: "none", marginBottom: "12px" },
-  actions: { display: "flex" as const, gap: "8px", marginTop: "8px" },
-  btnConfirm: { flex: 1, padding: "10px", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "600" as const, cursor: "pointer", background: "#27ae60", color: "white" },
-  btnCancel: { flex: 1, padding: "10px", border: "1px solid #e74c3c", borderRadius: "8px", fontSize: "14px", fontWeight: "600" as const, cursor: "pointer", background: "white", color: "#e74c3c" },
-  btnDisabled: { opacity: 0.5, cursor: "not-allowed" as const },
-}
-
 export default function BookingsList({ bookings: initial, cabins, tenantId }: { bookings: Booking[]; cabins: Cabin[]; tenantId: string }) {
   const [bookings, setBookings] = useState(initial)
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -73,7 +55,7 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
   cabins.forEach((c) => { cabinMap[c.id] = c.name })
 
   async function handleConfirm(id: string) {
-    if (!confirm("Confirmar esta reserva? El turista queda confirmado y las fechas pasan a verde.")) return
+    if (!confirm("Confirmar esta reserva? Las fechas pasar\u00e1n a verde en el calendario.")) return
     setLoadingId(id)
     try {
       const res = await fetch("/api/bookings/confirm", {
@@ -87,13 +69,13 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
         alert("Error al confirmar la reserva")
       }
     } catch (e) {
-      alert("Error de conexion")
+      alert("Error de conexi\u00f3n")
     }
     setLoadingId(null)
   }
 
   async function handleCancel(id: string) {
-    if (!confirm("Cancelar esta reserva? Las fechas se liberaran en el calendario.")) return
+    if (!confirm("Cancelar esta reserva? Las fechas se liberar\u00e1n.")) return
     setLoadingId(id)
     try {
       const res = await fetch("/api/bookings/cancel", {
@@ -107,16 +89,21 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
         alert("Error al cancelar la reserva")
       }
     } catch (e) {
-      alert("Error de conexion")
+      alert("Error de conexi\u00f3n")
     }
     setLoadingId(null)
   }
 
   return (
-    <div style={st.section}>
-      <div style={st.title}>Reservas pendientes ({bookings.length})</div>
+    <div style={{ marginTop: "28px" }}>
+      <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "14px" }}>
+        {"Reservas pendientes (" + bookings.length + ")"}
+      </div>
+
       {bookings.length === 0 ? (
-        <div style={st.empty}>No hay reservas pendientes por confirmar</div>
+        <div style={{ textAlign: "center" as const, padding: "28px 20px", background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", fontSize: "13px", color: "#5a7058" }}>
+          No hay reservas pendientes por confirmar
+        </div>
       ) : (
         bookings.map((b) => {
           const info = parseNotes(b.notes || "")
@@ -128,30 +115,53 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
           const phone = cleanPhone(whatsapp)
 
           return (
-            <div key={b.id} style={st.card}>
-              {codigo && <div style={st.code}>{codigo}</div>}
-              <div style={st.name}>{nombre}</div>
-              <div style={st.cabin}>{cabinMap[b.cabin_id] || "Caba\u00f1a"}</div>
-              <div style={st.dates}>
-                {formatDate(b.check_in)} &#8594; {formatDate(b.check_out)} ({b.nights} noches)
+            <div key={b.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "18px 16px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                {codigo && <div style={{ fontSize: "11px", color: "#5a7058", letterSpacing: "1px", fontFamily: "monospace" }}>{codigo}</div>}
+                <div style={{ fontSize: "10px", color: "#c0392b", background: "#c0392b15", border: "1px solid #c0392b33", padding: "2px 8px", borderRadius: "8px" }}>Pendiente</div>
               </div>
-              <div style={st.money}>Total: {fmt(b.total_amount)}</div>
-              <div style={st.deposit}>Adelanto a verificar: {fmt(b.deposit_amount)}</div>
-              {tinaja && tinaja !== "0" && (
-                <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>Tinaja: {tinaja}</div>
-              )}
+
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "4px" }}>{nombre}</div>
+              <div style={{ fontSize: "12px", color: "#6a8a68", marginBottom: "12px" }}>{cabinMap[b.cabin_id] || "Caba\u00f1a"}</div>
+
+              <div style={{ background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "10px", padding: "12px", marginBottom: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
+                  <span style={{ color: "#5a7058" }}>Fechas</span>
+                  <span style={{ color: "#c8d8c0" }}>{formatDate(b.check_in)} &#8594; {formatDate(b.check_out)} ({b.nights} noches)</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
+                  <span style={{ color: "#5a7058" }}>Total</span>
+                  <span style={{ color: "#c8d8c0", fontWeight: 600 }}>{fmt(b.total_amount)}</span>
+                </div>
+                {tinaja && tinaja !== "0" && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
+                    <span style={{ color: "#5a7058" }}>Tinaja</span>
+                    <span style={{ color: "#c8d8c0" }}>{tinaja} {Number(tinaja) === 1 ? "d\u00eda" : "d\u00edas"}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#c0392b12", border: "1px solid #c0392b28", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
+                <span style={{ fontSize: "12px", color: "#e67a7a" }}>Adelanto a verificar</span>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: "#e67a7a", fontFamily: "Georgia, serif" }}>{fmt(b.deposit_amount)}</span>
+              </div>
+
               {phone && (
-                <div style={{ marginBottom: "12px" }}>
-                  <a href={"https://wa.me/" + phone.replace("+", "")} target="_blank" rel="noopener noreferrer" style={st.whatsapp}>
-                    WhatsApp: {whatsapp}
+                <div style={{ marginBottom: "14px" }}>
+                  <a href={"https://wa.me/" + phone.replace("+", "")} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#25d366", color: "white", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                    {"WhatsApp: " + whatsapp}
                   </a>
                 </div>
               )}
-              <div style={st.actions}>
-                <button onClick={() => handleConfirm(b.id)} disabled={isLoading} style={{ ...st.btnConfirm, ...(isLoading ? st.btnDisabled : {}) }}>
+
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button onClick={() => handleConfirm(b.id)} disabled={isLoading}
+                  style={{ flex: 1, padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 700, cursor: isLoading ? "not-allowed" : "pointer", background: isLoading ? "#2a3e28" : "#27ae60", color: "white", opacity: isLoading ? 0.5 : 1, fontFamily: "sans-serif" }}>
                   {isLoading ? "..." : "Confirmar pago"}
                 </button>
-                <button onClick={() => handleCancel(b.id)} disabled={isLoading} style={{ ...st.btnCancel, ...(isLoading ? st.btnDisabled : {}) }}>
+                <button onClick={() => handleCancel(b.id)} disabled={isLoading}
+                  style={{ flex: 1, padding: "11px", border: "1px solid #c0392b44", borderRadius: "10px", fontSize: "13px", fontWeight: 600, cursor: isLoading ? "not-allowed" : "pointer", background: "transparent", color: "#e67a7a", opacity: isLoading ? 0.5 : 1, fontFamily: "sans-serif" }}>
                   {isLoading ? "..." : "Cancelar"}
                 </button>
               </div>
