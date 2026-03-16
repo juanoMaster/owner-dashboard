@@ -54,7 +54,7 @@ function CalendarInner() {
       title: "Seleccionado",
       start: rangeStart,
       end: endPlusOne.toISOString().split("T")[0],
-      backgroundColor: "rgba(122, 184, 122, 0.2)",
+      backgroundColor: "rgba(122, 184, 122, 0.25)",
       borderColor: "#7ab87a",
       textColor: "#7ab87a",
       allDay: true,
@@ -142,13 +142,16 @@ function CalendarInner() {
         <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
           Ruka<span style={{ color: "#7ab87a" }}>traro</span>
         </div>
-        <a href={"/?token=" + token} style={{ background: "transparent", border: "1px solid #2a3e28", color: "#8a9e88", fontSize: "12px", padding: "7px 16px", borderRadius: "20px", textDecoration: "none" }}>
-          {"\u2190 Mis caba\u00f1as"}
-        </a>
+        <div style={{ fontSize: "10px", color: "#5a7058", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Calendario</div>
       </div>
 
       <div style={{ padding: "20px 16px", maxWidth: "700px", margin: "0 auto", fontFamily: "sans-serif" }}>
-        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "6px" }}>Calendario</div>
+
+        <a href={"/?token=" + token} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#162618", border: "1px solid #2a3e28", color: "#c8d8c0", fontSize: "14px", fontWeight: 600, padding: "12px 20px", borderRadius: "12px", textDecoration: "none", marginBottom: "20px" }}>
+          {"\u2190 Volver a mis caba\u00f1as"}
+        </a>
+
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "6px" }}>Calendario de reservas</div>
         <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#e8d5a3", marginBottom: "6px" }}>
           {decodeURIComponent(cabinName)}
         </div>
@@ -156,21 +159,14 @@ function CalendarInner() {
           Toca una fecha libre para marcar entrada. Luego toca la fecha de salida.
         </div>
 
-        <div style={{ display: "flex", gap: "12px", marginBottom: "14px", flexWrap: "wrap" as const }}>
+        <div style={{ display: "flex", gap: "10px", marginBottom: "14px", flexWrap: "wrap" as const }}>
           {[
             { color: "#2563eb", label: "Bloqueado manual" },
             { color: "#c0392b", label: "Pendiente pago (24h)" },
-            { color: "#2e7d32", label: "Reserva confirmada" },
-            { color: "rgba(122,184,122,0.2)", border: "#7ab87a", label: "Selecci\u00f3n activa" },
-          ].map(({ color, border, label }) => (
-            <span key={label} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "#6a8a68" }}>
-              <span style={{
-                background: color,
-                border: border ? "2px solid " + border : "none",
-                borderRadius: "3px",
-                width: "13px", height: "13px",
-                display: "inline-block", flexShrink: 0
-              }} />
+            { color: "#2e7d32", label: "Confirmada" },
+          ].map(({ color, label }) => (
+            <span key={label} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "#8a9e88" }}>
+              <span style={{ background: color, borderRadius: "3px", width: "12px", height: "12px", display: "inline-block", flexShrink: 0 }} />
               {label}
             </span>
           ))}
@@ -225,30 +221,30 @@ function CalendarInner() {
         </div>
 
         <style>{"\
-          .cal-dark .fc { font-size: 13px; background: #0d1a12; border-radius: 12px; border: 1px solid #2a3a2a; overflow: hidden; }\
-          .cal-dark .fc-theme-standard td, .cal-dark .fc-theme-standard th { border-color: #1a2a1a; }\
-          .cal-dark .fc-theme-standard .fc-scrollgrid { border-color: #1a2a1a; }\
-          .cal-dark .fc-col-header-cell { background: #111a11; }\
-          .cal-dark .fc-col-header-cell-cushion { color: #6a8a68; font-size: 11px; padding: 8px 4px; text-decoration: none; }\
-          .cal-dark .fc-daygrid-day-number { font-size: 13px; font-weight: 600; color: #c8d8c0; padding: 6px 8px; text-decoration: none; }\
-          .cal-dark .fc-daygrid-day { background: #0d1a12; }\
-          .cal-dark .fc-day-today { background: #162618 !important; }\
-          .cal-dark .fc-day-past .fc-daygrid-day-number { color: #3a4a38; }\
-          .cal-dark .fc-daygrid-event { border-radius: 4px; font-size: 10px; padding: 1px 4px; font-weight: 600; margin-bottom: 1px; }\
+          .cal-dark .fc { font-size: 13px; background: #f8f7f4; border-radius: 12px; border: 1px solid #2a3a2a; overflow: hidden; }\
+          .cal-dark .fc-theme-standard td, .cal-dark .fc-theme-standard th { border-color: #e0ddd6; }\
+          .cal-dark .fc-theme-standard .fc-scrollgrid { border-color: #e0ddd6; }\
+          .cal-dark .fc-col-header-cell { background: #eae7e0; }\
+          .cal-dark .fc-col-header-cell-cushion { color: #555; font-size: 11px; padding: 8px 4px; text-decoration: none; font-weight: 600; }\
+          .cal-dark .fc-daygrid-day-number { font-size: 14px; font-weight: 700; color: #222; padding: 6px 8px; text-decoration: none; }\
+          .cal-dark .fc-daygrid-day { background: #f8f7f4; }\
+          .cal-dark .fc-day-today { background: #fffde6 !important; }\
+          .cal-dark .fc-day-past .fc-daygrid-day-number { color: #aaa; }\
+          .cal-dark .fc-daygrid-event { border-radius: 4px; font-size: 10px; padding: 2px 4px; font-weight: 600; margin-bottom: 1px; }\
           .cal-dark .fc-daygrid-event-harness { margin-bottom: 1px; }\
           .cal-dark .fc-daygrid-day-events { padding: 2px 2px 0; }\
-          .cal-dark .fc-toolbar { padding: 12px 16px; }\
-          .cal-dark .fc-toolbar-title { font-size: 16px; font-weight: 700; color: #e8d5a3; font-family: Georgia, serif; }\
-          .cal-dark .fc-button { font-size: 12px; padding: 6px 12px; background: #162618; border: 1px solid #2a3e28; color: #7ab87a; border-radius: 8px; }\
-          .cal-dark .fc-button:hover { background: #1e3020; }\
-          .cal-dark .fc-button-active { background: #7ab87a; color: #0a0f0a; border-color: #7ab87a; }\
+          .cal-dark .fc-toolbar { padding: 14px 16px; background: #eae7e0; }\
+          .cal-dark .fc-toolbar-title { font-size: 17px; font-weight: 700; color: #333; font-family: Georgia, serif; }\
+          .cal-dark .fc-button { font-size: 12px; padding: 6px 14px; background: #fff; border: 1px solid #ccc; color: #333; border-radius: 8px; font-weight: 600; }\
+          .cal-dark .fc-button:hover { background: #f0ede8; }\
+          .cal-dark .fc-button-active { background: #333; color: #fff; border-color: #333; }\
           .cal-dark .fc-button:disabled { opacity: 0.4; }\
           @media (max-width: 600px) {\
             .cal-dark .fc { font-size: 11px; }\
             .cal-dark .fc-toolbar { flex-direction: column; gap: 8px; }\
             .cal-dark .fc-toolbar-title { font-size: 15px; text-align: center; }\
             .cal-dark .fc-toolbar-chunk { display: flex; justify-content: center; }\
-            .cal-dark .fc-daygrid-day-number { font-size: 11px; padding: 4px 4px 0; }\
+            .cal-dark .fc-daygrid-day-number { font-size: 12px; padding: 4px 4px 0; }\
             .cal-dark .fc-daygrid-event { font-size: 9px; padding: 1px 2px; }\
             .cal-dark .fc-daygrid-event-harness { position: relative !important; inset: unset !important; }\
             .cal-dark .fc-daygrid-day-frame { min-height: 60px; }\

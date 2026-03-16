@@ -212,7 +212,7 @@ function ReservarInner() {
 
   return (
     <div style={s.page}>
-      <style>{"@media (min-width: 768px) { .reservar-body { max-width: 820px !important; } .paso1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .paso1-grid > div:nth-child(2) { grid-column: 1; grid-row: 2; } .paso1-grid > div:nth-child(3) { grid-column: 2; grid-row: 1 / 3; align-self: start; } .paso2-compact .resItem { padding: 6px 0 !important; } .paso2-compact .resKey, .paso2-compact .resVal { font-size: 12px !important; } }"}</style>
+      <style>{"@media (min-width: 768px) { .reservar-body { max-width: 820px !important; } .paso1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .paso1-grid > div:nth-child(2) { grid-column: 1; grid-row: 2; } .paso1-grid > div:nth-child(3) { grid-column: 2; grid-row: 1 / 3; align-self: start; } .paso2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } }"}</style>
       <nav style={s.nav}>
         <div style={s.logo}>Ruka<span style={s.logoSpan}>traro</span></div>
         {paso === 1 && (
