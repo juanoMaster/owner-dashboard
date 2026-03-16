@@ -212,6 +212,8 @@ function ReservarInner() {
     totalRowCompact: { display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "6px 0 0" },
     totalValCompact: { fontFamily: "Georgia,serif", fontSize: "24px", color: "#e8d5a3" },
     depositCompact: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "#7ab87a14", border: "1px solid #7ab87a2a", borderRadius: "8px", padding: "10px 12px", marginTop: "10px" },
+    payLogos: { display: "flex", gap: "8px", flexWrap: "wrap" as const, paddingLeft: "30px", marginTop: "10px", marginBottom: "6px" },
+    payLogo: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", border: "1px solid #2a3e28", background: "#0d1a12" },
   }
 
   function stepStyle(i: number) {
@@ -401,6 +403,18 @@ function ReservarInner() {
                 <div style={metodoPago === "tarjeta" ? s.radioSel : s.radio}>{metodoPago === "tarjeta" && <div style={s.radioDot} />}</div>
                 <div><div style={s.payTitle}>{"Tarjeta de cr\u00e9dito o d\u00e9bito"}</div><div style={s.paySub}>{"Pr\u00f3ximamente disponible"}</div></div>
               </div>
+              <div style={s.payLogos}>
+                <span style={{ ...s.payLogo, color: "#1a1f71", background: "#e8eaf6" }}>VISA</span>
+                <span style={{ ...s.payLogo, color: "#333", background: "#fff3e0" }}>
+                  <span style={{ display: "inline-flex", gap: "2px", alignItems: "center" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#eb001b", display: "inline-block" }}></span>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f79e1b", display: "inline-block", marginLeft: "-4px" }}></span>
+                    <span style={{ marginLeft: "4px", fontSize: "10px", fontWeight: 700 }}>Mastercard</span>
+                  </span>
+                </span>
+                <span style={{ ...s.payLogo, color: "#00529b", background: "#e3f2fd" }}>Redcompra</span>
+                <span style={{ ...s.payLogo, color: "#1b3a6b", background: "#e8eaf6" }}>Transbank</span>
+              </div>
               {metodoPago === "tarjeta" && (
                 <div style={s.payBody}>
                   {"Tu reserva se "}<strong>{"confirma autom\u00e1ticamente"}</strong>{" al pagar. Recibir\u00e1s el comprobante en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
@@ -417,12 +431,12 @@ function ReservarInner() {
               {metodoPago === "transferencia" && (
                 <div style={s.payBody}>
                   <div style={{ ...s.priceBox, marginTop: "10px" }}>
-                    {[["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.665.466-3"],["Nombre","Johanna Medina"],["Monto exacto",fmt(deposito)]].map(([k,v]) => (
+                    {[["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.665.466-3"],["Nombre","Rukatraro"],["Monto exacto",fmt(deposito)]].map(([k,v]) => (
                       <div key={k} style={s.priceRow}><span style={s.priceKey}>{k}</span><span style={s.priceVal}>{v}</span></div>
                     ))}
                   </div>
                   <div style={{ marginTop: "12px", fontSize: "12px", color: "#8a9e88", lineHeight: 1.6 }}>
-                    {"Una vez que RUKATRARO verifique tu transferencia, recibir\u00e1s la confirmaci\u00f3n de reserva en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
+                    {"Una vez que Rukatraro verifique tu transferencia, recibir\u00e1s la confirmaci\u00f3n de reserva en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
                   </div>
                 </div>
               )}
@@ -450,20 +464,20 @@ function ReservarInner() {
             <div style={s.successCode}>{codigo}</div>
             <div style={s.successDesc}>
               Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
-              {"Una vez que Johanna verifique tu transferencia de "}<strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
+              {"Una vez que Rukatraro verifique tu transferencia de "}<strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
               {" recibir\u00e1s la confirmaci\u00f3n en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}
               {" y en el correo que indicaste"}{email ? " (" + email + ")" : ""}.
             </div>
             <div style={s.bank}>
               <div style={s.bankTitle}>Datos para la transferencia</div>
-              {[["Banco","BancoEstado"],["Cuenta RUT","15.665.466-3"],["Titular","Johanna Medina"],["Monto exacto",fmt(deposito)],["Glosa / Concepto",codigo]].map(([k,v],idx,arr) => (
+              {[["Banco","BancoEstado"],["Cuenta RUT","15.665.466-3"],["Titular","Rukatraro"],["Monto exacto",fmt(deposito)],["Glosa / Concepto",codigo]].map(([k,v],idx,arr) => (
                 <div key={k} style={{ ...s.bankRow, borderBottom: idx === arr.length - 1 ? "none" : "1px solid #ffffff07" }}>
                   <span style={s.bankKey}>{k}</span><span style={s.bankVal}>{v}</span>
                 </div>
               ))}
             </div>
             <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
-              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que Johanna identifique tu pago."}
+              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que Rukatraro identifique tu pago."}
             </div>
           </div>
         )}
