@@ -16,50 +16,6 @@ function fmt(n: number) {
   return "$" + n.toLocaleString("es-CL")
 }
 
-function VisaLogo() {
-  return (
-    <svg width="50" height="16" viewBox="0 0 50 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19.5 1.2L16.2 14.8H13L16.3 1.2H19.5Z" fill="#1A1F71"/>
-      <path d="M33.5 1.5C32.8 1.2 31.7 1 30.3 1C26.9 1 24.5 2.8 24.5 5.3C24.4 7.2 26.2 8.2 27.5 8.9C28.9 9.5 29.4 9.9 29.4 10.5C29.3 11.4 28.2 11.8 27.2 11.8C25.8 11.8 25 11.6 23.8 11L23.3 10.8L22.7 14.3C23.6 14.7 25.2 15 26.9 15C30.5 15 32.8 13.2 32.9 10.6C32.9 9.1 32 7.9 30 7C28.8 6.3 28.1 5.9 28.1 5.3C28.1 4.7 28.8 4.1 30.2 4.1C31.4 4.1 32.2 4.3 32.9 4.6L33.2 4.8L33.5 1.5Z" fill="#1A1F71"/>
-      <path d="M38.2 1.2C37.4 1.2 36.7 1.5 36.4 2.3L31.3 14.8H34.9L35.6 12.7H40L40.4 14.8H43.6L40.8 1.2H38.2ZM36.6 10.1C36.9 9.3 38.1 6 38.1 6L38.5 4.9L38.8 6.1C38.8 6.1 39.5 9.3 39.6 10.1H36.6Z" fill="#1A1F71"/>
-      <path d="M12.2 1.2L8.9 10.5L8.5 8.6C7.8 6.2 5.5 3.6 3 2.3L6.1 14.8H9.7L15.8 1.2H12.2Z" fill="#1A1F71"/>
-      <path d="M6.5 1.2H1.1L1 1.5C5.2 2.5 8 5.1 8.5 8.6L7.7 2.4C7.6 1.5 7 1.2 6.5 1.2Z" fill="#F7A600"/>
-    </svg>
-  )
-}
-
-function MastercardLogo() {
-  return (
-    <svg width="42" height="26" viewBox="0 0 42 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0.5" y="0.5" width="41" height="25" rx="3.5" fill="white" stroke="#E0E0E0"/>
-      <circle cx="16" cy="13" r="8" fill="#EB001B"/>
-      <circle cx="26" cy="13" r="8" fill="#F79E1B"/>
-      <path d="M21 6.8C22.8 8.3 24 10.5 24 13C24 15.5 22.8 17.7 21 19.2C19.2 17.7 18 15.5 18 13C18 10.5 19.2 8.3 21 6.8Z" fill="#FF5F00"/>
-    </svg>
-  )
-}
-
-function RedcompraLogo() {
-  return (
-    <svg width="70" height="26" viewBox="0 0 70 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0.5" y="0.5" width="69" height="25" rx="3.5" fill="white" stroke="#E0E0E0"/>
-      <circle cx="12" cy="13" r="5" fill="#E30613"/>
-      <text x="19" y="16.5" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#1D1D1B">Redcompra</text>
-    </svg>
-  )
-}
-
-function TransbankLogo() {
-  return (
-    <svg width="72" height="26" viewBox="0 0 72 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0.5" y="0.5" width="71" height="25" rx="3.5" fill="white" stroke="#E0E0E0"/>
-      <rect x="5" y="9" width="4" height="8" rx="1" fill="#00447C"/>
-      <rect x="10" y="7" width="4" height="10" rx="1" fill="#0072CE"/>
-      <text x="17" y="16.5" fontFamily="Arial,sans-serif" fontSize="9" fontWeight="700" fill="#00447C">Transbank</text>
-    </svg>
-  )
-}
-
 function ReservarInner() {
   const params = useSearchParams()
   const cabin_id = params.get("cabin_id") || ""
@@ -445,11 +401,8 @@ function ReservarInner() {
                 <div style={metodoPago === "tarjeta" ? s.radioSel : s.radio}>{metodoPago === "tarjeta" && <div style={s.radioDot} />}</div>
                 <div><div style={s.payTitle}>{"Tarjeta de cr\u00e9dito o d\u00e9bito"}</div><div style={s.paySub}>{"Pr\u00f3ximamente disponible"}</div></div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" as const, paddingLeft: "30px", marginTop: "10px", marginBottom: "6px", background: "#f5f5f5", borderRadius: "8px", padding: "10px 14px" }}>
-                <VisaLogo />
-                <MastercardLogo />
-                <RedcompraLogo />
-                <TransbankLogo />
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "12px", marginBottom: "4px", background: "white", borderRadius: "8px", padding: "8px 12px" }}>
+                <img src="/webpay-plus.png" alt="Webpay Plus - Visa, Mastercard, Redcompra" style={{ maxWidth: "100%", height: "40px", objectFit: "contain" as const }} />
               </div>
               {metodoPago === "tarjeta" && (
                 <div style={s.payBody}>
