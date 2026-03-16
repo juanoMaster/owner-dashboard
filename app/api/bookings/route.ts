@@ -19,7 +19,7 @@ function generarCodigo() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { cabin_id, check_in, check_out, guests, nights, subtotal, total, deposit, tinaja_days, nombre, whatsapp } = body
+    const { cabin_id, check_in, check_out, guests, nights, subtotal, total, deposit, tinaja_days, nombre, whatsapp, metodo_pago } = body
 
     if (!cabin_id || !check_in || !check_out || !nombre || !whatsapp) {
       return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 })
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         cabin_id,
         start_date: check_in,
         end_date: check_out,
-        reason: "system_booking"
+        reason: metodo_pago === "tarjeta" ? "system_booking" : "transfer_pending"
       }])
 
     if (bloqueError) throw bloqueError

@@ -149,7 +149,8 @@ function CalendarInner() {
 
       <div style={{ display: "flex", gap: "12px", marginBottom: "14px", flexWrap: "wrap" }}>
         {[
-          { color: "#c0392b", label: "Bloqueado" },
+          { color: "#2563eb", label: "Bloqueado manual" },
+          { color: "#c0392b", label: "Pendiente pago (24h)" },
           { color: "#2e7d32", label: "Reserva confirmada" },
           { color: "rgba(192,57,43,0.2)", border: "#c0392b", label: "Selección activa" },
         ].map(({ color, border, label }) => (
