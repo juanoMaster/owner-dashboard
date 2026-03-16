@@ -494,10 +494,3 @@ export default function ReservarPage() {
     </Suspense>
   )
 }
-```
-
-**Instrucciones:**
-
-1. Abre `app/reservar/page.tsx` en Cursor
-2. Ctrl+A → Borra todo → Ctrl+V (pega el código de arriba)
-3. Ctrl+S para guardar
