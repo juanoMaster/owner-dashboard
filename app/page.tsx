@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
+import BookingsList from "./components/BookingsList"
 export const revalidate = 0
 
 export default async function Home({
@@ -32,6 +33,13 @@ export default async function Home({
     .select("*")
     .eq("tenant_id", link.tenant_id)
 
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at")
+    .eq("tenant_id", link.tenant_id)
+    .eq("status", "draft")
+    .order("created_at", { ascending: false })
+
   return (
     <main style={{
       padding: "32px 20px",
@@ -42,6 +50,7 @@ export default async function Home({
       <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "24px" }}>
         Panel del Propietario
       </h1>
+
       {cabins?.map((cabin: any) => (
         <div key={cabin.id} style={{
           border: "1px solid #e0e0e0",
@@ -57,8 +66,8 @@ export default async function Home({
           <p style={{ color: "#666", fontSize: "14px", marginBottom: "16px" }}>
             Capacidad: {cabin.capacity} personas
           </p>
-          
-          <a href={`/calendar?cabin_id=${cabin.id}&token=${token}&cabin_name=${encodeURIComponent(cabin.name)}`}
+
+          <a href={"/calendar?cabin_id=" + cabin.id + "&token=" + token + "&cabin_name=" + encodeURIComponent(cabin.name)}
             style={{
               display: "block",
               background: "#c0392b",
@@ -67,7 +76,7 @@ export default async function Home({
               padding: "10px 20px",
               fontSize: "14px",
               fontWeight: "600",
-              textAlign: "center",
+              textAlign: "center" as const,
               textDecoration: "none"
             }}
           >
@@ -75,6 +84,12 @@ export default async function Home({
           </a>
         </div>
       ))}
+
+      <BookingsList
+        bookings={bookings || []}
+        cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
+        tenantId={link.tenant_id}
+      />
     </main>
   )
 }
