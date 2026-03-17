@@ -143,7 +143,7 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#c0392b12", border: "1px solid #c0392b28", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
-                <span style={{ fontSize: "12px", color: "#e67a7a" }}>Adelanto a verificar</span>
+                <span style={{ fontSize: "12px", color: "#e67a7a" }}>Transferencia a confirmar</span>
                 <span style={{ fontSize: "16px", fontWeight: 700, color: "#e67a7a", fontFamily: "Georgia, serif" }}>{fmt(b.deposit_amount)}</span>
               </div>
 

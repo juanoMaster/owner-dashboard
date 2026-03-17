@@ -40,7 +40,7 @@ function cleanPhone(phone: string) {
 function CalendarInner() {
   const searchParams = useSearchParams()
   const cabinId = searchParams.get("cabin_id") || ""
-  const cabinName = searchParams.get("cabin_name") || "Caba\u00f1a"
+  const cabinName = searchParams.get("cabin_name") || "Cabaña"
   const token = searchParams.get("token") || ""
 
   const [events, setEvents] = useState<any[]>([])
@@ -269,7 +269,7 @@ function CalendarInner() {
       const nombre = info["Nombre"] || "Sin nombre"
       const whatsapp = info["WhatsApp"] || ""
       const emailVal = info["Email"] || ""
-      const codigo = info["Codigo"] || info["C\u00f3digo"] || ""
+      const codigo = info["Codigo"] || info["Código"] || ""
       const tinajaDias = parseInt(info["Tinaja"] || "0") || 0
       const phone = cleanPhone(whatsapp)
       const isConfirmed = modal.reason === "system_booking"
@@ -288,13 +288,13 @@ function CalendarInner() {
             </div>
             <div style={s.modalBody}>
               <div style={s.dataBox}>
-                <div style={s.dataRow}><span style={s.dataKey}>Caba\u00f1a</span><span style={s.dataVal}>{decodeURIComponent(cabinName)}</span></div>
+                <div style={s.dataRow}><span style={s.dataKey}>Cabaña</span><span style={s.dataVal}>{decodeURIComponent(cabinName)}</span></div>
                 <div style={s.dataRow}><span style={s.dataKey}>Fechas</span><span style={s.dataVal}>{formatDate(modal.start)} &#8594; {modal.end ? formatDate(new Date(new Date(modal.end + "T00:00:00").getTime() - 86400000).toISOString().split("T")[0]) : ""}</span></div>
                 <div style={s.dataRow}><span style={s.dataKey}>Noches</span><span style={s.dataVal}>{b.nights}</span></div>
                 <div style={s.dataRow}><span style={s.dataKey}>Personas</span><span style={s.dataVal}>{b.guests}</span></div>
                 {tinajaDias > 0 && <div style={s.dataRow}><span style={s.dataKey}>Tinaja</span><span style={s.dataVal}>{tinajaDias} {tinajaDias === 1 ? "d\u00eda" : "d\u00edas"}</span></div>}
                 {emailVal && <div style={s.dataRow}><span style={s.dataKey}>Correo</span><span style={s.dataVal}>{emailVal}</span></div>}
-                <div style={s.dataRowLast}><span style={s.dataKey}>C\u00f3digo</span><span style={{ color: "#7ab87a", fontWeight: 600, fontFamily: "monospace", fontSize: "12px" }}>{codigo}</span></div>
+                <div style={s.dataRowLast}><span style={s.dataKey}>Código</span><span style={{ color: "#7ab87a", fontWeight: 600, fontFamily: "monospace", fontSize: "12px" }}>{codigo}</span></div>
               </div>
 
               <div style={s.moneyRow}>
@@ -377,7 +377,7 @@ function CalendarInner() {
       </nav>
 
       <div style={s.body}>
-        <a href={"/?token=" + token} style={s.backBtn}>{"\u2190 Volver a mis caba\u00f1as"}</a>
+        <a href={"/?token=" + token} style={s.backBtn}>{"\u2190 Volver a mis Cabañas"}</a>
 
         <div style={s.eyebrow}>Calendario de reservas</div>
         <div style={s.title}>{decodeURIComponent(cabinName)}</div>

@@ -152,9 +152,9 @@ function InicioInner() {
                 </svg>
               </div>
               <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#e8d5a3", marginBottom: "5px" }}>{c.name}</div>
-              <div style={{ fontSize: "11px", color: "#6a8a68", marginBottom: "7px" }}>Hasta {c.cap} personas</div>
+              <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "7px" }}>Hasta {c.cap} personas</div>
               <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#c8d8c0" }}>{fmt(c.price)}</div>
-              <div style={{ fontSize: "10px", color: "#4a6a48", marginBottom: "9px" }}>por noche</div>
+              <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "9px" }}>por noche</div>
               <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name)}
                 style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "12px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
                 {"Reservar \u2192"}
@@ -166,13 +166,20 @@ function InicioInner() {
 
       <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "7px", padding: "4px 16px 14px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
         {[
-          { ico: "\uD83C\uDFDE\uFE0F", name: "Lago" }, { ico: "\uD83C\uDF0B", name: "Volc\u00e1n" },
-          { ico: "\uD83D\uDEC1", name: "Tinaja" }, { ico: "\u2668\uFE0F", name: "Termas" },
-          { ico: "\uD83D\uDEA3", name: "Kayak" }, { ico: "\uD83E\uDD7E", name: "Trekking" },
+          { ico: "\uD83C\uDFDE\uFE0F", name: "Lago", isImg: false },
+          { ico: "\uD83C\uDF0B", name: "Volc\u00e1n", isImg: false },
+          { ico: "/tinaja.png", name: "Tinaja", isImg: true },
+          { ico: "\u2668\uFE0F", name: "Termas", isImg: false },
+          { ico: "\uD83D\uDEA3", name: "Kayak", isImg: false },
+          { ico: "\uD83E\uDD7E", name: "Trekking", isImg: false },
         ].map(f => (
           <div key={f.name} style={{ background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "12px", padding: "9px 11px", textAlign: "center" as const, width: "70px" }}>
-            <div style={{ fontSize: "18px", marginBottom: "4px" }}>{f.ico}</div>
-            <div style={{ fontSize: "10px", color: "#6a8a68", fontWeight: 500 }}>{f.name}</div>
+            {f.isImg ? (
+              <img src={f.ico} alt={f.name} style={{ width: "24px", height: "24px", objectFit: "contain" as const, borderRadius: "4px", marginBottom: "4px" }} />
+            ) : (
+              <div style={{ fontSize: "18px", marginBottom: "4px" }}>{f.ico}</div>
+            )}
+            <div style={{ fontSize: "10px", color: "#8a9e88", fontWeight: 500 }}>{f.name}</div>
           </div>
         ))}
       </div>
@@ -190,7 +197,7 @@ function InicioInner() {
               <div style={{ width: "36px", height: "36px", background: "#162618", border: "1px solid #2a3820", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>{a.ico}</div>
               <div>
                 <div style={{ fontSize: "12px", fontWeight: 600, color: "#c8d8c0", marginBottom: "2px" }}>{a.name}</div>
-                <div style={{ fontSize: "11px", color: "#4a6a48", lineHeight: 1.5 }}>{a.desc}</div>
+                <div style={{ fontSize: "11px", color: "#6a8a68", lineHeight: 1.5 }}>{a.desc}</div>
               </div>
             </div>
           ))}
@@ -199,11 +206,11 @@ function InicioInner() {
 
       <div style={{ background: "#0a0f0a", padding: "13px 16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-          <div style={{ fontSize: "10px", fontWeight: 600, color: "#6a8a68", letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "7px" }}>Normas del lugar</div>
+          <div style={{ fontSize: "10px", fontWeight: 600, color: "#8a9e88", letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "7px" }}>Normas del lugar</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px" }}>
             {["No mascotas", "No fiestas", "No visitas externas", "No fumar adentro", "No papeles al WC", "M\u00fasica moderada"].map(r => (
-              <div key={r} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "#4a5a48" }}>
-                <span style={{ color: "#c0504855", fontSize: "11px", fontWeight: 700 }}>{"\u2715"}</span>
+              <div key={r} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "#6a8a68" }}>
+                <span style={{ color: "#c0504888", fontSize: "11px", fontWeight: 700 }}>{"\u2715"}</span>
                 {r}
               </div>
             ))}
@@ -212,11 +219,11 @@ function InicioInner() {
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "13px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
-        <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#6a8a68", textDecoration: "none" }}>
+        <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#8a9e88", textDecoration: "none" }}>
           <span style={{ width: "16px", height: "16px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "10px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
           @rukatraro
         </a>
-        <a href="https://instagram.com/rukatraro" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#6a8a68", textDecoration: "none" }}>
+        <a href="https://instagram.com/rukatraro" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#8a9e88", textDecoration: "none" }}>
           <span style={{ width: "16px", height: "16px", borderRadius: "4px", background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="white" strokeWidth="2.2"/><circle cx="12" cy="12" r="5" stroke="white" strokeWidth="2"/><circle cx="17.5" cy="6.5" r="1.8" fill="white"/></svg>
           </span>
@@ -224,7 +231,7 @@ function InicioInner() {
         </a>
       </div>
 
-      <div style={{ textAlign: "center" as const, padding: "12px", fontSize: "9px", color: "#1e2e1e", letterSpacing: "1.5px", textTransform: "uppercase" as const, borderTop: "1px solid #111a11", fontFamily: "sans-serif" }}>
+      <div style={{ textAlign: "center" as const, padding: "12px", fontSize: "10px", color: "#5a7058", letterSpacing: "1.5px", textTransform: "uppercase" as const, borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         {"Rukatraro \u00b7 Licanray \u00b7 Lago Calafqu\u00e9n \u00b7 Chile"}
       </div>
     </div>
