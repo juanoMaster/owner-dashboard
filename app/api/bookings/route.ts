@@ -19,7 +19,7 @@ function generarCodigo() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { cabin_id, check_in, check_out, guests, tinaja_days, nombre, whatsapp, metodo_pago } = body
+    const { cabin_id, check_in, check_out, guests, tinaja_days, nombre, whatsapp, email, metodo_pago } = body
 
     if (!cabin_id || !check_in || !check_out || !nombre || !whatsapp) {
       return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 })
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         commission_amount: Math.round(total * 0.1),
         commission_status: "pending",
         status: "draft",
-        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Tinaja: " + (tinaja_days || 0) + " | C\u00f3digo: " + codigo
+        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Email: " + (email || "") + " | Tinaja: " + (tinaja_days || 0) + " | C\u00f3digo: " + codigo
       }])
       .select("id")
       .single()
@@ -95,7 +95,8 @@ export async function POST(req: Request) {
         cabin_id,
         start_date: check_in,
         end_date: check_out,
-        reason: metodo_pago === "tarjeta" ? "system_booking" : "transfer_pending"
+        reason: metodo_pago === "tarjeta" ? "system_booking" : "transfer_pending",
+        booking_id: booking.id
       }])
 
     if (bloqueError) throw bloqueError
