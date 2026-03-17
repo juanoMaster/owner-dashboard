@@ -246,7 +246,7 @@ function CalendarInner() {
             .cal-dark .fc-toolbar-chunk { display: flex; justify-content: center; }\
             .cal-dark .fc-daygrid-day-number { font-size: 12px; padding: 4px 4px 0; }\
             .cal-dark .fc-daygrid-event { font-size: 9px; padding: 1px 2px; }\
-            .cal-dark .fc-daygrid-event-harness { position: relative !important; inset: unset !important; }\
+            .cal-dark .fc-daygrid-event-harness { }\
             .cal-dark .fc-daygrid-day-frame { min-height: 60px; }\
             .cal-dark .fc-button { font-size: 11px; padding: 4px 8px; }\
             .cal-dark .fc-col-header-cell-cushion { font-size: 10px; padding: 6px 2px; }\
