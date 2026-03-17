@@ -1,6 +1,26 @@
 "use client"
 import { Suspense } from "react"
 
+function SelloVerificado() {
+  return (
+    <svg width="150" height="180" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="2.5"/>
+      <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="0.8"/>
+      <path d="M75 24 L120 43 L120 86 C120 114 99 133 75 143 C51 133 30 114 30 86 L30 43 Z" fill="none" stroke="#e8d5a322" strokeWidth="0.5"/>
+      <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="1.5"/>
+      <circle cx="75" cy="65" r="15" fill="#e8d5a308" stroke="#e8d5a355" strokeWidth="0.5"/>
+      <path d="M66 65 L72 71 L84 59" stroke="#e8d5a3" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <line x1="40" y1="100" x2="110" y2="100" stroke="#e8d5a333" strokeWidth="0.5"/>
+      <text x="75" y="117" textAnchor="middle" fontFamily="Georgia, serif" fontSize="10" fill="#e8d5a3" fontWeight="700" letterSpacing="2">VERIFICADO</text>
+      <line x1="40" y1="124" x2="110" y2="124" stroke="#e8d5a333" strokeWidth="0.5"/>
+      <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="8" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
+      <circle cx="32" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/><circle cx="118" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/>
+      <circle cx="22" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/><circle cx="128" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/>
+      <circle cx="18" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/><circle cx="132" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/>
+    </svg>
+  )
+}
+
 function InicioInner() {
   const cabins = [
     { id: "f935a02e-2572-4272-9a08-af40b29f0912", name: "Caba\u00f1a N\u00ba 1", cap: 4, price: 30000 },
@@ -28,9 +48,7 @@ function InicioInner() {
             <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0a0f0a" stopOpacity="0"/><stop offset="100%" stopColor="#0a0f0a" stopOpacity="1"/></linearGradient>
             <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#c8d8a0" stopOpacity="0.08"/><stop offset="100%" stopColor="#c8d8a0" stopOpacity="0"/></radialGradient>
           </defs>
-
           <rect width="1200" height="520" fill="url(#sky)"/>
-
           <circle cx="80" cy="30" r="0.8" fill="#ffffff30"/><circle cx="150" cy="55" r="0.6" fill="#ffffff20"/>
           <circle cx="260" cy="22" r="1" fill="#ffffff38"/><circle cx="370" cy="45" r="0.7" fill="#ffffff28"/>
           <circle cx="480" cy="18" r="0.9" fill="#ffffff22"/><circle cx="560" cy="52" r="0.6" fill="#ffffff1a"/>
@@ -40,14 +58,11 @@ function InicioInner() {
           <circle cx="200" cy="70" r="0.5" fill="#ffffff15"/><circle cx="440" cy="72" r="0.6" fill="#ffffff18"/>
           <circle cx="700" cy="68" r="0.5" fill="#ffffff15"/><circle cx="980" cy="65" r="0.6" fill="#ffffff1a"/>
           <circle cx="1140" cy="35" r="0.9" fill="#ffffff25"/><circle cx="50" cy="65" r="0.7" fill="#ffffff18"/>
-
           <circle cx="950" cy="80" r="80" fill="url(#moonGlow)"/>
           <circle cx="950" cy="80" r="3" fill="#d8e8c0" opacity="0.25"/>
-
           <path d="M0 340 L100 260 L180 290 L280 220 L360 255 L460 195 L540 230 L600 210 L660 215 L740 240 L820 200 L900 230 L960 210 L1040 245 L1120 225 L1200 260 L1200 520 L0 520Z" fill="url(#mt1)" opacity="0.5"/>
           <path d="M0 380 L80 320 L160 350 L240 310 L320 340 L400 305 L480 335 L560 300 L640 325 L720 310 L800 330 L880 295 L960 320 L1040 305 L1120 325 L1200 300 L1200 520 L0 520Z" fill="url(#mt2)" opacity="0.85"/>
           <path d="M0 420 L100 385 L200 400 L300 378 L400 395 L500 372 L600 390 L700 375 L800 392 L900 370 L1000 388 L1100 376 L1200 385 L1200 520 L0 520Z" fill="#0d1a0b" opacity="0.95"/>
-
           <rect x="55" y="330" width="4" height="130" fill="#0f1a0e" opacity="0.9"/>
           <line x1="57" y1="420" x2="28" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="420" x2="86" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
           <line x1="57" y1="400" x2="24" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="400" x2="90" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
@@ -57,7 +72,6 @@ function InicioInner() {
           <circle cx="24" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="90" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/>
           <circle cx="30" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/><circle cx="84" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/>
           <circle cx="57" cy="328" r="7" fill="#0f1a0e" opacity="0.9"/>
-
           <rect x="1128" y="310" width="5" height="150" fill="#0f1a0e" opacity="0.9"/>
           <line x1="1130" y1="418" x2="1098" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="418" x2="1162" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
           <line x1="1130" y1="396" x2="1094" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="396" x2="1166" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
@@ -67,45 +81,37 @@ function InicioInner() {
           <circle cx="1094" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1166" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/>
           <circle cx="1100" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1160" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/>
           <circle cx="1130" cy="308" r="8" fill="#0f1a0e" opacity="0.9"/>
-
           <rect x="265" y="375" width="3" height="90" fill="#0f1a0e" opacity="0.75"/>
           <line x1="266" y1="430" x2="248" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="430" x2="284" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
           <line x1="266" y1="416" x2="250" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="416" x2="282" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
           <line x1="266" y1="402" x2="254" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/><line x1="266" y1="402" x2="278" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/>
           <circle cx="248" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/><circle cx="284" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/>
           <circle cx="266" cy="373" r="5" fill="#0f1a0e" opacity="0.75"/>
-
           <line x1="170" y1="460" x2="170" y2="385" stroke="#142610" strokeWidth="2.5"/>
           <polygon points="170,385 155,412 185,412" fill="#142610" opacity="0.85"/>
           <polygon points="170,398 152,428 188,428" fill="#162812" opacity="0.85"/>
           <polygon points="170,412 148,448 192,448" fill="#1a2e14" opacity="0.85"/>
-
           <line x1="420" y1="465" x2="420" y2="395" stroke="#142610" strokeWidth="2.2"/>
           <polygon points="420,395 408,418 432,418" fill="#142610" opacity="0.8"/>
           <polygon points="420,406 405,432 435,432" fill="#162812" opacity="0.8"/>
           <polygon points="420,418 402,450 438,450" fill="#1a2e14" opacity="0.8"/>
-
           <line x1="780" y1="465" x2="780" y2="370" stroke="#142610" strokeWidth="2.8"/>
           <polygon points="780,370 764,400 796,400" fill="#142610" opacity="0.85"/>
           <polygon points="780,385 760,418 800,418" fill="#162812" opacity="0.85"/>
           <polygon points="780,400 756,440 804,440" fill="#1a2e14" opacity="0.85"/>
           <polygon points="780,418 752,458 808,458" fill="#1c3016" opacity="0.85"/>
-
           <line x1="1020" y1="462" x2="1020" y2="408" stroke="#142610" strokeWidth="2"/>
           <polygon points="1020,408 1010,426 1030,426" fill="#142610" opacity="0.75"/>
           <polygon points="1020,416 1008,438 1032,438" fill="#162812" opacity="0.75"/>
           <polygon points="1020,426 1005,452 1035,452" fill="#1a2e14" opacity="0.75"/>
-
           <line x1="650" y1="455" x2="650" y2="402" stroke="#121e10" strokeWidth="1.8"/>
           <polygon points="650,402 641,420 659,420" fill="#121e10" opacity="0.65"/>
           <polygon points="650,410 639,432 661,432" fill="#142210" opacity="0.65"/>
           <polygon points="650,420 636,446 664,446" fill="#162610" opacity="0.65"/>
-
           <line x1="520" y1="462" x2="520" y2="415" stroke="#121e10" strokeWidth="1.5"/>
           <polygon points="520,415 512,430 528,430" fill="#121e10" opacity="0.6"/>
           <polygon points="520,422 510,440 530,440" fill="#142210" opacity="0.6"/>
           <polygon points="520,432 508,454 532,454" fill="#162610" opacity="0.6"/>
-
           <rect x="0" y="440" width="1200" height="80" fill="url(#mist)"/>
         </svg>
 
@@ -137,13 +143,13 @@ function InicioInner() {
         <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "10px" }}>{"Reserva tu caba\u00f1a"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "4px" }}>
           {cabins.map(c => (
-            <div key={c.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "14px 13px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "#7ab87a14", border: "1px solid #7ab87a22", color: "#7ab87a", fontSize: "9px", padding: "2px 7px", borderRadius: "10px", marginBottom: "8px" }}>
+            <div key={c.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "16px", display: "flex", flexDirection: "column" as const, alignItems: "center", textAlign: "center" as const }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "#7ab87a14", border: "1px solid #7ab87a22", color: "#7ab87a", fontSize: "9px", padding: "2px 7px", borderRadius: "10px", marginBottom: "12px" }}>
                 <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#7ab87a", display: "inline-block" }}/>
                 Disponible
               </div>
-              <div style={{ marginBottom: "8px" }}>
-                <svg width="36" height="32" viewBox="0 0 48 40" fill="none">
+              <div style={{ marginBottom: "10px" }}>
+                <svg width="40" height="36" viewBox="0 0 48 40" fill="none">
                   <path d="M24 4 L44 20 L44 38 L4 38 L4 20 Z" fill="#162618" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
                   <path d="M24 4 L44 20 L4 20 Z" fill="#1e3020" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
                   <rect x="18" y="26" width="12" height="12" rx="2" fill="#0d1a0d" stroke="#3a5a38" strokeWidth="1"/>
@@ -151,12 +157,12 @@ function InicioInner() {
                   <line x1="12" y1="24" x2="12" y2="30" stroke="#3a5a38" strokeWidth="0.8"/>
                 </svg>
               </div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "#e8d5a3", marginBottom: "5px" }}>{c.name}</div>
-              <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "7px" }}>Hasta {c.cap} personas</div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#c8d8c0" }}>{fmt(c.price)}</div>
-              <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "9px" }}>por noche</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "4px" }}>{c.name}</div>
+              <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "12px" }}>Hasta {c.cap} personas</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#c8d8c0", marginBottom: "2px" }}>{fmt(c.price)}</div>
+              <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "14px" }}>por noche</div>
               <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name)}
-                style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "8px", padding: "9px", fontSize: "12px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "10px", padding: "11px", fontSize: "13px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
                 {"Reservar \u2192"}
               </a>
             </div>
@@ -218,7 +224,13 @@ function InicioInner() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "13px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "center", padding: "20px 16px 6px", borderTop: "1px solid #1a261a" }}>
+        <SelloVerificado />
+      </div>
+      <div style={{ textAlign: "center" as const, fontFamily: "sans-serif", fontSize: "11px", color: "#5a7058", marginBottom: "4px" }}>{"Alojamiento verificado personalmente"}</div>
+      <div style={{ textAlign: "center" as const, fontFamily: "sans-serif", fontSize: "9px", color: "#3a4a38", marginBottom: "14px" }}>{"Reserva con confianza en Takai.cl"}</div>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "6px 13px 13px", fontFamily: "sans-serif" }}>
         <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#8a9e88", textDecoration: "none" }}>
           <span style={{ width: "16px", height: "16px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "10px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
           @rukatraro
