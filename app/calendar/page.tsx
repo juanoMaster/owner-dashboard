@@ -214,7 +214,7 @@ function CalendarInner() {
               info.el.addEventListener("mouseenter", () => handleMouseEnter(info))
             }}
             events={[...events, ...getPreviewEvents()]}
-            height="auto"
+            height="auto" firstDay={1}
             eventOrder="start"
             dayMaxEvents={2}
           />
@@ -229,6 +229,7 @@ function CalendarInner() {
           .cal-dark .fc-daygrid-day-number { font-size: 14px; font-weight: 700; color: #222; padding: 6px 8px; text-decoration: none; }\
           .cal-dark .fc-daygrid-day { background: #f8f7f4; }\
           .cal-dark .fc-day-today { background: #fffde6 !important; }\
+          .cal-dark .fc-day-sun .fc-daygrid-day-number { color: #c0392b !important; font-weight: 700; }\
           .cal-dark .fc-day-past .fc-daygrid-day-number { color: #aaa; }\
           .cal-dark .fc-daygrid-event { border-radius: 4px; font-size: 10px; padding: 2px 4px; font-weight: 600; margin-bottom: 1px; }\
           .cal-dark .fc-daygrid-event-harness { margin-bottom: 1px; }\
