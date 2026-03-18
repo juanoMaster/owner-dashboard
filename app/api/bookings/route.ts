@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+﻿import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
@@ -36,12 +36,12 @@ export async function POST(req: Request) {
       .single()
 
     if (cabinErr || !cabin) {
-      return NextResponse.json({ error: "Caba\u00f1a no encontrada" }, { status: 404 })
+      return NextResponse.json({ error: "Cabana no encontrada" }, { status: 404 })
     }
 
     const nights = Math.max(0, Math.round((new Date(check_out).getTime() - new Date(check_in).getTime()) / 86400000))
     if (nights < 2) {
-      return NextResponse.json({ error: "La estad\u00eda m\u00ednima es de 2 noches" }, { status: 400 })
+      return NextResponse.json({ error: "La estadia minima es de 2 noches" }, { status: 400 })
     }
 
     const precioNoche = Number(cabin.base_price_night)
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       .gt("end_date", check_in)
 
     if (bloques && bloques.length > 0) {
-      return NextResponse.json({ error: "Las fechas seleccionadas no est\u00e1n disponibles" }, { status: 409 })
+      return NextResponse.json({ error: "Las fechas seleccionadas no estan disponibles" }, { status: 409 })
     }
 
     const codigo = generarCodigo()
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
         commission_amount: Math.round(total * 0.1),
         commission_status: "pending",
         status: "draft",
-        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Email: " + (email || "") + " | Tinaja: " + tinaja_days + " d\u00edas | C\u00f3digo: " + codigo
+        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Email: " + (email || "") + " | Tinaja: " + tinaja_days + " dias | Codigo: " + codigo
       }])
       .select("id")
       .single()
