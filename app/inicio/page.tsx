@@ -33,9 +33,9 @@ function InicioInner() {
 
       <style>{"\
         @media (max-width: 640px) {\
-          .hero-text { padding-top: 128px !important; }\
-          .hero-wrap { min-height: 520px !important; }\
-          .hero-wrap svg { min-height: 520px !important; }\
+          .hero-text { padding-top: 80px !important; padding-bottom: 0px !important; }\
+          .hero-wrap { min-height: 440px !important; }\
+          .hero-wrap svg { min-height: 440px !important; }\
         }\
         @media (min-width: 768px) {\
           .hero-wrap { max-height: 360px !important; }\
