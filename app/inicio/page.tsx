@@ -125,7 +125,7 @@ function InicioInner() {
 
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #080e08 0%, transparent 20%, transparent 55%, #0a0f0a 100%)", pointerEvents: "none" }}/>
 
-        <div className="sello-float" style={{ position: "absolute", right: "12%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
+        <div className="sello-float" style={{ position: "absolute", right: "18%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
           <SelloGrande />
           <div style={{ background: "#0d1a12cc", border: "1px solid #e8d5a322", borderRadius: "8px", padding: "6px 12px", textAlign: "center" as any }}>
             <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>Alojamiento verificado</div>
@@ -157,6 +157,18 @@ function InicioInner() {
           <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "11px", color: "#9ab898" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7ab87a", flexShrink: 0, display: "inline-block" }}/>
             {"Licanray \u00b7 Regi\u00f3n de La Araucan\u00eda \u00b7 5 min del lago"}
+          </div>
+
+          <div className="sello-pc" style={{ display: "none", flexDirection: "column" as any, alignItems: "center", gap: "4px", marginTop: "14px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+            <svg width="70" height="84" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
+              <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
+              <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
+              <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="16" fill="#e8d5a3" fontWeight="700" letterSpacing="3">VERIFICADO</text>
+              <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7ab87a" letterSpacing="1.5">TAKAI.CL</text>
+            </svg>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3aa", letterSpacing: "1px", textAlign: "center" as any, lineHeight: 1.4 }}>Alojamiento verificado<br/>personalmente por <span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "9px" }}>TAKAI.CL</span></div>
           </div>
         </div>
       </div>
