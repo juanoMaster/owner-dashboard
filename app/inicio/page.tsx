@@ -33,7 +33,7 @@ function InicioInner() {
 
       <style>{"\
         @media (max-width: 640px) {\
-          .hero-text { padding-top: 70px !important; }\
+          .hero-text { padding-top: 108px !important; }\
         }\
         @media (min-width: 768px) {\
           .hero-wrap { max-height: 360px !important; }\
@@ -176,7 +176,7 @@ function InicioInner() {
         </div>
       </div>
 
-      <div style={{ padding: "16px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+      <div style={{ padding: "24px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
         <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "10px" }}>{"Reserva tu caba\u00f1a"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "4px" }}>
           {cabins.map(c => (
