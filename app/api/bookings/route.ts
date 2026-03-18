@@ -20,7 +20,10 @@ function generarCodigo() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { cabin_id, check_in, check_out, guests, tinaja_days, nombre, whatsapp, email, metodo_pago } = body
+    const { cabin_id, check_in, check_out, nombre, whatsapp, email, metodo_pago } = body
+
+    const guests = Number(body.guests) || 1
+    const tinaja_days = Number(body.tinaja_days) || 0
 
     if (!cabin_id || !check_in || !check_out || !nombre || !whatsapp) {
       return NextResponse.json({ error: "Faltan datos requeridos" }, { status: 400 })
@@ -41,11 +44,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "La estad\u00eda m\u00ednima es de 2 noches" }, { status: 400 })
     }
 
-    const precioNoche = cabin.base_price_night
-    const capacidad = cabin.capacity
-    const extrasPersonas = Math.max(0, (guests || 0) - capacidad) * 5000 * nights
+    const precioNoche = Number(cabin.base_price_night)
+    const capacidad = Number(cabin.capacity)
+    const extrasPersonas = Math.max(0, guests - capacidad) * 5000 * nights
     const subtotal = precioNoche * nights + extrasPersonas
-    const tinaja = (tinaja_days || 0) * 30000
+    const tinaja = tinaja_days * 30000
     const total = subtotal + tinaja
     const depositAmount = Math.round(total * 0.2)
     const balanceAmount = total - depositAmount
@@ -71,7 +74,7 @@ export async function POST(req: Request) {
         cabin_id,
         check_in,
         check_out,
-        guests: guests || 1,
+        guests,
         nights,
         subtotal_amount: subtotal,
         total_amount: total,
@@ -82,7 +85,7 @@ export async function POST(req: Request) {
         commission_amount: Math.round(total * 0.1),
         commission_status: "pending",
         status: "draft",
-        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Email: " + (email || "") + " | Tinaja: " + (tinaja_days || 0) + " | C\u00f3digo: " + codigo
+        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Email: " + (email || "") + " | Tinaja: " + tinaja_days + " d\u00edas | C\u00f3digo: " + codigo
       }])
       .select("id")
       .single()
@@ -113,7 +116,10 @@ export async function POST(req: Request) {
         check_in,
         check_out,
         nights,
-        guests: guests || 1,
+        guests,
+        subtotal,
+        tinaja_days,
+        tinaja_amount: tinaja,
         total_amount: total,
         deposit_amount: depositAmount,
         metodo_pago: metodo_pago || "transferencia",
