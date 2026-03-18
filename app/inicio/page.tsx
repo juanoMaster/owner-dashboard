@@ -3,7 +3,7 @@ import { Suspense } from "react"
 
 function SelloGrande() {
   return (
-    <svg width="90" height="108" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="120" height="144" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="2.5"/>
       <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="0.8"/>
       <path d="M75 24 L120 43 L120 86 C120 114 99 133 75 143 C51 133 30 114 30 86 L30 43 Z" fill="none" stroke="#e8d5a322" strokeWidth="0.5"/>
@@ -135,17 +135,19 @@ function InicioInner() {
         <div className="hero-text" style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "40px 20px 16px" }}>
           <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Caba\u00f1as en la naturaleza"}</div>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginBottom: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "36px", marginBottom: "14px" }}>
             <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15 }}>
               {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
             </div>
-            <div className="sello-wrap" style={{ flexShrink: 0, display: "flex", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+            <div className="sello-wrap" style={{ flexShrink: 0, display: "flex", flexDirection: "column" as any, alignItems: "center", gap: "6px", marginTop: "10px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
               <SelloGrande />
+              <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#e8d5a3", letterSpacing: "1px", textTransform: "uppercase" as any, textAlign: "center" as any, lineHeight: 1.4, maxWidth: "120px" }}>Alojamiento verificado personalmente</div>
             </div>
           </div>
 
-          <div className="sello-mobile" style={{ display: "none", justifyContent: "center", marginBottom: "12px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+          <div className="sello-mobile" style={{ display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", marginBottom: "12px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
             <SelloGrande />
+            <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#e8d5a3", letterSpacing: "1px", textTransform: "uppercase" as any, textAlign: "center" as any, lineHeight: 1.4 }}>Alojamiento verificado personalmente</div>
           </div>
 
           <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
