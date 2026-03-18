@@ -1,6 +1,26 @@
 "use client"
 import { Suspense } from "react"
 
+function SelloGrande() {
+  return (
+    <svg width="90" height="108" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="2.5"/>
+      <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="0.8"/>
+      <path d="M75 24 L120 43 L120 86 C120 114 99 133 75 143 C51 133 30 114 30 86 L30 43 Z" fill="none" stroke="#e8d5a322" strokeWidth="0.5"/>
+      <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="1.5"/>
+      <circle cx="75" cy="65" r="15" fill="#e8d5a308" stroke="#e8d5a355" strokeWidth="0.5"/>
+      <path d="M66 65 L72 71 L84 59" stroke="#e8d5a3" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <line x1="40" y1="100" x2="110" y2="100" stroke="#e8d5a333" strokeWidth="0.5"/>
+      <text x="75" y="117" textAnchor="middle" fontFamily="Georgia, serif" fontSize="10" fill="#e8d5a3" fontWeight="700" letterSpacing="2">VERIFICADO</text>
+      <line x1="40" y1="124" x2="110" y2="124" stroke="#e8d5a333" strokeWidth="0.5"/>
+      <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="8" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
+      <circle cx="32" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/><circle cx="118" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/>
+      <circle cx="22" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/><circle cx="128" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/>
+      <circle cx="18" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/><circle cx="132" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/>
+    </svg>
+  )
+}
+
 function InicioInner() {
   const cabins = [
     { id: "f935a02e-2572-4272-9a08-af40b29f0912", name: "Caba\u00f1a N\u00ba 1", cap: 4, price: 30000 },
@@ -16,6 +36,14 @@ function InicioInner() {
           .hero-wrap { max-height: 360px !important; }\
           .hero-wrap svg { max-height: 360px !important; }\
           .hero-text { padding-top: 30px !important; padding-bottom: 10px !important; }\
+        }\
+        @media (max-width: 480px) {\
+          .sello-wrap { display: none !important; }\
+          .sello-mobile { display: flex !important; }\
+        }\
+        @media (min-width: 481px) {\
+          .sello-wrap { display: flex !important; }\
+          .sello-mobile { display: none !important; }\
         }\
       "}</style>
 
@@ -106,26 +134,22 @@ function InicioInner() {
 
         <div className="hero-text" style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "40px 20px 16px" }}>
           <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Caba\u00f1as en la naturaleza"}</div>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
-            {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
-          </div>
-          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
-            {"Bosque nativo, Lago Calafqu\u00e9n y el Volc\u00e1n Villarrica como tel\u00f3n de fondo."}
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginBottom: "14px" }}>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15 }}>
+              {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
+            </div>
+            <div className="sello-wrap" style={{ flexShrink: 0, display: "flex", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+              <SelloGrande />
+            </div>
           </div>
 
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "#0d1a12cc", border: "1.5px solid #e8d5a355", borderRadius: "14px", padding: "10px 20px", marginBottom: "14px", backdropFilter: "blur(4px)" }}>
-            <svg width="32" height="38" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
-              <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
-              <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
-              <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="16" fill="#e8d5a3" fontWeight="700" letterSpacing="3">VERIFICADO</text>
-              <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7ab87a" letterSpacing="1.5">TAKAI.CL</text>
-            </svg>
-            <div style={{ textAlign: "left" as const }}>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#e8d5a3", fontWeight: 700, lineHeight: 1.3 }}>Alojamiento verificado</div>
-              <div style={{ fontFamily: "sans-serif", fontSize: "11px", color: "#7ab87a", marginTop: "3px" }}>Verificado personalmente por Takai.cl</div>
-            </div>
+          <div className="sello-mobile" style={{ display: "none", justifyContent: "center", marginBottom: "12px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+            <SelloGrande />
+          </div>
+
+          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
+            {"Bosque nativo, Lago Calafqu\u00e9n y el Volc\u00e1n Villarrica como tel\u00f3n de fondo."}
           </div>
 
           <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "11px", color: "#9ab898" }}>
