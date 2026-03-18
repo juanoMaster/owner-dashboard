@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { logAudit } from "@/lib/audit"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,15 +74,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "start_date, end_date y cabin_id son requeridos" }, { status: 400 })
     }
 
-    const { error } = await supabase.from("calendar_blocks").insert([{
-      start_date,
-      end_date,
-      reason: "manual",
-      cabin_id,
-      tenant_id: TENANT_ID,
-    }])
+    const { data: block, error } = await supabase
+      .from("calendar_blocks")
+      .insert([{
+        start_date,
+        end_date,
+        reason: "manual",
+        cabin_id,
+        tenant_id: TENANT_ID
+      }])
+      .select("id")
+      .single()
 
     if (error) throw error
+
+    await logAudit({
+      tenant_id: TENANT_ID,
+      cabin_id,
+      action: "calendar_block_created",
+      entity_type: "calendar_block",
+      entity_id: block.id,
+      details: {
+        start_date,
+        end_date,
+        reason: "manual"
+      },
+      performed_by: "johanna"
+    })
+
     return NextResponse.json({ success: true })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
