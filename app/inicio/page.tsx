@@ -125,9 +125,13 @@ function InicioInner() {
 
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #080e08 0%, transparent 20%, transparent 55%, #0a0f0a 100%)", pointerEvents: "none" }}/>
 
-        <div className="sello-float" style={{ position: "absolute", right: "5%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
+        <div className="sello-float" style={{ position: "absolute", right: "12%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
           <SelloGrande />
-          <div style={{ fontFamily: "Georgia, serif", fontSize: "9px", color: "#e8d5a3aa", letterSpacing: "1.5px", textTransform: "uppercase" as any, textAlign: "center" as any }}>Verificado por Takai.cl</div>
+          <div style={{ background: "#0d1a12cc", border: "1px solid #e8d5a322", borderRadius: "8px", padding: "6px 12px", textAlign: "center" as any }}>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>Alojamiento verificado</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>personalmente por</div>
+            <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#7ab87a", letterSpacing: "1.5px", fontWeight: 700, marginTop: "2px" }}>TAKAI.CL</div>
+          </div>
         </div>
 
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 28px", zIndex: 10 }}>
