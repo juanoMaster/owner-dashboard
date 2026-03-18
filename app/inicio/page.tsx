@@ -37,13 +37,13 @@ function InicioInner() {
           .hero-wrap svg { max-height: 360px !important; }\
           .hero-text { padding-top: 30px !important; padding-bottom: 10px !important; }\
         }\
-        @media (max-width: 480px) {\
-          .sello-wrap { display: none !important; }\
-          .sello-mobile { display: flex !important; }\
+        @media (max-width: 640px) {\
+          .sello-pc { display: flex !important; }\
+          .sello-float { display: none !important; }\
         }\
-        @media (min-width: 481px) {\
-          .sello-wrap { display: flex !important; }\
-          .sello-mobile { display: none !important; }\
+        @media (min-width: 641px) {\
+          .sello-pc { display: none !important; }\
+          .sello-float { display: flex !important; }\
         }\
       "}</style>
 
@@ -125,6 +125,11 @@ function InicioInner() {
 
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #080e08 0%, transparent 20%, transparent 55%, #0a0f0a 100%)", pointerEvents: "none" }}/>
 
+        <div className="sello-float" style={{ position: "absolute", right: "5%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
+          <SelloGrande />
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "9px", color: "#e8d5a3aa", letterSpacing: "1.5px", textTransform: "uppercase" as any, textAlign: "center" as any }}>Verificado por Takai.cl</div>
+        </div>
+
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 28px", zIndex: 10 }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", letterSpacing: "5px", color: "#e8d5a3", textShadow: "0 2px 12px #000000cc" }}>
             RUKA<span style={{ color: "#7ab87a" }}>TRARO</span>
@@ -135,20 +140,11 @@ function InicioInner() {
         <div className="hero-text" style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "40px 20px 16px" }}>
           <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Caba\u00f1as en la naturaleza"}</div>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "36px", marginBottom: "14px" }}>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15 }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
               {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
             </div>
-            <div className="sello-wrap" style={{ flexShrink: 0, display: "flex", flexDirection: "column" as any, alignItems: "center", gap: "6px", marginTop: "10px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
-              <SelloGrande />
-              <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#e8d5a3", letterSpacing: "1px", textTransform: "uppercase" as any, textAlign: "center" as any, lineHeight: 1.4, maxWidth: "120px" }}>Alojamiento verificado personalmente</div>
-            </div>
-          </div>
 
-          <div className="sello-mobile" style={{ display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", marginBottom: "12px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
-            <SelloGrande />
-            <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#e8d5a3", letterSpacing: "1px", textTransform: "uppercase" as any, textAlign: "center" as any, lineHeight: 1.4 }}>Alojamiento verificado personalmente</div>
-          </div>
+          
 
           <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
             {"Bosque nativo, Lago Calafqu\u00e9n y el Volc\u00e1n Villarrica como tel\u00f3n de fondo."}
