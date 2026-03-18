@@ -33,7 +33,7 @@ function InicioInner() {
 
       <style>{"\
         @media (max-width: 640px) {\
-          .hero-text { padding-top: 70px !important; }\
+          .hero-text { padding-top: 90px !important; }\
         }\
         @media (min-width: 768px) {\
           .hero-wrap { max-height: 360px !important; }\
