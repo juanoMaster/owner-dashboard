@@ -162,8 +162,8 @@ function InicioInner() {
             {"Licanray \u00b7 Regi\u00f3n de La Araucan\u00eda \u00b7 5 min del lago"}
           </div>
 
-          <div className="sello-pc" style={{ display: "none", flexDirection: "column" as any, alignItems: "center", gap: "4px", marginTop: "14px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
-            <svg width="70" height="84" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div className="sello-pc" style={{ display: "none", flexDirection: "row" as any, alignItems: "center", gap: "10px", marginTop: "14px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+            <svg width="50" height="60" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
               <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
               <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
@@ -171,7 +171,7 @@ function InicioInner() {
               <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="13" fill="#e8d5a3" fontWeight="700" letterSpacing="1.5">VERIFICADO</text>
               <text x="75" y="137" textAnchor="middle" fontFamily="sans-serif" fontSize="11" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
             </svg>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3aa", letterSpacing: "1px", textAlign: "center" as any, lineHeight: 1.4 }}>Alojamiento verificado<br/>personalmente por <span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "9px" }}>TAKAI.CL</span></div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "10px", color: "#e8d5a3", letterSpacing: "0.5px", textAlign: "left" as any, lineHeight: 1.4 }}>Alojamiento verificado<br/>personalmente por<br/><span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "11px", letterSpacing: "1.5px" }}>TAKAI.CL</span></div>
           </div>
         </div>
       </div>
