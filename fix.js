@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server"
+const fs = require('fs')
+
+const code = `import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 const TENANT_ID = "11518e5f-6a0b-4bdc-bb6a-a1e142544579"
@@ -32,4 +34,7 @@ export async function GET(req: Request) {
     if (!b || b.length === 0) return NextResponse.json({ available: false, suggest: { cabin_id: alt.id, cabin_name: alt.name, capacity: alt.capacity, price: alt.base_price_night } })
   }
   return NextResponse.json({ available: false, red_takai: true })
-}
+}`
+
+fs.writeFileSync('app/api/availability/route.ts', code, 'utf8')
+console.log('OK - lineas:', code.split('\n').length)
