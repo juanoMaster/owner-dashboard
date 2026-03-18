@@ -1,19 +1,6 @@
 "use client"
 import { Suspense } from "react"
 
-function SelloCompacto() {
-  return (
-    <svg width="28" height="34" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
-      <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
-      <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
-      <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="16" fill="#e8d5a3" fontWeight="700" letterSpacing="3">VERIFICADO</text>
-      <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7ab87a" letterSpacing="1.5">TAKAI.CL</text>
-    </svg>
-  )
-}
-
 function InicioInner() {
   const cabins = [
     { id: "f935a02e-2572-4272-9a08-af40b29f0912", name: "Caba\u00f1a N\u00ba 1", cap: 4, price: 30000 },
@@ -122,21 +109,29 @@ function InicioInner() {
           <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
             {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
           </div>
-          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 20px" }}>
+          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
             {"Bosque nativo, Lago Calafqu\u00e9n y el Volc\u00e1n Villarrica como tel\u00f3n de fondo."}
           </div>
+
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: "#0d1a12cc", border: "1.5px solid #e8d5a355", borderRadius: "14px", padding: "10px 20px", marginBottom: "14px", backdropFilter: "blur(4px)" }}>
+            <svg width="32" height="38" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
+              <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
+              <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
+              <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="16" fill="#e8d5a3" fontWeight="700" letterSpacing="3">VERIFICADO</text>
+              <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7ab87a" letterSpacing="1.5">TAKAI.CL</text>
+            </svg>
+            <div style={{ textAlign: "left" as const }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "#e8d5a3", fontWeight: 700, lineHeight: 1.3 }}>Alojamiento verificado</div>
+              <div style={{ fontFamily: "sans-serif", fontSize: "11px", color: "#7ab87a", marginTop: "3px" }}>Verificado personalmente por Takai.cl</div>
+            </div>
+          </div>
+
           <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "11px", color: "#9ab898" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7ab87a", flexShrink: 0, display: "inline-block" }}/>
             {"Licanray \u00b7 Regi\u00f3n de La Araucan\u00eda \u00b7 5 min del lago"}
           </div>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 16px", background: "#e8d5a30a", borderBottom: "1px solid #e8d5a318", fontFamily: "sans-serif" }}>
-        <SelloCompacto />
-        <div>
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#e8d5a3", letterSpacing: "0.5px" }}>Rukatraro — Alojamiento verificado</div>
-          <div style={{ fontSize: "10px", color: "#7ab87a", marginTop: "2px" }}>{"Verificado personalmente por Takai.cl"}</div>
         </div>
       </div>
 
