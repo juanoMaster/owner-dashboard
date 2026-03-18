@@ -2,11 +2,6 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 const TENANT_ID = "11518e5f-6a0b-4bdc-bb6a-a1e142544579"
 
 function generarCodigo() {
@@ -18,6 +13,11 @@ function generarCodigo() {
 }
 
 export async function POST(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   try {
     const body = await req.json()
     const { cabin_id, check_in, check_out, nombre, whatsapp, email, metodo_pago } = body
@@ -38,7 +38,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Cabana no encontrada" }, { status: 404 })
     }
 
-    const nights = Math.max(0, Math.round((new Date(check_out).getTime() - new Date(check_in).getTime()) / 86400000))
+    const nights = Math.max(
+      0,
+      Math.round((new Date(check_out).getTime() - new Date(check_in).getTime()) / 86400000)
+    )
+
     if (nights < 2) {
       return NextResponse.json({ error: "Estadia minima 2 noches" }, { status: 400 })
     }
@@ -84,7 +88,11 @@ export async function POST(req: Request) {
         commission_amount: Math.round(total * 0.1),
         commission_status: "pending",
         status: "draft",
-        notes: "Nombre: " + nombre + " | WhatsApp: " + whatsapp + " | Email: " + (email || "") + " | Tinaja: " + tinaja_days + " dias | Codigo: " + codigo
+        notes:
+          "Nombre: " + nombre +
+          " | WhatsApp: " + whatsapp +
+          " | Email: " + (email || "") +
+          " | Tinaja: " + tinaja_days + " dias | Codigo: " + codigo
       }])
       .select("id")
       .single()
@@ -110,11 +118,23 @@ export async function POST(req: Request) {
       action: "booking_created",
       entity_type: "booking",
       entity_id: booking.id,
-      details: { codigo, check_in, check_out, nights, guests, tinaja_days, tinaja_amount: tinaja, total_amount: total, deposit_amount: depositAmount, metodo_pago: metodo_pago || "transferencia", nombre, whatsapp }
+      details: {
+        codigo,
+        check_in,
+        check_out,
+        nights,
+        guests,
+        tinaja_days,
+        tinaja_amount: tinaja,
+        total_amount: total,
+        deposit_amount: depositAmount,
+        metodo_pago: metodo_pago || "transferencia",
+        nombre,
+        whatsapp
+      }
     })
 
     return NextResponse.json({ success: true, codigo, booking_id: booking.id })
-
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }

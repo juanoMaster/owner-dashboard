@@ -1,10 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 interface AuditParams {
   tenant_id: string
   cabin_id?: string
@@ -16,6 +11,11 @@ interface AuditParams {
 }
 
 export async function logAudit(params: AuditParams) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const { error } = await supabase.from("audit_log").insert([
     {
       tenant_id: params.tenant_id,
@@ -27,6 +27,7 @@ export async function logAudit(params: AuditParams) {
       performed_by: params.performed_by ?? "system"
     }
   ])
+
   if (error) {
     console.error("[audit_log] Error:", error.message)
   }
