@@ -165,8 +165,8 @@ function InicioInner() {
               <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
               <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
               <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="16" fill="#e8d5a3" fontWeight="700" letterSpacing="3">VERIFICADO</text>
-              <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7ab87a" letterSpacing="1.5">TAKAI.CL</text>
+              <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="13" fill="#e8d5a3" fontWeight="700" letterSpacing="1.5">VERIFICADO</text>
+              <text x="75" y="137" textAnchor="middle" fontFamily="sans-serif" fontSize="11" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
             </svg>
             <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3aa", letterSpacing: "1px", textAlign: "center" as any, lineHeight: 1.4 }}>Alojamiento verificado<br/>personalmente por <span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "9px" }}>TAKAI.CL</span></div>
           </div>
