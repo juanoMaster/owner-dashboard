@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
@@ -21,7 +21,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { cabin_id, check_in, check_out, nombre, whatsapp, email, metodo_pago } = body
-
     const guests = Number(body.guests) || 1
     const tinaja_days = Number(body.tinaja_days) || 0
 
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
 
     const nights = Math.max(0, Math.round((new Date(check_out).getTime() - new Date(check_in).getTime()) / 86400000))
     if (nights < 2) {
-      return NextResponse.json({ error: "La estadia minima es de 2 noches" }, { status: 400 })
+      return NextResponse.json({ error: "Estadia minima 2 noches" }, { status: 400 })
     }
 
     const precioNoche = Number(cabin.base_price_night)
@@ -62,7 +61,7 @@ export async function POST(req: Request) {
       .gt("end_date", check_in)
 
     if (bloques && bloques.length > 0) {
-      return NextResponse.json({ error: "Las fechas seleccionadas no estan disponibles" }, { status: 409 })
+      return NextResponse.json({ error: "Fechas no disponibles" }, { status: 409 })
     }
 
     const codigo = generarCodigo()
@@ -111,21 +110,7 @@ export async function POST(req: Request) {
       action: "booking_created",
       entity_type: "booking",
       entity_id: booking.id,
-      details: {
-        codigo,
-        check_in,
-        check_out,
-        nights,
-        guests,
-        subtotal,
-        tinaja_days,
-        tinaja_amount: tinaja,
-        total_amount: total,
-        deposit_amount: depositAmount,
-        metodo_pago: metodo_pago || "transferencia",
-        nombre,
-        whatsapp
-      }
+      details: { codigo, check_in, check_out, nights, guests, tinaja_days, tinaja_amount: tinaja, total_amount: total, deposit_amount: depositAmount, metodo_pago: metodo_pago || "transferencia", nombre, whatsapp }
     })
 
     return NextResponse.json({ success: true, codigo, booking_id: booking.id })
