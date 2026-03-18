@@ -32,6 +32,9 @@ function InicioInner() {
     <div style={{ fontFamily: "Georgia, serif", background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
 
       <style>{"\
+        @media (max-width: 640px) {\
+          .hero-text { padding-top: 70px !important; }\
+        }\
         @media (min-width: 768px) {\
           .hero-wrap { max-height: 360px !important; }\
           .hero-wrap svg { max-height: 360px !important; }\
