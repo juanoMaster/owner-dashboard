@@ -1,22 +1,15 @@
 "use client"
 import { Suspense } from "react"
 
-function SelloVerificado() {
+function SelloCompacto() {
   return (
-    <svg width="150" height="180" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="2.5"/>
-      <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="0.8"/>
-      <path d="M75 24 L120 43 L120 86 C120 114 99 133 75 143 C51 133 30 114 30 86 L30 43 Z" fill="none" stroke="#e8d5a322" strokeWidth="0.5"/>
-      <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="1.5"/>
-      <circle cx="75" cy="65" r="15" fill="#e8d5a308" stroke="#e8d5a355" strokeWidth="0.5"/>
-      <path d="M66 65 L72 71 L84 59" stroke="#e8d5a3" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      <line x1="40" y1="100" x2="110" y2="100" stroke="#e8d5a333" strokeWidth="0.5"/>
-      <text x="75" y="117" textAnchor="middle" fontFamily="Georgia, serif" fontSize="10" fill="#e8d5a3" fontWeight="700" letterSpacing="2">VERIFICADO</text>
-      <line x1="40" y1="124" x2="110" y2="124" stroke="#e8d5a333" strokeWidth="0.5"/>
-      <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="8" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
-      <circle cx="32" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/><circle cx="118" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/>
-      <circle cx="22" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/><circle cx="128" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/>
-      <circle cx="18" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/><circle cx="132" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/>
+    <svg width="28" height="34" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
+      <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
+      <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
+      <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="16" fill="#e8d5a3" fontWeight="700" letterSpacing="3">VERIFICADO</text>
+      <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7ab87a" letterSpacing="1.5">TAKAI.CL</text>
     </svg>
   )
 }
@@ -139,6 +132,14 @@ function InicioInner() {
         </div>
       </div>
 
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 16px", background: "#e8d5a30a", borderBottom: "1px solid #e8d5a318", fontFamily: "sans-serif" }}>
+        <SelloCompacto />
+        <div>
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#e8d5a3", letterSpacing: "0.5px" }}>Rukatraro — Alojamiento verificado</div>
+          <div style={{ fontSize: "10px", color: "#7ab87a", marginTop: "2px" }}>{"Verificado personalmente por Takai.cl"}</div>
+        </div>
+      </div>
+
       <div style={{ padding: "16px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
         <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "10px" }}>{"Reserva tu caba\u00f1a"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "4px" }}>
@@ -224,13 +225,7 @@ function InicioInner() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", padding: "20px 16px 6px", borderTop: "1px solid #1a261a" }}>
-        <SelloVerificado />
-      </div>
-      <div style={{ textAlign: "center" as const, fontFamily: "sans-serif", fontSize: "11px", color: "#5a7058", marginBottom: "4px" }}>{"Alojamiento verificado personalmente"}</div>
-      <div style={{ textAlign: "center" as const, fontFamily: "sans-serif", fontSize: "9px", color: "#3a4a38", marginBottom: "14px" }}>{"Reserva con confianza en Takai.cl"}</div>
-
-      <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "6px 13px 13px", fontFamily: "sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "13px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#8a9e88", textDecoration: "none" }}>
           <span style={{ width: "16px", height: "16px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "10px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
           @rukatraro
