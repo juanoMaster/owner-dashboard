@@ -480,7 +480,7 @@ function ReservarInner() {
               {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que Rukatraro identifique tu pago."}
             </div>
             
-              href="/inicio"
+            <a href="/inicio"
               style={{ display: "block", marginTop: "24px", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
             >
               Volver al inicio
