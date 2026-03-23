@@ -3,15 +3,6 @@ import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
 
-const PRECIOS: Record<string, number> = {
-  "f935a02e-2572-4272-9a08-af40b29f0912": 30000,
-  "100598b1-5232-46a0-adf5-6dc969ce2f9f": 40000,
-}
-const CAPACIDAD: Record<string, number> = {
-  "f935a02e-2572-4272-9a08-af40b29f0912": 4,
-  "100598b1-5232-46a0-adf5-6dc969ce2f9f": 5,
-}
-
 function fmt(n: number) {
   return "$" + n.toLocaleString("es-CL")
 }
@@ -23,8 +14,8 @@ function ReservarInner() {
   const visitedParam = params.get("visited") || ""
   const visitedCabins = visitedParam ? visitedParam.split(",").filter(Boolean) : []
 
-  const precio_noche = PRECIOS[cabin_id] || 30000
-  const capacidad = CAPACIDAD[cabin_id] || 4
+  const precio_noche = Number(params.get("price")) || 30000
+  const capacidad = Number(params.get("capacity")) || 4
   const today = new Date().toISOString().split("T")[0]
 
   const [paso, setPaso] = useState(1)
@@ -282,7 +273,7 @@ function ReservarInner() {
                   Puedes probar con:<br /><br />
                   <a href={"/reservar?cabin_id=" + suggest.cabin_id + "&cabin_name=" + encodeURIComponent(suggest.cabin_name) + "&visited=" + encodeURIComponent(newVisited)}
                     style={{ color: "#e8b84a", textDecoration: "underline", fontWeight: 600 }}>
-                    {suggest.cabin_name} {" \u2014 hasta "}{suggest.capacity}{" personas \u2014 "}{fmt(suggest.price || PRECIOS[suggest.cabin_id] || 0)}/noche
+                    {suggest.cabin_name} {" \u2014 hasta "}{suggest.capacity}{" personas \u2014 "}{fmt(suggest.price || 0)}/noche
                   </a>
                   <br /><br />
                   O elige otras fechas para {cabin_name}.

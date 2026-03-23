@@ -198,7 +198,7 @@ function InicioInner() {
               <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "12px" }}>Hasta {c.cap} personas</div>
               <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#c8d8c0", marginBottom: "2px" }}>{fmt(c.price)}</div>
               <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "14px" }}>por noche</div>
-              <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name)}
+              <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name) + "&price=" + c.price + "&capacity=" + c.cap}
                 style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "10px", padding: "11px", fontSize: "13px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
                 {"Reservar \u2192"}
               </a>
