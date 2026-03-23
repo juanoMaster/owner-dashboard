@@ -378,29 +378,7 @@ function CalendarInner() {
 
       <div style={s.body}>
         <a href={"/?token=" + token} style={s.backBtn}>{"\u2190 Volver a mis Cabañas"}</a>
-        <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px 16px", marginBottom: "16px" }}>
-  <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "8px" }}>Sincronizar con Airbnb</div>
-  <div style={{ fontSize: "12px", color: "#8a9e88", marginBottom: "10px", lineHeight: 1.5 }}>
-    Copia este link y p{"\u00e9"}galo en Airbnb para que tus reservas se sincronicen autom{"\u00e1"}ticamente.
-  </div>
-  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-    <input
-      type="text"
-      readOnly
-      value={typeof window !== "undefined" ? window.location.origin + "/api/ical/" + cabinId : ""}
-      style={{ flex: 1, padding: "10px 12px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "11px", color: "#7ab87a", fontFamily: "monospace", outline: "none" }}
-    />
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(window.location.origin + "/api/ical/" + cabinId)
-        alert("Link copiado!")
-      }}
-      style={{ padding: "10px 16px", background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" as const }}
-    >
-      Copiar
-    </button>
-  </div>
-</div>
+        
         <div style={s.eyebrow}>Calendario de reservas</div>
         <div style={s.title}>{decodeURIComponent(cabinName)}</div>
         <div style={s.subtitle}>Toca una fecha libre para marcar entrada. Luego toca la fecha de salida.</div>
