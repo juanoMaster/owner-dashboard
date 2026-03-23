@@ -2,7 +2,6 @@ import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 import BookingsList from "./components/BookingsList"
 import ManualBookingForm from "./components/ManualBookingForm"
-import ConfirmedBookingsList from "./components/ConfirmedBookingsList"
 export const revalidate = 0
 
 export default async function Home({
@@ -41,13 +40,6 @@ export default async function Home({
     .eq("tenant_id", link.tenant_id)
     .eq("status", "draft")
     .order("created_at", { ascending: false })
-
-  const { data: confirmedBookings } = await supabase
-    .from("bookings")
-    .select("id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at")
-    .eq("tenant_id", link.tenant_id)
-    .eq("status", "confirmed")
-    .order("check_in", { ascending: true })
 
   const cabinsForForm = (cabins || []).map((c: any) => ({
     id: c.id,
@@ -122,12 +114,6 @@ export default async function Home({
         <BookingsList
           bookings={bookings || []}
           cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
-          tenantId={link.tenant_id}
-        />
-
-        <ConfirmedBookingsList
-          bookings={confirmedBookings || []}
-          cabins={cabinsForForm}
           tenantId={link.tenant_id}
         />
 
