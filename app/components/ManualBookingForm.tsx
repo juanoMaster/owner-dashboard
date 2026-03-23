@@ -53,7 +53,10 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
       const res = await fetch("/api/bookings/manual", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tenant_id: tenantId, cabin_id: cabinId, check_in: checkIn, check_out: checkOut, guest_name: guestName, guest_whatsapp: guestWhatsapp, guests: guestCount, tinaja_days: tinajaUse ? tinajaDays : "0", notes }) })
       const data = await res.json()
       if (!data.success) setError(data.message || "Error al guardar.")
-      else setSuccess({ code: data.booking_code, total: data.total, nights: data.nights })
+      else {
+  setSuccess({ code: data.booking_code, total: data.total, nights: data.nights })
+  setTimeout(() => { window.location.reload() }, 2000)
+}
     } catch { setError("Error de conexi\u00f3n.") } finally { setLoading(false) }
   }
 
