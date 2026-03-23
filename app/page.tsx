@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 import BookingsList from "./components/BookingsList"
 import ManualBookingForm from "./components/ManualBookingForm"
+import ConfirmedBookingsList from "./components/ConfirmedBookingsList"
 export const revalidate = 0
 
 export default async function Home({
@@ -41,6 +42,13 @@ export default async function Home({
     .eq("status", "draft")
     .order("created_at", { ascending: false })
 
+  const { data: confirmedBookings } = await supabase
+    .from("bookings")
+    .select("id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at")
+    .eq("tenant_id", link.tenant_id)
+    .eq("status", "confirmed")
+    .order("check_in", { ascending: true })
+
   const cabinsForForm = (cabins || []).map((c: any) => ({
     id: c.id,
     name: c.name,
@@ -59,7 +67,18 @@ export default async function Home({
 
       <main style={{ padding: "24px 20px", maxWidth: "700px", margin: "0 auto", fontFamily: "sans-serif" }}>
 
-        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "14px" }}>Mis caba{"\u00f1"}as</div>
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#e8d5a3", marginBottom: "4px" }}>
+            {"Bienvenida, Johanna \uD83C\uDF3F"}
+          </div>
+          <div style={{ fontSize: "12px", color: "#5a7058" }}>
+            {"Gestiona tus reservas y calendario desde aqu\u00ed"}
+          </div>
+        </div>
+
+        <ManualBookingForm cabins={cabinsForForm} tenantId={link.tenant_id} />
+
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", margin: "28px 0 14px" }}>{"Mis caba\u00f1as"}</div>
 
         {cabins?.map((cabin: any) => (
           <div key={cabin.id} style={{
@@ -78,7 +97,7 @@ export default async function Home({
                 {cabin.name}
               </div>
               <div style={{ fontSize: "12px", color: "#6a8a68" }}>
-                Capacidad: {cabin.capacity} personas
+                {"Capacidad: "}{cabin.capacity}{" personas"}
               </div>
             </div>
             <a href={"/calendar?cabin_id=" + cabin.id + "&token=" + token + "&cabin_name=" + encodeURIComponent(cabin.name)}
@@ -95,7 +114,7 @@ export default async function Home({
                 flexShrink: 0
               }}
             >
-              Ver calendario
+              {"Ver calendario"}
             </a>
           </div>
         ))}
@@ -106,7 +125,11 @@ export default async function Home({
           tenantId={link.tenant_id}
         />
 
-        <ManualBookingForm cabins={cabinsForForm} tenantId={link.tenant_id} />
+        <ConfirmedBookingsList
+          bookings={confirmedBookings || []}
+          cabins={cabinsForForm}
+          tenantId={link.tenant_id}
+        />
 
       </main>
     </div>
