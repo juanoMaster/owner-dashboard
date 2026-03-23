@@ -1,47 +1,10 @@
 "use client"
-
 import { useState, CSSProperties } from "react"
 
-interface Cabin {
-  id: string
-  name: string
-  capacity: number
-  base_price_night: number
-}
+interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
+interface Props { cabins: Cabin[]; tenantId: string }
 
-interface Props {
-  cabins: Cabin[]
-  tenantId: string
-}
-
-const styles: Record<string, CSSProperties> = {
-  container: { marginTop: "32px", borderTop: "2px solid #e2e8f0", paddingTop: "24px" },
-  btnPrimary: { backgroundColor: "#2563eb", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "15px", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" },
-  btnSecondary: { backgroundColor: "#f1f5f9", color: "#475569", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "10px 20px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
-  btnSuccess: { backgroundColor: "#16a34a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "15px", fontWeight: 600, cursor: "pointer", flex: 1 },
-  btnDisabled: { backgroundColor: "#94a3b8", color: "#ffffff", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "15px", fontWeight: 600, cursor: "not-allowed", flex: 1 },
-  overlay: { position: "fixed", inset: "0", backgroundColor: "rgba(0,0,0,0.5)", zIndex: 50, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "24px 16px" },
-  modal: { backgroundColor: "#ffffff", borderRadius: "12px", padding: "28px", width: "100%", maxWidth: "540px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" },
-  modalTitle: { fontSize: "20px", fontWeight: 700, color: "#1e293b", marginBottom: "6px" },
-  modalSubtitle: { fontSize: "13px", color: "#64748b", marginBottom: "24px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 600, color: "#374151", marginBottom: "6px" },
-  input: { width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#1e293b", backgroundColor: "#ffffff", boxSizing: "border-box", outline: "none" },
-  select: { width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#1e293b", backgroundColor: "#ffffff", boxSizing: "border-box", outline: "none", cursor: "pointer" },
-  fieldGroup: { marginBottom: "16px" },
-  row2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" },
-  summaryBox: { backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "16px", marginBottom: "20px" },
-  summaryRow: { display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#374151", marginBottom: "6px" },
-  summaryTotal: { display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: 700, color: "#16a34a", borderTop: "1px solid #bbf7d0", paddingTop: "10px", marginTop: "6px" },
-  errorBox: { backgroundColor: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px", color: "#dc2626", fontSize: "14px", marginBottom: "16px" },
-  successBox: { backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "8px", padding: "20px", textAlign: "center" },
-  successCode: { fontSize: "22px", fontWeight: 700, color: "#16a34a", letterSpacing: "2px", margin: "12px 0" },
-  footer: { display: "flex", gap: "12px", marginTop: "8px" },
-  badge: { display: "inline-block", backgroundColor: "#dbeafe", color: "#1d4ed8", fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "20px", marginLeft: "8px" }
-}
-
-function formatCLP(amount: number): string {
-  return "$" + amount.toLocaleString("es-CL")
-}
+function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL") }
 
 export default function ManualBookingForm({ cabins, tenantId }: Props) {
   const [open, setOpen] = useState(false)
@@ -60,171 +23,125 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
 
   const selectedCabin = cabins.find(c => c.id === cabinId)
 
-  function calcNights(): number {
+  function calcNights() {
     if (!checkIn || !checkOut) return 0
-    const d1 = new Date(checkIn + "T12:00:00")
-    const d2 = new Date(checkOut + "T12:00:00")
-    const n = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24))
+    const n = Math.round((new Date(checkOut + "T12:00:00").getTime() - new Date(checkIn + "T12:00:00").getTime()) / 86400000)
     return n > 0 ? n : 0
   }
 
   function calcTotal() {
-    const nights = calcNights()
-    if (!selectedCabin || nights === 0) return { subtotal: 0, extras: 0, tinaja: 0, total: 0, deposit: 0 }
-    const baseCapacity = selectedCabin.capacity - 2
-    const extra = Math.max(0, parseInt(guestCount) - baseCapacity)
-    const subtotal = selectedCabin.base_price_night * nights
-    const extras = extra * 5000 * nights
+    const n = calcNights()
+    if (!selectedCabin || n === 0) return { subtotal: 0, extras: 0, tinaja: 0, total: 0, deposit: 0 }
+    const extra = Math.max(0, parseInt(guestCount) - (selectedCabin.capacity - 2))
+    const subtotal = selectedCabin.base_price_night * n
+    const extras = extra * 5000 * n
     const tinaja = tinajaUse ? parseInt(tinajaDays) * 30000 : 0
     const total = subtotal + extras + tinaja
     return { subtotal, extras, tinaja, total, deposit: Math.round(total * 0.2) }
   }
 
-  function resetForm() {
-    setCabinId(cabins[0]?.id || "")
-    setCheckIn("")
-    setCheckOut("")
-    setGuestName("")
-    setGuestWhatsapp("")
-    setGuestCount("2")
-    setTinajaUse(false)
-    setTinajaDays("1")
-    setNotes("")
-    setError("")
-    setSuccess(null)
-  }
-
-  function handleClose() {
-    setOpen(false)
-    resetForm()
+  function reset() {
+    setCabinId(cabins[0]?.id || ""); setCheckIn(""); setCheckOut(""); setGuestName(""); setGuestWhatsapp(""); setGuestCount("2"); setTinajaUse(false); setTinajaDays("1"); setNotes(""); setError(""); setSuccess(null)
   }
 
   async function handleSubmit() {
     setError("")
-    if (!checkIn || !checkOut || !guestName || !guestWhatsapp) {
-      setError("Por favor completa todos los campos obligatorios.")
-      return
-    }
-    if (calcNights() < 1) {
-      setError("Las fechas no son válidas.")
-      return
-    }
+    if (!checkIn || !checkOut || !guestName || !guestWhatsapp) { setError("Por favor completa todos los campos obligatorios."); return }
+    if (calcNights() < 1) { setError("Las fechas no son v\u00e1lidas."); return }
     setLoading(true)
     try {
-      const res = await fetch("/api/bookings/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tenant_id: tenantId, cabin_id: cabinId, check_in: checkIn, check_out: checkOut, guest_name: guestName, guest_whatsapp: guestWhatsapp, guests: guestCount, tinaja_days: tinajaUse ? tinajaDays : "0", notes })
-      })
+      const res = await fetch("/api/bookings/manual", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tenant_id: tenantId, cabin_id: cabinId, check_in: checkIn, check_out: checkOut, guest_name: guestName, guest_whatsapp: guestWhatsapp, guests: guestCount, tinaja_days: tinajaUse ? tinajaDays : "0", notes }) })
       const data = await res.json()
-      if (!data.success) {
-        setError(data.message || "Error al guardar la reserva.")
-      } else {
-        setSuccess({ code: data.booking_code, total: data.total, nights: data.nights })
-      }
-    } catch {
-      setError("Error de conexión. Inténtalo de nuevo.")
-    } finally {
-      setLoading(false)
-    }
+      if (!data.success) setError(data.message || "Error al guardar.")
+      else setSuccess({ code: data.booking_code, total: data.total, nights: data.nights })
+    } catch { setError("Error de conexi\u00f3n.") } finally { setLoading(false) }
   }
 
   const nights = calcNights()
   const calc = calcTotal()
   const today = new Date().toISOString().split("T")[0]
 
-  return (
-    <div style={styles.container}>
-      <button style={styles.btnPrimary} onClick={() => setOpen(true)}>
-        {"+ Nueva reserva manual"}
-        <span style={styles.badge}>{"sin comisión"}</span>
-      </button>
+  const inp: CSSProperties = { width: "100%", padding: "10px 12px", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "14px", color: "#e8d5a3", background: "#0d1a12", boxSizing: "border-box", outline: "none" }
+  const sel: CSSProperties = { ...inp, cursor: "pointer" }
+  const lbl: CSSProperties = { display: "block", fontSize: "13px", fontWeight: 600, color: "#8a9e88", marginBottom: "6px" }
+  const fg: CSSProperties = { marginBottom: "16px" }
+  const r2: CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }
+  const ov: CSSProperties = { position: "fixed", inset: "0", background: "rgba(0,0,0,0.65)", zIndex: 50, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "24px 16px" }
+  const mdl: CSSProperties = { background: "#111a11", border: "1px solid #2a3e28", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "540px", marginTop: "20px" }
+  const sumBox: CSSProperties = { background: "#0d1a12", border: "1px solid #7ab87a44", borderRadius: "8px", padding: "16px", marginBottom: "20px" }
+  const sumRow: CSSProperties = { display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#8a9e88", marginBottom: "6px" }
+  const sumTotal: CSSProperties = { display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: 700, color: "#7ab87a", borderTop: "1px solid #2a3e28", paddingTop: "10px", marginTop: "6px" }
+  const errBox: CSSProperties = { background: "#3a0d0d", border: "1px solid #c0392b44", borderRadius: "8px", padding: "12px", color: "#e67a7a", fontSize: "14px", marginBottom: "16px" }
+  const sucBox: CSSProperties = { background: "#0d1a12", border: "1px solid #7ab87a44", borderRadius: "8px", padding: "20px", textAlign: "center" }
+  const btnG: CSSProperties = { background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }
+  const btnS: CSSProperties = { background: "transparent", color: "#5a7058", border: "1px solid #2a3e28", borderRadius: "8px", padding: "10px 20px", fontSize: "14px", cursor: "pointer" }
+  const btnOk: CSSProperties = { background: "#27ae60", color: "white", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "14px", fontWeight: 700, cursor: "pointer", flex: 1 }
+  const btnDis: CSSProperties = { background: "#2a3e28", color: "#5a7058", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "14px", cursor: "not-allowed", flex: 1 }
 
+  return (
+    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #2a3e28" }}>
+      <button style={btnG} onClick={() => setOpen(true)}>{"+ Nueva reserva manual"}</button>
       {open && (
-        <div style={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}>
-          <div style={styles.modal}>
+        <div style={ov} onClick={e => { if (e.target === e.currentTarget) { setOpen(false); reset() } }}>
+          <div style={mdl}>
             {success ? (
               <div>
-                <div style={styles.successBox}>
-                  <div style={{ fontSize: "36px" }}>{"✅"}</div>
-                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#15803d", marginTop: "8px" }}>{"Reserva guardada con éxito"}</div>
-                  <div style={styles.successCode}>{success.code}</div>
-                  <div style={{ fontSize: "14px", color: "#166534" }}>{success.nights} {success.nights === 1 ? "noche" : "noches"} {"·"} Total: {formatCLP(success.total)}</div>
-                  <div style={{ fontSize: "12px", color: "#4ade80", marginTop: "6px" }}>{"Calendario bloqueado automáticamente"}</div>
+                <div style={sucBox}>
+                  <div style={{ fontSize: "36px" }}>{"\u2705"}</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#7ab87a", marginTop: "8px" }}>{"Reserva guardada con \u00e9xito"}</div>
+                  <div style={{ fontSize: "20px", fontWeight: 700, color: "#e8d5a3", letterSpacing: "2px", margin: "12px 0" }}>{success.code}</div>
+                  <div style={{ fontSize: "13px", color: "#5a7058" }}>{success.nights} {success.nights === 1 ? "noche" : "noches"} {"\u00b7"} Total: {fmt(success.total)}</div>
+                  <div style={{ fontSize: "11px", color: "#4a6a48", marginTop: "6px" }}>{"Calendario bloqueado autom\u00e1ticamente"}</div>
                 </div>
                 <div style={{ marginTop: "16px", display: "flex", gap: "12px" }}>
-                  <button style={{ ...styles.btnSecondary, flex: 1 }} onClick={() => resetForm()}>{"Agregar otra"}</button>
-                  <button style={{ ...styles.btnPrimary, flex: 1, justifyContent: "center" }} onClick={handleClose}>{"Cerrar"}</button>
+                  <button style={{ ...btnS, flex: 1 }} onClick={() => reset()}>{"Agregar otra"}</button>
+                  <button style={{ ...btnG, flex: 1, justifyContent: "center" }} onClick={() => { setOpen(false); reset() }}>{"Cerrar"}</button>
                 </div>
               </div>
             ) : (
               <>
-                <div style={styles.modalTitle}>{"Nueva reserva manual"}</div>
-                <div style={styles.modalSubtitle}>{"Reservas de clientes propios (WhatsApp, Instagram, conocidos). Sin comisión Takai."}</div>
-                {error && <div style={styles.errorBox}>{error}</div>}
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>{"Cabaña"}</label>
-                  <select style={styles.select} value={cabinId} onChange={e => setCabinId(e.target.value)}>
-                    {cabins.map(c => (
-                      <option key={c.id} value={c.id}>{c.name} — {formatCLP(c.base_price_night)}/noche — cap. {c.capacity}</option>
-                    ))}
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", color: "#e8d5a3", marginBottom: "6px" }}>{"Nueva reserva manual"}</div>
+                <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "20px" }}>{"Reservas de clientes propios. Sin comisi\u00f3n Takai."}</div>
+                {error && <div style={errBox}>{error}</div>}
+                <div style={fg}>
+                  <label style={lbl}>{"Caba\u00f1a"}</label>
+                  <select style={sel} value={cabinId} onChange={e => setCabinId(e.target.value)}>
+                    {cabins.map(c => <option key={c.id} value={c.id}>{c.name} {"\u2014"} {fmt(c.base_price_night)}/noche</option>)}
                   </select>
                 </div>
-                <div style={styles.row2}>
-                  <div>
-                    <label style={styles.label}>{"Check-in"}</label>
-                    <input type="date" style={styles.input} min={today} value={checkIn} onChange={e => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut("") }} />
-                  </div>
-                  <div>
-                    <label style={styles.label}>{"Check-out"}</label>
-                    <input type="date" style={styles.input} min={checkIn || today} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
-                  </div>
+                <div style={r2}>
+                  <div><label style={lbl}>{"Check-in"}</label><input type="date" style={inp} min={today} value={checkIn} onChange={e => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut("") }} /></div>
+                  <div><label style={lbl}>{"Check-out"}</label><input type="date" style={inp} min={checkIn || today} value={checkOut} onChange={e => setCheckOut(e.target.value)} /></div>
                 </div>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>{"Nombre del cliente *"}</label>
-                  <input type="text" style={styles.input} placeholder={"Nombre completo"} value={guestName} onChange={e => setGuestName(e.target.value)} />
+                <div style={fg}>
+                  <label style={lbl}>{"Nombre del cliente *"}</label>
+                  <input type="text" style={inp} placeholder={"Nombre completo"} value={guestName} onChange={e => setGuestName(e.target.value)} />
                 </div>
-                <div style={styles.row2}>
-                  <div>
-                    <label style={styles.label}>{"WhatsApp *"}</label>
-                    <input type="tel" style={styles.input} placeholder={"+56 9 XXXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} />
-                  </div>
-                  <div>
-                    <label style={styles.label}>{"Número de huéspedes"}</label>
-                    <select style={styles.select} value={guestCount} onChange={e => setGuestCount(e.target.value)}>
-                      {Array.from({ length: selectedCabin?.capacity || 4 }, (_, i) => i + 1).map(n => (
-                        <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div style={r2}>
+                  <div><label style={lbl}>{"WhatsApp *"}</label><input type="tel" style={inp} placeholder={"+56 9 XXXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} /></div>
+                  <div><label style={lbl}>{"N\u00famero de hu\u00e9spedes"}</label><select style={sel} value={guestCount} onChange={e => setGuestCount(e.target.value)}>{Array.from({ length: selectedCabin?.capacity || 4 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}</option>)}</select></div>
                 </div>
-                <div style={{ ...styles.fieldGroup, display: "flex", alignItems: "center", gap: "12px" }}>
-                  <input type="checkbox" id="tinaja" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
-                  <label htmlFor="tinaja" style={{ ...styles.label, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera ($30.000/día)"}</label>
-                  {tinajaUse && (
-                    <select style={{ ...styles.select, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>
-                      {Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => (
-                        <option key={n} value={n}>{n} {n === 1 ? "día" : "días"}</option>
-                      ))}
-                    </select>
-                  )}
+                <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
+                  <input type="checkbox" id="tinaja-m" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
+                  <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera ($30.000/d\u00eda)"}</label>
+                  {tinajaUse && <select style={{ ...sel, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>{Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"}</option>)}</select>}
                 </div>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.label}>{"Notas (opcional)"}</label>
-                  <input type="text" style={styles.input} placeholder={"Pago efectivo, llegada tarde, etc."} value={notes} onChange={e => setNotes(e.target.value)} />
+                <div style={fg}>
+                  <label style={lbl}>{"Notas (opcional)"}</label>
+                  <input type="text" style={inp} placeholder={"Pago efectivo, llegada tarde, etc."} value={notes} onChange={e => setNotes(e.target.value)} />
                 </div>
                 {nights > 0 && calc.total > 0 && (
-                  <div style={styles.summaryBox}>
-                    <div style={styles.summaryRow}><span>{"Alojamiento"}</span><span>{formatCLP(calc.subtotal)} ({nights} {nights === 1 ? "noche" : "noches"})</span></div>
-                    {calc.extras > 0 && <div style={styles.summaryRow}><span>{"Personas extra"}</span><span>{formatCLP(calc.extras)}</span></div>}
-                    {calc.tinaja > 0 && <div style={styles.summaryRow}><span>{"Tinaja"}</span><span>{formatCLP(calc.tinaja)}</span></div>}
-                    <div style={styles.summaryTotal}><span>{"Total"}</span><span>{formatCLP(calc.total)}</span></div>
-                    <div style={{ ...styles.summaryRow, marginTop: "8px", fontSize: "12px", color: "#16a34a" }}><span>{"Adelanto 20%"}</span><span>{formatCLP(calc.deposit)}</span></div>
+                  <div style={sumBox}>
+                    <div style={sumRow}><span>{"Alojamiento"}</span><span>{fmt(calc.subtotal)} ({nights} {nights === 1 ? "noche" : "noches"})</span></div>
+                    {calc.extras > 0 && <div style={sumRow}><span>{"Personas extra"}</span><span>{fmt(calc.extras)}</span></div>}
+                    {calc.tinaja > 0 && <div style={sumRow}><span>{"Tinaja"}</span><span>{fmt(calc.tinaja)}</span></div>}
+                    <div style={sumTotal}><span>{"Total"}</span><span>{fmt(calc.total)}</span></div>
+                    <div style={{ ...sumRow, marginTop: "8px", fontSize: "11px", color: "#4a6a48" }}><span>{"Adelanto 20%"}</span><span>{fmt(calc.deposit)}</span></div>
                   </div>
                 )}
-                <div style={styles.footer}>
-                  <button style={styles.btnSecondary} onClick={handleClose}>{"Cancelar"}</button>
-                  <button style={loading ? styles.btnDisabled : styles.btnSuccess} onClick={handleSubmit} disabled={loading}>{loading ? "Guardando..." : "Guardar reserva"}</button>
+                <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                  <button style={btnS} onClick={() => { setOpen(false); reset() }}>{"Cancelar"}</button>
+                  <button style={loading ? btnDis : btnOk} onClick={handleSubmit} disabled={loading}>{loading ? "Guardando..." : "Guardar reserva"}</button>
                 </div>
               </>
             )}
