@@ -40,7 +40,7 @@ export default async function Home({
     .from("bookings")
     .select("id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at")
     .eq("tenant_id", link.tenant_id)
-    .eq("status", "draft")
+    .in("status", ["draft", "confirmed"])
     .order("created_at", { ascending: false })
 
   const cabinsForForm = (cabins || []).map((c: any) => ({
