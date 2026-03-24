@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 import BookingsList from "./components/BookingsList"
 import ManualBookingForm from "./components/ManualBookingForm"
-export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export default async function Home({
   searchParams,
