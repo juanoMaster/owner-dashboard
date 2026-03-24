@@ -43,6 +43,12 @@ export default async function Home({
     .in("status", ["draft", "confirmed"])
     .order("created_at", { ascending: false })
 
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("business_name, owner_name")
+    .eq("id", link.tenant_id)
+    .single()
+
   const cabinsForForm = (cabins || []).map((c: any) => ({
     id: c.id,
     name: c.name,
@@ -54,7 +60,7 @@ export default async function Home({
     <div style={{ background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
         <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
-          Ruka<span style={{ color: "#7ab87a" }}>traro</span>
+          {tenant?.business_name || "Mi Panel"}
         </div>
         <div style={{ fontSize: "10px", color: "#5a7058", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Panel administrador</div>
       </div>
@@ -63,7 +69,7 @@ export default async function Home({
 
         <div style={{ marginBottom: "24px" }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#e8d5a3", marginBottom: "4px" }}>
-            {"Bienvenida, Johanna \uD83C\uDF3F"}
+            {"Bienvenida, " + (tenant?.owner_name || "propietaria") + " \uD83C\uDF3F"}
           </div>
           <div style={{ fontSize: "12px", color: "#5a7058" }}>
             {"Gestiona tus reservas y calendario desde aqu\u00ed"}
