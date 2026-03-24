@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 import BookingsList from "./components/BookingsList"
 import ManualBookingForm from "./components/ManualBookingForm"
+import { unstable_noStore as noStore } from "next/cache"
 export const dynamic = 'force-dynamic'
 
 export default async function Home({
@@ -9,6 +10,7 @@ export default async function Home({
 }: {
   searchParams: { token?: string }
 }) {
+  noStore()
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
