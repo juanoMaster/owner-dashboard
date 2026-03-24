@@ -2,13 +2,21 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
-const TENANT_ID = "11518e5f-6a0b-4bdc-bb6a-a1e142544579"
-
 export async function GET(req: Request) {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const { searchParams } = new URL(req.url)
   const cabinId = searchParams.get("cabin_id")
   if (!cabinId) return NextResponse.json({ error: "cabin_id requerido" }, { status: 400 })
+
+  const { data: cabin } = await supabase
+    .from("cabins")
+    .select("tenant_id")
+    .eq("id", cabinId)
+    .single()
+
+  if (!cabin) return NextResponse.json({ error: "Cabaña no encontrada" }, { status: 404 })
+
+  const tenantId = cabin.tenant_id
 
   const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   await supabase.from("calendar_blocks").delete().eq("cabin_id", cabinId).eq("reason", "transfer_pending").lt("created_at", hace24h)
@@ -17,7 +25,7 @@ export async function GET(req: Request) {
     .from("calendar_blocks")
     .select("id, start_date, end_date, reason, booking_id, created_at")
     .eq("cabin_id", cabinId)
-    .eq("tenant_id", TENANT_ID)
+    .eq("tenant_id", tenantId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -61,13 +69,25 @@ export async function POST(req: Request) {
     if (!start_date || !end_date || !cabin_id) {
       return NextResponse.json({ error: "start_date, end_date y cabin_id son requeridos" }, { status: 400 })
     }
+
+    const { data: cabin } = await supabase
+      .from("cabins")
+      .select("tenant_id")
+      .eq("id", cabin_id)
+      .single()
+
+    if (!cabin) return NextResponse.json({ error: "Cabaña no encontrada" }, { status: 404 })
+
     const { data: block, error } = await supabase
       .from("calendar_blocks")
-      .insert([{ start_date, end_date, reason: "manual", cabin_id, tenant_id: TENANT_ID }])
+      .insert([{ start_date, end_date, reason: "manual", cabin_id, tenant_id: cabin.tenant_id }])
       .select("id")
       .single()
+
     if (error) throw error
-    await logAudit({ tenant_id: TENANT_ID, cabin_id, action: "calendar_block_created", entity_type: "calendar_block", entity_id: block.id, details: { start_date, end_date, reason: "manual" }, performed_by: "johanna" })
+
+    await logAudit({ tenant_id: cabin.tenant_id, cabin_id, action: "calendar_block_created", entity_type: "calendar_block", entity_id: block.id, details: { start_date, end_date, reason: "manual" }, performed_by: "owner" })
+
     return NextResponse.json({ success: true })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
