@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
@@ -12,18 +12,9 @@ function CalendarContent() {
   const cabinId = searchParams.get("cabin_id") || ""
   const token = searchParams.get("token") || ""
   const [events, setEvents] = useState<any[]>([])
-  const [cabinName, setCabinName] = useState<string>("Cabaña")
+  const [cabinName, setCabinName] = useState<string>("Cabana")
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string>("")
-
-  function findEventForDate(dateStr: string) {
-    const clicked = new Date(dateStr + "T00:00:00")
-    return events.find((e: any) => {
-      const start = new Date(e.start)
-      const end = new Date(e.end)
-      return clicked >= start && clicked < end
-    })
-  }
 
   async function loadEvents() {
     if (!cabinId) return
@@ -31,19 +22,15 @@ function CalendarContent() {
     const data = await res.json()
     if (data.cabin_name) setCabinName(data.cabin_name)
     const list = data.events || []
-    const eventsFormatted = list.map((e: any) => {
-      const endDate = new Date(e.end + "T00:00:00")
-      endDate.setDate(endDate.getDate() + 1)
-      return {
-        id: e.id,
-        title: "Ocupado",
-        start: e.start,
-        end: endDate.toISOString().split("T")[0],
-        color: "#e63946",
-        allDay: true,
-        display: "block",
-      }
-    })
+    const eventsFormatted = list.map((e: any) => ({
+      id: e.id,
+      title: "Ocupado",
+      start: e.start,
+      end: e.start,
+      color: "#e63946",
+      allDay: true,
+      display: "block",
+    }))
     setEvents(eventsFormatted)
   }
 
@@ -53,22 +40,7 @@ function CalendarContent() {
     const date = info.dateStr
     const today = new Date().toISOString().split("T")[0]
     if (date < today) { alert("No se pueden modificar fechas pasadas"); return }
-    const existing = findEventForDate(date)
-    if (existing) {
-      if (!confirm("¿Liberar este día?")) return
-      setLoading(true); setMessage("")
-      const res = await fetch("/api/calendar/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cabin_id: cabinId, id: existing.id }),
-      })
-      const data = await res.json()
-      setLoading(false)
-      setMessage(data.success ? "Día liberado correctamente" : "Error al liberar el día.")
-      if (data.success) await loadEvents()
-      return
-    }
-    if (!confirm("¿Marcar este día como ocupado?")) return
+    if (!confirm("Marcar este dia como ocupado?")) return
     setLoading(true); setMessage("")
     const res = await fetch("/api/calendar", {
       method: "POST",
@@ -77,12 +49,12 @@ function CalendarContent() {
     })
     const data = await res.json()
     setLoading(false)
-    setMessage(data.success ? "Día marcado como ocupado" : "Error al bloquear el día.")
+    setMessage(data.success ? "Dia marcado como ocupado" : "Error al bloquear el dia.")
     if (data.success) await loadEvents()
   }
 
   async function handleEventClick(info: any) {
-    if (!confirm("¿Liberar este día?")) return
+    if (!confirm("Liberar este dia?")) return
     setLoading(true); setMessage("")
     const res = await fetch("/api/calendar/delete", {
       method: "POST",
@@ -91,23 +63,23 @@ function CalendarContent() {
     })
     const data = await res.json()
     setLoading(false)
-    setMessage(data.success ? "Día liberado correctamente" : "Error al liberar el día.")
+    setMessage(data.success ? "Dia liberado correctamente" : "Error al liberar el dia.")
     if (data.success) await loadEvents()
   }
 
-  if (!cabinId) return <div style={{ padding: "40px", fontFamily: "sans-serif" }}>Cabaña no especificada</div>
+  if (!cabinId) return <div style={{ padding: "40px", fontFamily: "sans-serif" }}>Cabana no especificada</div>
 
   return (
     <div style={{ padding: "32px 40px", fontFamily: "sans-serif", maxWidth: "900px" }}>
       <div style={{ marginBottom: "24px" }}>
         <a href={"/?token=" + token} style={{ fontSize: "14px", color: "#555", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "16px" }}>
-          ← Volver al panel
+          Volver al panel
         </a>
         <h1 style={{ fontSize: "22px", fontWeight: 500 }}>
-          Calendario — {cabinName}
+          Calendario - {cabinName}
         </h1>
         <p style={{ color: "#888", fontSize: "13px", marginTop: "4px" }}>
-          Toca un día libre para bloquearlo. Toca un día ocupado para liberarlo.
+          Toca un dia libre para bloquearlo. Toca un dia ocupado para liberarlo.
         </p>
       </div>
       {loading && (
