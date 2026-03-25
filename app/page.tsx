@@ -85,7 +85,7 @@ export default async function Home({
               borderRadius: "8px",
               textDecoration: "none",
               fontSize: "14px",
-              fontWeight: "500",
+              fontWeight: "500" as const,
             }}
           >
             Ver Calendario

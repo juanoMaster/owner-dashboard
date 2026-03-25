@@ -18,7 +18,7 @@ function CalendarContent() {
   const [message, setMessage] = useState<string>("")
 
   function findEventForDate(dateStr: string) {
-    const clicked = new Date(dateStr + "T00:00:00")
+    const clicked = new Date(`${dateStr}T00:00:00`)
     return events.find((e: any) => {
       const start = new Date(e.start)
       const end = new Date(e.end)
@@ -28,12 +28,14 @@ function CalendarContent() {
 
   async function loadEvents() {
     if (!cabinId) return
-    const res = await fetch("/api/calendar?cabin_id=" + cabinId)
+    const res = await fetch(`/api/calendar?cabin_id=${cabinId}`)
     const data = await res.json()
+
     if (data.cabin_name) setCabinName(data.cabin_name)
+
     const list = data.events || []
     const eventsFormatted = list.map((e: any) => {
-      const endDate = new Date(e.end + "T00:00:00")
+      const endDate = new Date(`${e.end}T00:00:00`)
       endDate.setDate(endDate.getDate() + 1)
       return {
         id: e.id,
@@ -59,9 +61,10 @@ function CalendarContent() {
       alert("No se pueden modificar fechas pasadas")
       return
     }
+
     const existing = findEventForDate(date)
     if (existing) {
-      if (!confirm("\u00bfLiberar este d\u00eda?")) return
+      if (!confirm("¿Liberar este día?")) return
       setLoading(true)
       setMessage("")
       const res = await fetch("/api/calendar/delete", {
@@ -71,11 +74,16 @@ function CalendarContent() {
       })
       const data = await res.json()
       setLoading(false)
-      setMessage(data.success ? "D\u00eda liberado correctamente" : "Error al liberar el d\u00eda. Intenta de nuevo.")
-      if (data.success) await loadEvents()
+      if (data.success) {
+        setMessage("Día liberado correctamente")
+        await loadEvents()
+      } else {
+        setMessage("Error al liberar el día. Intenta de nuevo.")
+      }
       return
     }
-    if (!confirm("\u00bfMarcar este d\u00eda como ocupado?")) return
+
+    if (!confirm("¿Marcar este día como ocupado?")) return
     setLoading(true)
     setMessage("")
     const res = await fetch("/api/calendar", {
@@ -85,12 +93,16 @@ function CalendarContent() {
     })
     const data = await res.json()
     setLoading(false)
-    setMessage(data.success ? "D\u00eda marcado como ocupado" : "Error al bloquear el d\u00eda. Intenta de nuevo.")
-    if (data.success) await loadEvents()
+    if (data.success) {
+      setMessage("Día marcado como ocupado")
+      await loadEvents()
+    } else {
+      setMessage("Error al bloquear el día. Intenta de nuevo.")
+    }
   }
 
   async function handleEventClick(info: any) {
-    if (!confirm("\u00bfLiberar este d\u00eda?")) return
+    if (!confirm("¿Liberar este día?")) return
     setLoading(true)
     setMessage("")
     const res = await fetch("/api/calendar/delete", {
@@ -100,8 +112,12 @@ function CalendarContent() {
     })
     const data = await res.json()
     setLoading(false)
-    setMessage(data.success ? "D\u00eda liberado correctamente" : "Error al liberar el d\u00eda. Intenta de nuevo.")
-    if (data.success) await loadEvents()
+    if (data.success) {
+      setMessage("Día liberado correctamente")
+      await loadEvents()
+    } else {
+      setMessage("Error al liberar el día. Intenta de nuevo.")
+    }
   }
 
   if (!cabinId) {
@@ -112,23 +128,25 @@ function CalendarContent() {
     <div style={{ padding: "32px 40px", fontFamily: "sans-serif", maxWidth: "900px" }}>
       <div style={{ marginBottom: "24px" }}>
         
-          href={"/?token=" + token}
+          href={`/?token=${token}`}
           style={{ fontSize: "14px", color: "#555", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "16px" }}
         >
-          ← Volver al panel
+          &#8592; Volver al panel
         </a>
-        <h1 style={{ fontSize: "22px", fontWeight: 500 }}>
+        <h1 style={{ fontSize: "22px", fontWeight: "500" as const }}>
           Calendario — {cabinName}
         </h1>
         <p style={{ color: "#888", fontSize: "13px", marginTop: "4px" }}>
-          Toca un día libre para bloquearlo. Toca un día ocupado para liberarlo.
+          Toca un d\u00eda libre para bloquearlo. Toca un d\u00eda ocupado para liberarlo.
         </p>
       </div>
+
       {loading && (
         <div style={{ marginBottom: "12px", padding: "10px 14px", background: "#f5f5f5", borderRadius: "8px", fontSize: "13px", color: "#555" }}>
           Guardando cambio...
         </div>
       )}
+
       {message && !loading && (
         <div style={{
           marginBottom: "12px",
@@ -141,6 +159,7 @@ function CalendarContent() {
           {message}
         </div>
       )}
+
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
