@@ -1,125 +1,97 @@
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
-import BookingsList from "./components/BookingsList"
-import ManualBookingForm from "./components/ManualBookingForm"
-import { unstable_noStore as noStore } from "next/cache"
-export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function Home({
   searchParams,
 }: {
   searchParams: { token?: string }
 }) {
-  noStore()
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
   const token = searchParams.token
-  if (!token) return <div>Missing token</div>
+  if (!token) {
+    return (
+      <div style={{ padding: "40px", fontFamily: "sans-serif", color: "#666" }}>
+        Acceso no autorizado
+      </div>
+    )
+  }
 
   const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
 
-  const { data: link, error } = await supabase
+  const { data: link, error: linkError } = await supabase
     .from("dashboard_links")
     .select("tenant_id")
     .eq("token_hash", tokenHash)
     .eq("active", true)
     .maybeSingle()
 
-  if (error) return <div>Error: {error.message}</div>
-  if (!link) return <div>Token invalido</div>
+  if (linkError || !link) {
+    return (
+      <div style={{ padding: "40px", fontFamily: "sans-serif", color: "#666" }}>
+        Acceso no autorizado
+      </div>
+    )
+  }
 
-  const { data: cabins } = await supabase
+  const { data: cabins, error: cabinsError } = await supabase
     .from("cabins")
     .select("*")
     .eq("tenant_id", link.tenant_id)
 
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select("id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at")
-    .eq("tenant_id", link.tenant_id)
-    .in("status", ["draft", "confirmed"])
-    .order("created_at", { ascending: false })
-
-  const cabinsForForm = (cabins || []).map((c: any) => ({
-    id: c.id,
-    name: c.name,
-    capacity: c.capacity,
-    base_price_night: c.base_price_night
-  }))
+  if (cabinsError) {
+    return (
+      <div style={{ padding: "40px", fontFamily: "sans-serif", color: "#c00" }}>
+        Error al cargar cabañas. Intenta recargar la página.
+      </div>
+    )
+  }
 
   return (
-    <div style={{ background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
-        <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
-          Ruka<span style={{ color: "#7ab87a" }}>traro</span>
-        </div>
-        <div style={{ fontSize: "10px", color: "#5a7058", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Panel administrador</div>
-      </div>
-
-      <main style={{ padding: "24px 20px", maxWidth: "700px", margin: "0 auto", fontFamily: "sans-serif" }}>
-
-        <div style={{ marginBottom: "24px" }}>
-          <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: "#e8d5a3", marginBottom: "4px" }}>
-            {"Bienvenida, Johanna \uD83C\uDF3F"}
-          </div>
-          <div style={{ fontSize: "12px", color: "#5a7058" }}>
-            {"Gestiona tus reservas y calendario desde aqu\u00ed"}
-          </div>
-        </div>
-
-        <ManualBookingForm cabins={cabinsForForm} tenantId={link.tenant_id} />
-
-        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", margin: "28px 0 14px" }}>{"Mis caba\u00f1as"}</div>
-
-        {cabins?.map((cabin: any) => (
-          <div key={cabin.id} style={{
-            background: "#111a11",
-            border: "1px solid #2a3a2a",
-            borderRadius: "14px",
-            padding: "18px 16px",
-            marginBottom: "12px",
+    <main style={{ padding: "40px", fontFamily: "sans-serif", maxWidth: "600px" }}>
+      <h1 style={{ fontSize: "24px", marginBottom: "8px" }}>Panel del Propietario</h1>
+      <p style={{ color: "#888", marginBottom: "32px", fontSize: "14px" }}>
+        Selecciona una cabaña para gestionar su calendario
+      </p>
+      {cabins?.map((cabin: any) => (
+        <div
+          key={cabin.id}
+          style={{
+            marginBottom: "16px",
+            padding: "20px 24px",
+            border: "1px solid #e0e0e0",
+            borderRadius: "12px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "12px"
-          }}>
-            <div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "4px" }}>
-                {cabin.name}
-              </div>
-              <div style={{ fontSize: "12px", color: "#6a8a68" }}>
-                {"Capacidad: "}{cabin.capacity}{" personas"}
-              </div>
-            </div>
-            <a href={"/calendar?cabin_id=" + cabin.id + "&token=" + token + "&cabin_name=" + encodeURIComponent(cabin.name)}
-              style={{
-                display: "inline-block",
-                background: "#7ab87a",
-                color: "#0a0f0a",
-                borderRadius: "8px",
-                padding: "9px 16px",
-                fontSize: "12px",
-                fontWeight: 700,
-                textDecoration: "none",
-                whiteSpace: "nowrap" as const,
-                flexShrink: 0
-              }}
-            >
-              {"Ver calendario"}
-            </a>
+          }}
+        >
+          <div>
+            <h2 style={{ fontSize: "18px", marginBottom: "4px" }}>{cabin.name}</h2>
+            <p style={{ color: "#888", fontSize: "14px", margin: 0 }}>
+              Capacidad: {cabin.capacity} personas
+            </p>
           </div>
-        ))}
-
-        <BookingsList
-          bookings={bookings || []}
-          cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
-          tenantId={link.tenant_id}
-        />
-
-      </main>
-    </div>
+          
+            href={`/calendar?cabin_id=${cabin.id}&token=${token}`}
+            style={{
+              backgroundColor: "#1a1a1a",
+              color: "#fff",
+              padding: "10px 20px",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontSize: "14px",
+              fontWeight: "500",
+            }}
+          >
+            Ver Calendario
+          </a>
+        </div>
+      ))}
+    </main>
   )
 }
