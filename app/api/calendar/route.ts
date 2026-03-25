@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+﻿import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,23 +8,23 @@ const supabase = createClient(
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const cabinId = searchParams.get('cabin_id')
+  const cabinId = searchParams.get("cabin_id")
 
   if (!cabinId) {
-    return NextResponse.json({ error: 'cabin_id es requerido' }, { status: 400 })
+    return NextResponse.json({ error: "cabin_id es requerido" }, { status: 400 })
   }
 
   const { data: cabin } = await supabase
-    .from('cabins')
-    .select('name')
-    .eq('id', cabinId)
+    .from("cabins")
+    .select("name")
+    .eq("id", cabinId)
     .maybeSingle()
 
   const { data: blocks, error } = await supabase
-    .from('calendar_blocks')
-    .select('id, date, status')
-    .eq('cabin_id', cabinId)
-    .or('status.is.null,status.neq.cancelled')
+    .from("calendar_blocks")
+    .select("id, date, status")
+    .eq("cabin_id", cabinId)
+    .or("status.is.null,status.neq.cancelled")
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -32,35 +32,35 @@ export async function GET(req: Request) {
     id: b.id,
     start: b.date,
     end: b.date,
-    color: '#e63946',
+    color: "#e63946",
   }))
 
-  return NextResponse.json({ events, cabin_name: cabin?.name || 'Cabaña' })
+  return NextResponse.json({ events, cabin_name: cabin?.name || "Cabana" })
 }
 
 export async function POST(req: Request) {
   try {
     const { date, cabin_id } = await req.json()
     if (!date || !cabin_id) {
-      return NextResponse.json({ error: 'date y cabin_id son requeridos' }, { status: 400 })
+      return NextResponse.json({ error: "date y cabin_id son requeridos" }, { status: 400 })
     }
 
     const { data: cabin } = await supabase
-      .from('cabins')
-      .select('tenant_id')
-      .eq('id', cabin_id)
+      .from("cabins")
+      .select("tenant_id")
+      .eq("id", cabin_id)
       .maybeSingle()
 
     if (!cabin) {
-      return NextResponse.json({ error: 'Cabaña no encontrada' }, { status: 404 })
+      return NextResponse.json({ error: "Cabana no encontrada" }, { status: 404 })
     }
 
-    const { error } = await supabase.from('calendar_blocks').insert([{
+    const { error } = await supabase.from("calendar_blocks").insert([{
       date,
-      reason: 'manual',
+      reason: "manual",
       cabin_id,
       tenant_id: cabin.tenant_id,
-      status: 'active',
+      status: "active",
     }])
 
     if (error) throw error
