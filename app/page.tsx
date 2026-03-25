@@ -76,8 +76,8 @@ export default async function Home({
               Capacidad: {cabin.capacity} personas
             </p>
           </div>
-          
-            href={`/calendar?cabin_id=${cabin.id}&token=${token}`}
+          <a
+            href={"/calendar?cabin_id=" + cabin.id + "&token=" + token}
             style={{
               backgroundColor: "#1a1a1a",
               color: "#fff",
@@ -85,7 +85,7 @@ export default async function Home({
               borderRadius: "8px",
               textDecoration: "none",
               fontSize: "14px",
-              fontWeight: "500" as const,
+              fontWeight: "500",
             }}
           >
             Ver Calendario
