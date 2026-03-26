@@ -27,7 +27,7 @@ export default async function Home({
 
   const { data: link } = await supabase
     .from("dashboard_links")
-    .select("tenant_id, owner_name")
+    .select("tenant_id")
     .eq("token_hash", tokenHash)
     .eq("active", true)
     .maybeSingle()
@@ -40,7 +40,7 @@ export default async function Home({
     )
   }
 
-  const ownerName: string = (link as any).owner_name || "Johanna"
+  const ownerName = "Johanna"
 
   const { data: cabins } = await supabase
     .from("cabins")
