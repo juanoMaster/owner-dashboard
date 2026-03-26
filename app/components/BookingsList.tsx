@@ -81,10 +81,11 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_id: id, tenant_id: tenantId }),
       })
+      const data = await res.json()
       if (res.ok) {
         setBookings((prev) => prev.filter((b) => b.id !== id))
       } else {
-        alert("Error al confirmar la reserva")
+        alert("Error al confirmar: " + (data.error || data.message || "c\u00f3digo " + res.status))
       }
     } catch (e) {
       alert("Error de conexi\u00f3n")

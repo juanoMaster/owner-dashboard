@@ -28,16 +28,18 @@ export async function GET(req: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Verificar cuáles bookings están confirmados (pagados)
   const bookingIds = Array.from(new Set((blocks || []).filter(b => b.booking_id).map(b => b.booking_id)))
   let confirmedSet = new Set<string>()
+  let bookingDetailsMap: Record<string, any> = {}
   if (bookingIds.length > 0) {
-    const { data: confirmed } = await supabase
+    const { data: bookingRows } = await supabase
       .from("bookings")
-      .select("id")
+      .select("id, status, total_amount, deposit_amount, balance_amount, nights, guests, notes")
       .in("id", bookingIds)
-      .eq("status", "confirmed")
-    confirmedSet = new Set((confirmed || []).map((b: any) => b.id))
+    ;(bookingRows || []).forEach((b: any) => {
+      bookingDetailsMap[b.id] = b
+      if (b.status === "confirmed") confirmedSet.add(b.id)
+    })
   }
 
   const events = (blocks || []).map(b => ({
@@ -46,10 +48,17 @@ export async function GET(req: Request) {
     end: b.end_date,
     reason: b.reason,
     has_booking: !!b.booking_id,
+    booking_id: b.booking_id || null,
     is_confirmed: b.booking_id ? confirmedSet.has(b.booking_id) : false,
+    booking: b.booking_id ? bookingDetailsMap[b.booking_id] || null : null,
   }))
 
-  return NextResponse.json({ events, cabin_name: cabin?.name || "Cabana", business_name: tenant?.business_name || "" })
+  return NextResponse.json({
+    events,
+    cabin_name: cabin?.name || "Cabana",
+    business_name: tenant?.business_name || "",
+    tenant_id: cabin?.tenant_id || "",
+  })
 }
 
 export async function POST(req: Request) {
