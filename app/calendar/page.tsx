@@ -22,15 +22,19 @@ function CalendarContent() {
     const data = await res.json()
     if (data.cabin_name) setCabinName(data.cabin_name)
     const list = data.events || []
-    const eventsFormatted = list.map((e: any) => ({
-      id: e.id,
-      title: "Ocupado",
-      start: e.start,
-      end: e.start,
-      color: "#e63946",
-      allDay: true,
-      display: "block",
-    }))
+    const eventsFormatted = list.map((e: any) => {
+      const d = new Date(e.end + "T12:00:00")
+      d.setDate(d.getDate() + 1)
+      return {
+        id: e.id,
+        title: "Ocupado",
+        start: e.start,
+        end: d.toISOString().split("T")[0],
+        color: "#e63946",
+        allDay: true,
+        display: "block",
+      }
+    })
     setEvents(eventsFormatted)
   }
 
@@ -54,7 +58,13 @@ function CalendarContent() {
   }
 
   async function handleEventClick(info: any) {
-    if (!confirm("Liberar este dia?")) return
+    const start = info.event.startStr
+    const endExclusive = info.event.end
+    const endStr = endExclusive
+      ? new Date(endExclusive.getTime() - 86400000).toISOString().split("T")[0]
+      : start
+    const rangeText = start === endStr ? start : start + " al " + endStr
+    if (!confirm("Liberar fechas bloqueadas: " + rangeText + "?")) return
     setLoading(true); setMessage("")
     const res = await fetch("/api/calendar/delete", {
       method: "POST",
@@ -63,7 +73,7 @@ function CalendarContent() {
     })
     const data = await res.json()
     setLoading(false)
-    setMessage(data.success ? "Dia liberado correctamente" : "Error al liberar el dia.")
+    setMessage(data.success ? "Fechas liberadas correctamente" : "Error al liberar las fechas.")
     if (data.success) await loadEvents()
   }
 

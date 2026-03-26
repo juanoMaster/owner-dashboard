@@ -11,7 +11,7 @@ interface Booking {
   total_amount: number
   deposit_amount: number
   balance_amount: number
-  notes: string
+  notes: string | Record<string, string> | null
   created_at: string
 }
 
@@ -20,10 +20,28 @@ interface Cabin {
   name: string
 }
 
-function parseNotes(notes: string): Record<string, string> {
+function parseNotes(notes: any): Record<string, string> {
   const result: Record<string, string> = {}
   if (!notes) return result
-  notes.split("|").forEach((part) => {
+
+  // Supabase puede devolver JSONB como objeto JS, o la API puede guardar JSON.stringify
+  const obj: Record<string, string> | null =
+    typeof notes === "object"
+      ? notes
+      : typeof notes === "string" && notes.trimStart().startsWith("{")
+        ? (() => { try { return JSON.parse(notes) } catch { return null } })()
+        : null
+
+  if (obj) {
+    if (obj.nombre || obj.Nombre)     result["Nombre"]   = obj.nombre   || obj.Nombre   || ""
+    if (obj.whatsapp || obj.WhatsApp) result["WhatsApp"] = obj.whatsapp || obj.WhatsApp || ""
+    if (obj.codigo || obj.Codigo)     result["Codigo"]   = obj.codigo   || obj.Codigo   || ""
+    if (obj.tinaja || obj.Tinaja)     result["Tinaja"]   = obj.tinaja   || obj.Tinaja   || ""
+    return result
+  }
+
+  // Formato pipe-delimited: "Nombre:Juan|WhatsApp:+56912345678|..."
+  (notes as string).split("|").forEach((part) => {
     const idx = part.indexOf(":")
     if (idx > -1) {
       const key = part.slice(0, idx).trim()
