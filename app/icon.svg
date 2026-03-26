@@ -1,26 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="4" fill="#0d1820"/>
-  <!-- Hawk head facing right, geometric tech style -->
-  <!-- Crown / top of head -->
-  <polygon points="9,15 11,8 16,6 19,8 21,11" fill="#3a8fc8"/>
-  <!-- Main head mass -->
-  <polygon points="9,15 21,11 23,15 21,20 17,24 12,23 9,20" fill="#3a8fc8"/>
-  <!-- Cheek / jaw definition -->
-  <polygon points="21,11 23,15 22,12" fill="#4aa8e0"/>
-  <!-- Hooked beak -->
-  <polygon points="22,13 29,10 27,15 22,16" fill="#5ab8f0"/>
-  <!-- Eye socket -->
-  <circle cx="19" cy="14" r="3" fill="#0d1820"/>
-  <!-- Eye iris -->
-  <circle cx="19" cy="14" r="1.8" fill="#2878b0"/>
-  <!-- Eye highlight -->
-  <circle cx="19.5" cy="13.5" r="0.7" fill="#8ad0f0"/>
-  <!-- Neck detail -->
-  <polygon points="9,20 11,26 15,25 12,23" fill="#2878b0"/>
-  <!-- Circuit line suggestion (left side) -->
-  <line x1="9" y1="12" x2="4" y2="12" stroke="#2878b0" stroke-width="1.2"/>
-  <line x1="4" y1="12" x2="4" y2="17" stroke="#2878b0" stroke-width="1.2"/>
-  <circle cx="4" cy="17" r="1.2" fill="#3a8fc8"/>
-  <line x1="9" y1="16" x2="5" y2="16" stroke="#1e5c8a" stroke-width="1"/>
-  <circle cx="5" cy="16" r="0.8" fill="#2878b0"/>
+  <rect width="32" height="32" rx="5" fill="#090e08"/>
+  <!-- Hawk head profile, geometric, facing right -->
+  <path d="M5 15 Q5 9 9 8 Q13 7 18 9 L22 12 Q25 14 25 17 Q25 20 22 22 Q18 24 13 23 Q8 22 5 19 Z" fill="#3a7838"/>
+  <!-- Beak pointing right -->
+  <polygon points="22,14 29,17 22,20" fill="#c8a830"/>
+  <!-- Eye ring (dark) -->
+  <circle cx="16" cy="15" r="3.2" fill="#090e08"/>
+  <!-- Eye gleam -->
+  <circle cx="16.5" cy="14.3" r="1.3" fill="#8ad888"/>
+  <!-- Crown feather hint -->
+  <path d="M11 8 L13 4 L15 8 Z" fill="#4a9a4a"/>
+  <!-- Circuit lines on left of head -->
+  <line x1="5" y1="14" x2="2" y2="14" stroke="#2a5828" stroke-width="1.2"/>
+  <line x1="5" y1="17" x2="2" y2="17" stroke="#2a5828" stroke-width="1.2"/>
+  <circle cx="2" cy="14" r="1" fill="#3a7838"/>
+  <circle cx="2" cy="17" r="1" fill="#3a7838"/>
 </svg>

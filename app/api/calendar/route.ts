@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
   const { data: cabin } = await supabase
     .from("cabins")
-    .select("name, tenant_id")
+    .select("name, tenant_id, base_price_night, capacity")
     .eq("id", cabinId)
     .maybeSingle()
 
@@ -58,6 +58,8 @@ export async function GET(req: Request) {
     cabin_name: cabin?.name || "Cabana",
     business_name: tenant?.business_name || "",
     tenant_id: cabin?.tenant_id || "",
+    cabin_price: Number(cabin?.base_price_night) || 0,
+    cabin_capacity: cabin?.capacity || 4,
   })
 }
 
