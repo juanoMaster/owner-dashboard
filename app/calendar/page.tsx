@@ -13,6 +13,7 @@ function CalendarContent() {
   const token = searchParams.get("token") || ""
   const [events, setEvents] = useState<any[]>([])
   const [cabinName, setCabinName] = useState<string>("Cabana")
+  const [businessName, setBusinessName] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string>("")
 
@@ -21,6 +22,7 @@ function CalendarContent() {
     const res = await fetch("/api/calendar?cabin_id=" + cabinId)
     const data = await res.json()
     if (data.cabin_name) setCabinName(data.cabin_name)
+    if (data.business_name) setBusinessName(data.business_name)
     const list = data.events || []
     const eventsFormatted = list.map((e: any) => {
       const d = new Date(e.end + "T12:00:00")
@@ -79,28 +81,30 @@ function CalendarContent() {
     </div>
   )
 
+  const calendarCss = [
+    ".fc { --fc-border-color: #2a3e28; --fc-today-bg-color: #7ab87a18; color: #c8d8c0; }",
+    ".fc .fc-toolbar-title { color: #e8d5a3; font-family: Georgia, serif; font-size: 18px; }",
+    ".fc .fc-button { background: #162618 !important; border-color: #2a3e28 !important; color: #8a9e88 !important; font-size: 12px !important; }",
+    ".fc .fc-button:hover { background: #1e3020 !important; color: #c8d8c0 !important; }",
+    ".fc .fc-button-primary:not(:disabled).fc-button-active { background: #7ab87a !important; border-color: #7ab87a !important; color: #0d1a12 !important; }",
+    ".fc .fc-col-header-cell { background: #0a1510; }",
+    ".fc .fc-col-header-cell-cushion { color: #5a7058; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; }",
+    ".fc .fc-daygrid-day-number { color: #8a9e88; text-decoration: none; font-size: 13px; }",
+    ".fc .fc-day-today .fc-daygrid-day-number { color: #7ab87a; font-weight: 700; }",
+    ".fc-theme-standard td, .fc-theme-standard th { border-color: #2a3e28; }",
+    ".fc-theme-standard .fc-scrollgrid { border-color: #2a3e28; }",
+    ".fc .fc-daygrid-body { background: #0d1a12; }",
+    ".fc .fc-event { cursor: pointer; }"
+  ].join(" ")
+
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
-      <style>{`
-        .fc { --fc-border-color: #2a3e28; --fc-today-bg-color: #7ab87a18; color: #c8d8c0; }
-        .fc .fc-toolbar-title { color: #e8d5a3; font-family: Georgia, serif; font-size: 18px; }
-        .fc .fc-button { background: #162618 !important; border-color: #2a3e28 !important; color: #8a9e88 !important; font-size: 12px !important; }
-        .fc .fc-button:hover { background: #1e3020 !important; color: #c8d8c0 !important; }
-        .fc .fc-button-primary:not(:disabled).fc-button-active { background: #7ab87a !important; border-color: #7ab87a !important; color: #0d1a12 !important; }
-        .fc .fc-col-header-cell { background: #0a1510; }
-        .fc .fc-col-header-cell-cushion { color: #5a7058; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; }
-        .fc .fc-daygrid-day-number { color: #8a9e88; text-decoration: none; font-size: 13px; }
-        .fc .fc-day-today .fc-daygrid-day-number { color: #7ab87a; font-weight: 700; }
-        .fc-theme-standard td, .fc-theme-standard th { border-color: #2a3e28; }
-        .fc-theme-standard .fc-scrollgrid { border-color: #2a3e28; }
-        .fc .fc-daygrid-body { background: #0d1a12; }
-        .fc .fc-event { cursor: pointer; }
-      `}</style>
+      <style>{calendarCss}</style>
 
       {/* Nav */}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
         <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
-          RUKA <span style={{ color: "#7ab87a" }}>TRARO</span>
+          {businessName || "Panel"}
         </div>
         <a
           href={"/?token=" + token}

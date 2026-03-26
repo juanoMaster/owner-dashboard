@@ -13,9 +13,13 @@ export async function GET(req: Request) {
 
   const { data: cabin } = await supabase
     .from("cabins")
-    .select("name")
+    .select("name, tenant_id")
     .eq("id", cabinId)
     .maybeSingle()
+
+  const { data: tenant } = cabin?.tenant_id
+    ? await supabase.from("tenants").select("business_name").eq("id", cabin.tenant_id).maybeSingle()
+    : { data: null }
 
   const { data: blocks, error } = await supabase
     .from("calendar_blocks")
@@ -44,7 +48,7 @@ export async function GET(req: Request) {
     is_confirmed: b.booking_id ? confirmedSet.has(b.booking_id) : false,
   }))
 
-  return NextResponse.json({ events, cabin_name: cabin?.name || "Cabana" })
+  return NextResponse.json({ events, cabin_name: cabin?.name || "Cabana", business_name: tenant?.business_name || "" })
 }
 
 export async function POST(req: Request) {
