@@ -16,7 +16,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "cabin_id e id son requeridos" }, { status: 400 })
     }
 
-    // Lookup block + cabin tenant_id for audit
     const { data: block } = await supabase
       .from("calendar_blocks")
       .select("booking_id, start_date, end_date, reason, tenant_id")
@@ -35,6 +34,16 @@ export async function POST(req: Request) {
         .eq("booking_id", block.booking_id)
         .eq("cabin_id", cabin_id)
       error = result.error
+
+      if (!error) {
+        // Cancelar (soft-delete) la reserva para evitar reservas confirmadas huérfanas
+        // Esto permite que las fechas queden libres para nuevas reservas
+        await supabase
+          .from("bookings")
+          .update({ deleted_at: new Date().toISOString(), deleted_by: "calendar_panel" })
+          .eq("id", block.booking_id)
+          .is("deleted_at", null)
+      }
     } else {
       // Bloque manual suelto: borrar solo ese
       const result = await supabase
@@ -49,8 +58,7 @@ export async function POST(req: Request) {
 
     if (tenant_id) {
       await logAudit({
-        tenant_id,
-        cabin_id,
+        tenant_id, cabin_id,
         action: block?.booking_id ? "booking_blocks_released" : "block_deleted",
         entity_type: block?.booking_id ? "booking" : "calendar_block",
         entity_id: block?.booking_id || id,
