@@ -120,8 +120,8 @@ function ReservarInner() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Error al confirmar")
-      setCodigo(data.codigo)
+      if (!res.ok) throw new Error(data.message || data.error || "Error al confirmar")
+      setCodigo(data.booking_code)
       setPaso(4)
     } catch (e: any) {
       setSubmitError(e.message)

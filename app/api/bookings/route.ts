@@ -18,22 +18,25 @@ function generateBookingCode(): string {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { tenant_id, cabin_id, check_in, check_out, guest_name, guest_whatsapp, guests, tinaja_days, notes } = body
+    const { cabin_id, check_in, check_out, guests, tinaja_days, notes } = body
+    const guest_name = body.guest_name || body.nombre || ""
+    const guest_whatsapp = body.guest_whatsapp || body.whatsapp || ""
 
-    if (!tenant_id || !cabin_id || !check_in || !check_out || !guest_name || !guest_whatsapp || !guests) {
+    if (!cabin_id || !check_in || !check_out || !guest_name || !guest_whatsapp || !guests) {
       return NextResponse.json({ success: false, message: "Faltan campos obligatorios" }, { status: 400 })
     }
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity")
+      .select("base_price_night, name, capacity, tenant_id")
       .eq("id", cabin_id)
-      .eq("tenant_id", tenant_id)
       .single()
 
     if (cabinError || !cabin) {
       return NextResponse.json({ success: false, message: "Cabana no encontrada" }, { status: 404 })
     }
+
+    const tenant_id = cabin.tenant_id
 
     const nights = Math.round(
       (new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000
