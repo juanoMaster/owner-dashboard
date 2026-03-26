@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { logAudit } from "@/lib/audit"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -97,6 +98,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Las fechas no estan disponibles" }, { status: 409 })
     }
 
+    await logAudit({
+      tenant_id,
+      cabin_id,
+      action: "booking_created",
+      entity_type: "booking",
+      entity_id: booking.id,
+      details: { check_in, check_out, nights, total_amount: total, deposit_amount: deposit, origen: "formulario_turista", guest_name, booking_code: bookingCode },
+      performed_by: "formulario_turista",
+    })
     return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
 
   } catch (err: any) {

@@ -36,6 +36,7 @@ export async function GET(req: Request) {
       .from("bookings")
       .select("id, status, total_amount, deposit_amount, balance_amount, nights, guests, notes")
       .in("id", bookingIds)
+      .is("deleted_at", null)
     ;(bookingRows || []).forEach((b: any) => {
       bookingDetailsMap[b.id] = b
       if (b.status === "confirmed") confirmedSet.add(b.id)

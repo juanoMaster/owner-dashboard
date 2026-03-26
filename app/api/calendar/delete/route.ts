@@ -1,5 +1,6 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { logAudit } from "@/lib/audit"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,17 +16,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "cabin_id e id son requeridos" }, { status: 400 })
     }
 
-    // Buscar el bloque para ver si tiene booking_id asociado
+    // Lookup block + cabin tenant_id for audit
     const { data: block } = await supabase
       .from("calendar_blocks")
-      .select("booking_id")
+      .select("booking_id, start_date, end_date, reason, tenant_id")
       .eq("id", id)
       .eq("cabin_id", cabin_id)
       .maybeSingle()
 
+    const tenant_id = block?.tenant_id || null
+
     let error
     if (block?.booking_id) {
-      // Eliminar TODOS los bloques del mismo booking (rangos con múltiples registros)
+      // Eliminar TODOS los bloques del mismo booking
       const result = await supabase
         .from("calendar_blocks")
         .delete()
@@ -43,6 +46,18 @@ export async function POST(req: Request) {
     }
 
     if (error) return NextResponse.json({ success: false, message: error.message }, { status: 500 })
+
+    if (tenant_id) {
+      await logAudit({
+        tenant_id,
+        cabin_id,
+        action: block?.booking_id ? "booking_blocks_released" : "block_deleted",
+        entity_type: block?.booking_id ? "booking" : "calendar_block",
+        entity_id: block?.booking_id || id,
+        details: { start_date: block?.start_date, end_date: block?.end_date, reason: block?.reason },
+        performed_by: "calendar_panel",
+      })
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

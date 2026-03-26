@@ -60,6 +60,7 @@ export default async function Home({
     .select("id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at")
     .eq("tenant_id", link.tenant_id)
     .eq("status", "draft")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
 
   return (
@@ -98,6 +99,12 @@ export default async function Home({
           }))}
           tenantId={link.tenant_id}
         />
+
+        {/* Historial link */}
+        <a href={"/historial?token=" + token}
+          style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#5a7058", fontSize: "11px", padding: "8px 16px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginTop: "8px" }}>
+          {"Ver historial de reservas \u2192"}
+        </a>
 
         {/* Separador */}
         <div style={{ borderTop: "1px solid #2a3e28", margin: "24px 0" }} />
