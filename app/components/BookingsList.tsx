@@ -73,7 +73,7 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
   cabins.forEach((c) => { cabinMap[c.id] = c.name })
 
   async function handleConfirm(id: string) {
-    if (!confirm("Confirmar esta reserva? Las fechas pasar\u00e1n a verde en el calendario.")) return
+    if (!confirm("Confirmar esta reserva? El pago quedar\u00e1 registrado como recibido.")) return
     setLoadingId(id)
     try {
       const res = await fetch("/api/bookings/confirm", {

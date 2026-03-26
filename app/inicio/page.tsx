@@ -176,31 +176,38 @@ function InicioInner() {
         </div>
       </div>
 
-      <div style={{ padding: "32px 20px 10px", fontFamily: "sans-serif", maxWidth: "840px", margin: "0 auto" }}>
-        <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#3a5a38", marginBottom: "20px", fontWeight: 600 }}>{"Reserva tu caba\u00f1a"}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "10px" }}>
+      <div style={{ padding: "24px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "10px" }}>{"Reserva tu caba\u00f1a"}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "4px" }}>
           {cabins.map(c => (
-            <div key={c.id} style={{ background: "#0a1208", border: "1px solid #1a2e1a", borderRadius: "18px", padding: "24px 20px", display: "flex", flexDirection: "column" as const, boxShadow: "0 4px 40px #00000060" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#27ae6012", border: "1px solid #27ae6030", color: "#5aaa58", fontSize: "9px", padding: "3px 9px", borderRadius: "10px", marginBottom: "18px", alignSelf: "flex-start" as const, fontWeight: 600, letterSpacing: "1px" }}>
-                <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#5aaa58", display: "inline-block" }}/>
-                DISPONIBLE
+            <div key={c.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "16px", display: "flex", flexDirection: "column" as const, alignItems: "center", textAlign: "center" as const }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "#7ab87a14", border: "1px solid #7ab87a22", color: "#7ab87a", fontSize: "9px", padding: "2px 7px", borderRadius: "10px", marginBottom: "12px" }}>
+                <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#7ab87a", display: "inline-block" }}/>
+                Disponible
               </div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", color: "#e8d5a3", marginBottom: "6px", fontWeight: 400 }}>{c.name}</div>
-              <div style={{ fontSize: "11px", color: "#3a5a38", marginBottom: "20px", letterSpacing: "0.5px" }}>{"Hasta " + c.cap + " personas"}</div>
-              <div style={{ marginTop: "auto" }}>
-                <div style={{ fontFamily: "Georgia, serif", fontSize: "32px", color: "#c8d8c0", marginBottom: "2px", lineHeight: 1 }}>{fmt(c.price)}</div>
-                <div style={{ fontSize: "10px", color: "#3a5a38", marginBottom: "18px", letterSpacing: "1px" }}>por noche</div>
-                <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name) + "&price=" + c.price + "&capacity=" + c.cap}
-                  style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#5aaa58", color: "#050d05", border: "none", borderRadius: "12px", padding: "14px", fontSize: "13px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif", letterSpacing: "0.5px" }}>
-                  {"Reservar \u2192"}
-                </a>
+              <div style={{ marginBottom: "10px" }}>
+                <svg width="40" height="36" viewBox="0 0 48 40" fill="none">
+                  <path d="M24 4 L44 20 L44 38 L4 38 L4 20 Z" fill="#162618" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <path d="M24 4 L44 20 L4 20 Z" fill="#1e3020" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <rect x="18" y="26" width="12" height="12" rx="2" fill="#0d1a0d" stroke="#3a5a38" strokeWidth="1"/>
+                  <rect x="8" y="24" width="8" height="6" rx="1" fill="#7ab87a22" stroke="#3a5a38" strokeWidth="0.8"/>
+                  <line x1="12" y1="24" x2="12" y2="30" stroke="#3a5a38" strokeWidth="0.8"/>
+                </svg>
               </div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "4px" }}>{c.name}</div>
+              <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "12px" }}>Hasta {c.cap} personas</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#c8d8c0", marginBottom: "2px" }}>{fmt(c.price)}</div>
+              <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "14px" }}>por noche</div>
+              <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name) + "&price=" + c.price + "&capacity=" + c.cap}
+                style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "10px", padding: "11px", fontSize: "13px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                {"Reservar \u2192"}
+              </a>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "8px", padding: "12px 20px 18px", fontFamily: "sans-serif", maxWidth: "840px", margin: "0 auto" }}>
+      <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "7px", padding: "4px 16px 14px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
         {[
           { ico: "\uD83C\uDFDE\uFE0F", name: "Lago", isImg: false },
           { ico: "\uD83C\uDF0B", name: "Volc\u00e1n", isImg: false },
@@ -209,18 +216,18 @@ function InicioInner() {
           { ico: "\uD83D\uDEA3", name: "Kayak", isImg: false },
           { ico: "\uD83E\uDD7E", name: "Trekking", isImg: false },
         ].map(f => (
-          <div key={f.name} style={{ background: "#0a1208", border: "1px solid #1a2e1a", borderRadius: "14px", padding: "11px 14px", textAlign: "center" as const, minWidth: "72px" }}>
+          <div key={f.name} style={{ background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "12px", padding: "9px 11px", textAlign: "center" as const, width: "70px" }}>
             {f.isImg ? (
-              <img src={f.ico} alt={f.name} style={{ width: "22px", height: "22px", objectFit: "contain" as const, borderRadius: "4px", marginBottom: "5px" }} />
+              <img src={f.ico} alt={f.name} style={{ width: "24px", height: "24px", objectFit: "contain" as const, borderRadius: "4px", marginBottom: "4px" }} />
             ) : (
-              <div style={{ fontSize: "20px", marginBottom: "5px" }}>{f.ico}</div>
+              <div style={{ fontSize: "18px", marginBottom: "4px" }}>{f.ico}</div>
             )}
-            <div style={{ fontSize: "10px", color: "#4a6a48", fontWeight: 600, letterSpacing: "0.5px" }}>{f.name}</div>
+            <div style={{ fontSize: "10px", color: "#8a9e88", fontWeight: 500 }}>{f.name}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ background: "#080e08", padding: "24px 20px", borderTop: "1px solid #111e11", fontFamily: "sans-serif" }}>
+      <div style={{ background: "#0d140d", padding: "16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "12px" }}>{"Qu\u00e9 hacer en Licanray"}</div>
           {[

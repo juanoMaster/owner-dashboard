@@ -50,6 +50,7 @@ function CalendarContent() {
   const [cabinCapacity, setCabinCapacity] = useState(4)
   const [modal, setModal] = useState<any>(null)
   const [modalLoading, setModalLoading] = useState(false)
+  const [message, setMessage] = useState("")
 
   async function loadEvents() {
     if (!cabinId) return
@@ -94,6 +95,7 @@ function CalendarContent() {
       ? new Date(endEx.getTime() - 86400000).toISOString().split("T")[0]
       : start
     setModal({ blockId: info.event.id, start, endStr, ...p })
+    setMessage("")
   }
 
   async function handleConfirm() {
@@ -114,6 +116,9 @@ function CalendarContent() {
   async function handleCancel() {
     if (!modal?.bookingId || !tenantId) return
     if (!confirm("¿Cancelar esta reserva? Las fechas quedarán libres.")) return
+    if (modal?.isConfirmed) {
+      if (!confirm("⚠️ Esta reserva YA ESTÁ PAGADA. ¿Estás segura de que quieres cancelarla de todas formas?")) return
+    }
     setModalLoading(true)
     const res = await fetch("/api/bookings/cancel", {
       method: "POST",
@@ -129,7 +134,7 @@ function CalendarContent() {
     const range = modal?.start === modal?.endStr ? modal?.start : modal?.start + " al " + modal?.endStr
     if (!confirm("¿Liberar fechas: " + range + "?")) return
     if (modal?.isConfirmed) {
-      if (!confirm("⚠️ Esta reserva YA ESTÁ PAGADA. ¿Estás segura de eliminarla?")) return
+      if (!confirm("\u26a0\ufe0f Esta reserva YA EST\u00c1 PAGADA. \u00bfEst\u00e1s segura de que quieres eliminarla?")) return
     }
     setModalLoading(true)
     const res = await fetch("/api/calendar/delete", {
@@ -144,52 +149,54 @@ function CalendarContent() {
   }
 
   if (!cabinId) return (
-    <div style={{ background: "#0a1208", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
+    <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
       Cabaña no especificada
     </div>
   )
 
-  const calendarCss = ".fc { --fc-border-color: #1a2e1a; --fc-today-bg-color: #7ab87a0d; color: #b8ccb8; } .fc .fc-toolbar { margin-bottom: 16px !important; } .fc .fc-toolbar-title { color: #e8d5a3; font-family: Georgia, serif; font-size: 17px; letter-spacing: 0.5px; } .fc .fc-button { background: #0a1510 !important; border: 1px solid #1a2e1a !important; color: #6a8a68 !important; font-size: 11px !important; letter-spacing: 0.5px !important; padding: 6px 14px !important; border-radius: 8px !important; } .fc .fc-button:hover { background: #162618 !important; color: #a8c8a8 !important; } .fc .fc-button-primary:not(:disabled).fc-button-active { background: #7ab87a !important; border-color: #7ab87a !important; color: #0d1a12 !important; font-weight: 700 !important; } .fc .fc-col-header-cell { background: #060e06; border-color: #1a2e1a; } .fc .fc-col-header-cell-cushion { color: #3a5a38; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; padding: 10px 4px; font-weight: 600; } .fc .fc-daygrid-day-number { color: #4a6a48; text-decoration: none; font-size: 12px; padding: 6px 8px; } .fc .fc-day-today .fc-daygrid-day-number { color: #7ab87a; font-weight: 700; } .fc-theme-standard td, .fc-theme-standard th { border-color: #1a2e1a; } .fc-theme-standard .fc-scrollgrid { border-color: #1a2e1a; } .fc .fc-daygrid-body { background: #060e06; } .fc .fc-daygrid-day.fc-day-today { background: #7ab87a08; } .fc .fc-event { cursor: pointer; border: none !important; border-radius: 4px !important; padding: 2px 6px !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.3px !important; } .fc .fc-event:hover { opacity: 0.8; transition: opacity 0.15s; } .fc .fc-daygrid-day:hover { background: #7ab87a04; }"
+  const calendarCss = ".fc { --fc-border-color: #1a2e1a; --fc-today-bg-color: #7ab87a0d; color: #b8ccb8; } .fc .fc-toolbar { margin-bottom: 16px !important; } .fc .fc-toolbar-title { color: #e8d5a3; font-family: Georgia, serif; font-size: 17px; letter-spacing: 0.5px; } .fc .fc-button { background: #0a1510 !important; border: 1px solid #1a2e1a !important; color: #6a8a68 !important; font-size: 11px !important; letter-spacing: 0.5px !important; padding: 6px 14px !important; border-radius: 8px !important; } .fc .fc-button:hover { background: #162618 !important; color: #a8c8a8 !important; } .fc .fc-button-primary:not(:disabled).fc-button-active { background: #7ab87a !important; border-color: #7ab87a !important; color: #0d1a12 !important; font-weight: 700 !important; } .fc .fc-col-header-cell { background: #0a1510; border-color: #1a2e1a; } .fc .fc-col-header-cell-cushion { color: #3a5a38; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; padding: 10px 4px; font-weight: 600; } .fc .fc-daygrid-day-number { color: #5a7a58; text-decoration: none; font-size: 12px; padding: 6px 8px; } .fc .fc-day-today .fc-daygrid-day-number { color: #7ab87a; font-weight: 700; } .fc-theme-standard td, .fc-theme-standard th { border-color: #1a2e1a; } .fc-theme-standard .fc-scrollgrid { border-color: #1a2e1a; border-radius: 12px; overflow: hidden; } .fc .fc-daygrid-body { background: #0d1a12; } .fc .fc-daygrid-day.fc-day-today { background: #7ab87a08; } .fc .fc-event { cursor: pointer; border: none !important; border-radius: 4px !important; padding: 1px 5px !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.3px !important; } .fc .fc-event:hover { opacity: 0.8; transform: translateY(-1px); transition: all 0.15s; } .fc .fc-daygrid-day:hover { background: #7ab87a05; }"
 
   return (
-    <div style={{ background: "#0a1208", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
+    <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
       <style>{calendarCss}</style>
 
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", height: "54px", borderBottom: "1px solid #111e11", background: "#050d05", boxShadow: "0 1px 20px #00000050" }}>
-        <div style={{ fontFamily: "Georgia,serif", fontSize: "15px", letterSpacing: "3.5px", color: "#c8b878", textTransform: "uppercase" as const }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 28px", borderBottom: "1px solid #ffffff08", background: "#080f0a" }}>
+        <div style={{ fontFamily: "Georgia,serif", fontSize: "17px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
           {businessName || "Panel"}
         </div>
-        <div style={{ fontSize: "9px", color: "#253825", letterSpacing: "2.5px", textTransform: "uppercase" as const, fontWeight: 600 }}>Calendario</div>
+        <div style={{ fontSize: "10px", color: "#3a5a38", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Calendario</div>
       </nav>
 
-      <div style={{ padding: "36px 28px", maxWidth: "1060px", margin: "0 auto" }}>
+      <div style={{ padding: "28px 24px", maxWidth: "1000px", margin: "0 auto" }}>
 
-        <div style={{ marginBottom: "36px" }}>
+        <div style={{ marginBottom: "28px" }}>
           <a href={"/?token=" + token}
-            style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#4a6a48", fontSize: "11px", padding: "7px 16px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "24px", background: "#060e0660" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#6a8a68", fontSize: "11px", padding: "7px 16px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "20px" }}>
             {"← Volver al panel"}
           </a>
-          <div style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a7a48", marginBottom: "8px", fontWeight: 600 }}>
-            {"Cabaña"}
-          </div>
-          <h1 style={{ fontFamily: "Georgia,serif", fontSize: "30px", color: "#e8d5a3", margin: "0 0 8px 0", fontWeight: 400, letterSpacing: "0.5px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "4px" }}>{"Cabaña"}</div>
+          <h1 style={{ fontFamily: "Georgia,serif", fontSize: "26px", color: "#e8d5a3", margin: "0 0 8px 0", fontWeight: 400 }}>
             {cabinName}
           </h1>
-          <p style={{ color: "#253825", fontSize: "11px", margin: 0, letterSpacing: "0.5px" }}>
+          <p style={{ color: "#3a5a38", fontSize: "11px", margin: 0, letterSpacing: "0.3px" }}>
             Toca un bloque para ver detalles y gestionar la reserva
           </p>
         </div>
 
-        {cabinId && tenantId && (
-          <div style={{ marginBottom: "28px", borderTop: "1px solid #1a2e1a", paddingTop: "28px" }}>
-            <ManualBookingForm
-              cabins={[{ id: cabinId, name: cabinName, capacity: cabinCapacity, base_price_night: cabinPrice || 30000 }]}
-              tenantId={tenantId}
-            />
+        {message && (
+          <div style={{ marginBottom: "16px", padding: "12px 16px", background: message.includes("Error") ? "#e6394612" : "#7ab87a12", border: message.includes("Error") ? "1px solid #e6394630" : "1px solid #7ab87a30", borderRadius: "10px", fontSize: "12px", color: message.includes("Error") ? "#e67a7a" : "#7ab87a" }}>
+            {message}
           </div>
         )}
 
-        <div style={{ marginBottom: "28px", background: "#050d05", border: "1px solid #1a2e1a", borderRadius: "20px", padding: "28px", boxShadow: "0 8px 60px #00000060" }}>
+        {cabinId && tenantId && (
+          <ManualBookingForm
+            cabins={[{ id: cabinId, name: cabinName, capacity: cabinCapacity, base_price_night: cabinPrice || 30000 }]}
+            tenantId={tenantId}
+          />
+        )}
+
+        <div style={{ background: "#080f0a", border: "1px solid #1a2e1a", borderRadius: "20px", padding: "24px", boxShadow: "0 2px 40px #00000050", marginTop: "20px" }}>
           <FullCalendar
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
@@ -200,13 +207,13 @@ function CalendarContent() {
           />
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "20px", padding: "4px 8px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "16px", marginTop: "16px", padding: "4px" }}>
           {([
-            ["#f97316", "Pendiente de pago"],
-            ["#27ae60", "Confirmada"],
-            ["#2563eb", "Manual (sin comisión)"],
+            ["#f97316", "Pendiente de pago (turista)"],
+            ["#27ae60", "Confirmada (pagada)"],
+            ["#2563eb", "Reserva manual (sin comisión)"],
           ] as [string, string][]).map(([color, label]) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", color: "#3a5a38" }}>
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "11px", color: "#4a6a48" }}>
               <div style={{ width: "10px", height: "10px", borderRadius: "3px", background: color, flexShrink: 0 }} />
               {label}
             </div>
@@ -216,10 +223,10 @@ function CalendarContent() {
 
       {modal && (
         <div
-          style={{ position: "fixed", inset: 0, background: "#000000b8", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}
+          style={{ position: "fixed", inset: 0, background: "#000000a0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}
           onClick={(e: any) => { if (e.target === e.currentTarget) setModal(null) }}
         >
-          <div style={{ background: "#080e08", border: "1px solid #253825", borderRadius: "24px", padding: "32px", width: "100%", maxWidth: "420px", boxShadow: "0 32px 80px #00000090", maxHeight: "90vh", overflowY: "auto" as const }}>
+          <div style={{ background: "#0a1510", border: "1px solid #2a3e28", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "400px", boxShadow: "0 20px 60px #00000080", maxHeight: "90vh", overflowY: "auto" as const }}>
             {(() => {
               const notes = parseNotes(modal.booking?.notes)
               const nombre = notes.nombre || "—"
@@ -228,32 +235,32 @@ function CalendarContent() {
               const isManual = modal.reason === "manual"
               const isPending = !modal.isConfirmed && !isManual
               const booking = modal.booking
-              const statusColor = isManual ? "#4a7ad4" : modal.isConfirmed ? "#27ae60" : "#f97316"
+              const statusColor = isManual ? "#2563eb" : modal.isConfirmed ? "#27ae60" : "#f97316"
               const statusLabel = isManual ? "Reserva manual" : modal.isConfirmed ? "Confirmada" : "Pendiente de pago"
               return (
                 <>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
                     <div>
-                      <div style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: statusColor, marginBottom: "8px", fontWeight: 700 }}>
+                      <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: statusColor, marginBottom: "6px", fontWeight: 700 }}>
                         {statusLabel}
                       </div>
-                      <div style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#e8d5a3", fontWeight: 400, letterSpacing: "0.3px" }}>
+                      <div style={{ fontFamily: "Georgia,serif", fontSize: "20px", color: "#e8d5a3", fontWeight: 400 }}>
                         {modal.hasBooking ? nombre : "Bloque manual"}
                       </div>
                     </div>
                     <button onClick={() => setModal(null)}
-                      style={{ background: "transparent", border: "1px solid #1a2e1a", borderRadius: "8px", color: "#3a5a38", fontSize: "16px", cursor: "pointer", padding: "4px 10px", lineHeight: 1, fontFamily: "sans-serif" }}>
+                      style={{ background: "transparent", border: "1px solid #2a3e28", borderRadius: "8px", color: "#5a7058", fontSize: "14px", cursor: "pointer", padding: "4px 10px", lineHeight: 1, fontFamily: "sans-serif" }}>
                       {"×"}
                     </button>
                   </div>
 
                   {codigo && (
-                    <div style={{ fontSize: "11px", color: "#4a6a48", fontFamily: "monospace", background: "#0d1a0d", border: "1px solid #1a2e1a", padding: "8px 14px", borderRadius: "8px", marginBottom: "18px", letterSpacing: "2px" }}>
+                    <div style={{ fontSize: "11px", color: "#5a7058", fontFamily: "monospace", background: "#162618", padding: "8px 12px", borderRadius: "8px", marginBottom: "16px", letterSpacing: "1.5px" }}>
                       {codigo}
                     </div>
                   )}
 
-                  <div style={{ background: "#0d1a0d", border: "1px solid #1a2e1a", borderRadius: "14px", padding: "16px", marginBottom: "18px" }}>
+                  <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", marginBottom: "16px" }}>
                     {([
                       whatsapp ? ["WhatsApp", whatsapp] : null,
                       ["Check-in", formatDate(modal.start)],
@@ -266,9 +273,9 @@ function CalendarContent() {
                       notes.tinaja && notes.tinaja !== "0" ? ["Tinaja", notes.tinaja + " día(s)"] : null,
                       notes.notas ? ["Notas", notes.notas] : null,
                     ] as any[]).filter(Boolean).map((row: any, i: number, arr: any[]) => (
-                      <div key={row[0]} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "7px 0", borderBottom: i < arr.length - 1 ? "1px solid #0d1a0d" : "none" }}>
-                        <span style={{ color: "#3a5a38" }}>{row[0]}</span>
-                        <span style={{ color: "#c8d8c0", fontWeight: 500, textAlign: "right" as const, maxWidth: "58%" }}>{row[1]}</span>
+                      <div key={row[0]} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "6px 0", borderBottom: i < arr.length - 1 ? "1px solid #ffffff07" : "none" }}>
+                        <span style={{ color: "#5a7058" }}>{row[0]}</span>
+                        <span style={{ color: "#c8d8c0", fontWeight: 500, textAlign: "right" as const, maxWidth: "55%" }}>{row[1]}</span>
                       </div>
                     ))}
                   </div>
@@ -276,26 +283,26 @@ function CalendarContent() {
                   {whatsapp && (
                     <a href={"https://wa.me/" + whatsapp.replace(/[^0-9+]/g, "").replace("+", "")}
                       target="_blank" rel="noopener noreferrer"
-                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#25d36618", border: "1px solid #25d36640", color: "#25d366", borderRadius: "10px", padding: "11px 16px", fontSize: "12px", fontWeight: 600, textDecoration: "none", marginBottom: "14px" }}>
-                      {"✉️ WhatsApp · " + whatsapp}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "#25d36620", border: "1px solid #25d36640", color: "#25d366", borderRadius: "10px", padding: "10px 16px", fontSize: "12px", fontWeight: 600, textDecoration: "none", marginBottom: "12px" }}>
+                      {"WhatsApp · " + whatsapp}
                     </a>
                   )}
 
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
                     {isPending && modal.hasBooking && (
                       <button onClick={handleConfirm} disabled={modalLoading}
-                        style={{ width: "100%", padding: "14px", background: "#27ae60", border: "none", borderRadius: "12px", color: "white", fontSize: "13px", fontWeight: 700, cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif", letterSpacing: "0.5px" }}>
+                        style={{ width: "100%", padding: "13px", background: "#27ae60", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif", letterSpacing: "0.3px" }}>
                         {modalLoading ? "Procesando..." : "✓ Confirmar pago"}
                       </button>
                     )}
                     {modal.hasBooking && (
                       <button onClick={handleCancel} disabled={modalLoading}
-                        style={{ width: "100%", padding: "12px", background: "transparent", border: "1px solid #e6394640", borderRadius: "12px", color: "#e67a7a", fontSize: "12px", fontWeight: 600, cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif" }}>
+                        style={{ width: "100%", padding: "12px", background: "transparent", border: "1px solid #e6394640", borderRadius: "10px", color: "#e67a7a", fontSize: "12px", fontWeight: 600, cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif" }}>
                         {modalLoading ? "Procesando..." : "Rechazar reserva"}
                       </button>
                     )}
                     <button onClick={handleLiberar} disabled={modalLoading}
-                      style={{ width: "100%", padding: "11px", background: "transparent", border: "1px solid #1a2e1a", borderRadius: "12px", color: "#3a5a38", fontSize: "11px", cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif" }}>
+                      style={{ width: "100%", padding: "11px", background: "transparent", border: "1px solid #2a3e28", borderRadius: "10px", color: "#5a7058", fontSize: "11px", cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif" }}>
                       {modalLoading ? "Procesando..." : "Liberar fecha"}
                     </button>
                   </div>
@@ -312,7 +319,7 @@ function CalendarContent() {
 export default function CalendarPage() {
   return (
     <Suspense fallback={
-      <div style={{ background: "#0a1208", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#3a5a38", fontFamily: "sans-serif", letterSpacing: "2px", fontSize: "12px" }}>
+      <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
         Cargando...
       </div>
     }>
