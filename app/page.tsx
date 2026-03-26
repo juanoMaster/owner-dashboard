@@ -17,7 +17,7 @@ export default async function Home({
   const token = searchParams.token
   if (!token) {
     return (
-      <div style={{ padding: "40px", fontFamily: "sans-serif", color: "#666" }}>
+      <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", color: "#5a7058" }}>
         Acceso no autorizado
       </div>
     )
@@ -34,7 +34,7 @@ export default async function Home({
 
   if (!link) {
     return (
-      <div style={{ padding: "40px", fontFamily: "sans-serif", color: "#666" }}>
+      <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", color: "#5a7058" }}>
         Acceso no autorizado
       </div>
     )
@@ -54,45 +54,74 @@ export default async function Home({
     .order("created_at", { ascending: false })
 
   return (
-    <main style={{ padding: "32px 24px", fontFamily: "sans-serif", maxWidth: "700px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "22px", fontWeight: 500, marginBottom: "4px" }}>Panel del Propietario</h1>
-      <p style={{ color: "#888", marginBottom: "28px", fontSize: "14px" }}>
-        Gestiona tus cabanas y reservas
-      </p>
-      <div style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#666", marginBottom: "12px" }}>
-        Tus cabanas
-      </div>
-      {(cabins || []).map((cabin: any) => (
-        <div
-          key={cabin.id}
-          style={{ marginBottom: "12px", padding: "18px 20px", border: "1px solid #e0e0e0", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between" }}
-        >
-          <div>
-            <div style={{ fontSize: "16px", fontWeight: 500, marginBottom: "3px" }}>{cabin.name}</div>
-            <div style={{ color: "#888", fontSize: "13px" }}>{cabin.capacity} personas</div>
-          </div>
-          <a
-            href={"/calendar?cabin_id=" + cabin.id + "&token=" + token}
-            style={{ backgroundColor: "#1a1a1a", color: "#fff", padding: "9px 18px", borderRadius: "8px", textDecoration: "none", fontSize: "13px", fontWeight: 500 }}
-          >
-            Ver Calendario
-          </a>
+    <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
+      {/* Nav */}
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
+        <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
+          RUKA <span style={{ color: "#7ab87a" }}>TRARO</span>
         </div>
-      ))}
-      <BookingsList
-        bookings={bookings || []}
-        cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
-        tenantId={link.tenant_id}
-      />
-      <ManualBookingForm
-        cabins={(cabins || []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          capacity: c.capacity,
-          base_price_night: Number(c.base_price_night),
-        }))}
-        tenantId={link.tenant_id}
-      />
-    </main>
+        <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "#4a6a48" }}>
+          Panel del Propietario
+        </div>
+      </nav>
+
+      <main style={{ padding: "28px 20px", maxWidth: "680px", margin: "0 auto" }}>
+        {/* Cabañas */}
+        <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: "#7ab87a", marginBottom: "14px" }}>
+          Tus cabañas
+        </div>
+
+        {(cabins || []).map((cabin: any) => (
+          <div
+            key={cabin.id}
+            style={{
+              marginBottom: "12px",
+              padding: "18px 20px",
+              background: "#162618",
+              border: "1px solid #2a3e28",
+              borderRadius: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div>
+              <div style={{ fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "3px" }}>{cabin.name}</div>
+              <div style={{ color: "#5a7058", fontSize: "12px" }}>{cabin.capacity} personas · ${Number(cabin.base_price_night).toLocaleString("es-CL")}/noche</div>
+            </div>
+            <a
+              href={"/calendar?cabin_id=" + cabin.id + "&token=" + token}
+              style={{
+                background: "#7ab87a",
+                color: "#0d1a12",
+                padding: "9px 18px",
+                borderRadius: "10px",
+                textDecoration: "none",
+                fontSize: "12px",
+                fontWeight: 700,
+                letterSpacing: "0.5px",
+              }}
+            >
+              Ver Calendario
+            </a>
+          </div>
+        ))}
+
+        <BookingsList
+          bookings={bookings || []}
+          cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
+          tenantId={link.tenant_id}
+        />
+        <ManualBookingForm
+          cabins={(cabins || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            capacity: c.capacity,
+            base_price_night: Number(c.base_price_night),
+          }))}
+          tenantId={link.tenant_id}
+        />
+      </main>
+    </div>
   )
 }
