@@ -1,75 +1,67 @@
 import { createClient } from "@supabase/supabase-js"
-import AuditClient from "../components/AuditClient"
+import AdminDashboard from "../components/AdminDashboard"
 export const revalidate = 0
 
-export default async function AdminPage({
-  searchParams,
-}: {
-  searchParams: { token?: string }
-}) {
+export default async function AdminPage({ searchParams }: { searchParams: { token?: string } }) {
   const adminToken = process.env.ADMIN_TOKEN
   if (!adminToken || searchParams.token !== adminToken) {
     return (
-      <div style={{ background: "#0a0808", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", color: "#3a2a2a" }}>
+      <div style={{ background: "#09070a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", color: "#3a2a45" }}>
         Acceso no autorizado
       </div>
     )
   }
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: auditRows } = await supabase
-    .from("audit_log")
-    .select("id, tenant_id, cabin_id, action, entity_type, entity_id, details, performed_by, created_at")
-    .order("created_at", { ascending: false })
-    .limit(5000)
-
-  const { data: tenants } = await supabase
-    .from("tenants")
-    .select("id, business_name, owner_name")
-
-  const { data: cabins } = await supabase
-    .from("cabins")
-    .select("id, name, tenant_id")
-
-  const tenantMap: Record<string, string> = {}
-  ;(tenants || []).forEach((t: any) => { tenantMap[t.id] = t.business_name + " (" + t.owner_name + ")" })
-
-  const cabinMap: Record<string, string> = {}
-  ;(cabins || []).forEach((c: any) => { cabinMap[c.id] = c.name })
-
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const [
+    { data: tenants }, { data: cabins }, { data: tokens }, { data: bookings }, { data: auditRows },
+  ] = await Promise.all([
+    supabase.from("tenants").select("id, business_name, owner_name, owner_whatsapp, deposit_percent, active, created_at").order("created_at"),
+    supabase.from("cabins").select("id, tenant_id, name, capacity, base_price_night, cleaning_fee, active, created_at").order("tenant_id"),
+    supabase.from("dashboard_links").select("id, tenant_id, token_hash, active, created_at, last_used_at").order("created_at", { ascending: false }),
+    supabase.from("bookings").select("id, tenant_id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, commission_amount, commission_status, status, notes, created_at, deleted_at").order("created_at", { ascending: false }).limit(2000),
+    supabase.from("audit_log").select("id, tenant_id, cabin_id, action, entity_type, entity_id, details, performed_by, created_at").order("created_at", { ascending: false }).limit(1000),
+  ])
+  const thisYear = new Date().getFullYear()
+  const allBookings = (bookings || []) as any[]
+  const confirmed = allBookings.filter((b: any) => b.status === "confirmed" && !b.deleted_at)
+  const thisYearConfirmed = confirmed.filter((b: any) => new Date(b.created_at).getFullYear() === thisYear)
+  const lastYearConfirmed = confirmed.filter((b: any) => new Date(b.created_at).getFullYear() === thisYear - 1)
+  const pendingAll = allBookings.filter((b: any) => b.status === "draft" && !b.deleted_at)
+  const revenueByTenant: Record<string, number> = {}
+  const bookingsByTenant: Record<string, number> = {}
+  const pendingByTenant: Record<string, number> = {}
+  const revenueByTenantLastYear: Record<string, number> = {}
+  thisYearConfirmed.forEach((b: any) => {
+    revenueByTenant[b.tenant_id] = (revenueByTenant[b.tenant_id] || 0) + (b.total_amount || 0)
+    bookingsByTenant[b.tenant_id] = (bookingsByTenant[b.tenant_id] || 0) + 1
+  })
+  lastYearConfirmed.forEach((b: any) => {
+    revenueByTenantLastYear[b.tenant_id] = (revenueByTenantLastYear[b.tenant_id] || 0) + (b.total_amount || 0)
+  })
+  pendingAll.forEach((b: any) => {
+    pendingByTenant[b.tenant_id] = (pendingByTenant[b.tenant_id] || 0) + 1
+  })
+  const monthlyRevenue = Array.from({ length: 12 }, (_, i) => ({
+    month: i,
+    revenue: thisYearConfirmed.filter((b: any) => new Date(b.created_at).getMonth() === i).reduce((s: number, b: any) => s + (b.total_amount || 0), 0),
+  }))
+  const stats = {
+    totalRevenueThisYear: thisYearConfirmed.reduce((s: number, b: any) => s + (b.total_amount || 0), 0),
+    totalRevenueLastYear: lastYearConfirmed.reduce((s: number, b: any) => s + (b.total_amount || 0), 0),
+    totalBookingsThisYear: thisYearConfirmed.length,
+    totalPendingBookings: pendingAll.length,
+    pendingCommissions: confirmed.reduce((s: number, b: any) => s + (b.commission_status === "pending" ? (b.commission_amount || 0) : 0), 0),
+    revenueByTenant, bookingsByTenant, pendingByTenant, revenueByTenantLastYear, monthlyRevenue, thisYear,
+  }
   return (
-    <div style={{ background: "#0a0808", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", height: "54px", borderBottom: "1px solid #1e1111", background: "#060404" }}>
-        <div style={{ fontFamily: "Georgia,serif", fontSize: "15px", letterSpacing: "3.5px", color: "#c8b878", textTransform: "uppercase" as const }}>
-          Takai.cl
-        </div>
-        <div style={{ fontSize: "9px", color: "#382525", letterSpacing: "2px", textTransform: "uppercase" as const }}>Auditoría interna</div>
-      </nav>
-
-      <main style={{ padding: "36px 24px", maxWidth: "1400px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "32px" }}>
-          <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#7a4a48", marginBottom: "6px", fontWeight: 600 }}>
-            Sistema de auditoría
-          </div>
-          <h1 style={{ fontFamily: "Georgia,serif", fontSize: "28px", color: "#e8d5a3", margin: "0 0 4px 0", fontWeight: 400 }}>
-            Historial completo de eventos
-          </h1>
-          <div style={{ width: "40px", height: "1px", background: "linear-gradient(90deg, #c8b87860, transparent)", margin: "10px 0" }} />
-          <p style={{ color: "#4a3030", fontSize: "12px", margin: 0 }}>
-            {"Todos los movimientos de todos los clientes. Uso interno Takai exclusivamente."}
-          </p>
-        </div>
-
-        <AuditClient
-          rows={(auditRows || []) as any[]}
-          tenantMap={tenantMap}
-          cabinMap={cabinMap}
-        />
-      </main>
-    </div>
+    <AdminDashboard
+      tenants={(tenants || []) as any[]}
+      cabins={(cabins || []) as any[]}
+      tokens={(tokens || []) as any[]}
+      bookings={allBookings}
+      auditRows={(auditRows || []) as any[]}
+      stats={stats as any}
+      adminToken={adminToken}
+    />
   )
 }
