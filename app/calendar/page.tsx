@@ -27,12 +27,16 @@ function CalendarContent() {
       d.setDate(d.getDate() + 1)
       return {
         id: e.id,
-        title: "Ocupado",
+        title: e.is_confirmed ? "Confirmada" : "Ocupado",
         start: e.start,
         end: d.toISOString().split("T")[0],
-        color: "#e63946",
+        color: e.is_confirmed ? "#27ae60" : "#e63946",
         allDay: true,
         display: "block",
+        extendedProps: {
+          isConfirmed: e.is_confirmed,
+          hasBooking: e.has_booking,
+        },
       }
     })
     setEvents(eventsFormatted)
@@ -40,31 +44,23 @@ function CalendarContent() {
 
   useEffect(() => { loadEvents() }, [cabinId])
 
-  async function handleDateClick(info: any) {
-    const date = info.dateStr
-    const today = new Date().toISOString().split("T")[0]
-    if (date < today) { alert("No se pueden modificar fechas pasadas"); return }
-    if (!confirm("Marcar este dia como ocupado?")) return
-    setLoading(true); setMessage("")
-    const res = await fetch("/api/calendar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, cabin_id: cabinId }),
-    })
-    const data = await res.json()
-    setLoading(false)
-    setMessage(data.success ? "Dia marcado como ocupado" : "Error al bloquear el dia.")
-    if (data.success) await loadEvents()
-  }
-
   async function handleEventClick(info: any) {
+    const isConfirmed = info.event.extendedProps?.isConfirmed
     const start = info.event.startStr
     const endExclusive = info.event.end
     const endStr = endExclusive
       ? new Date(endExclusive.getTime() - 86400000).toISOString().split("T")[0]
       : start
     const rangeText = start === endStr ? start : start + " al " + endStr
-    if (!confirm("Liberar fechas bloqueadas: " + rangeText + "?")) return
+
+    // Primera confirmación siempre
+    if (!confirm("¿Liberar fechas: " + rangeText + "?")) return
+
+    // Segunda confirmación solo si la reserva está PAGADA
+    if (isConfirmed) {
+      if (!confirm("⚠️ ATENCIÓN\n\nEsta reserva YA ESTÁ PAGADA.\n¿Estás segura de que querés eliminarla?\n\nEsta acción no se puede deshacer.")) return
+    }
+
     setLoading(true); setMessage("")
     const res = await fetch("/api/calendar/delete", {
       method: "POST",
@@ -86,7 +82,7 @@ function CalendarContent() {
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
       <style>{`
-        .fc { --fc-border-color: #2a3e28; --fc-today-bg-color: #7ab87a18; --fc-neutral-bg-color: #162618; --fc-list-event-hover-bg-color: #162618; color: #c8d8c0; }
+        .fc { --fc-border-color: #2a3e28; --fc-today-bg-color: #7ab87a18; color: #c8d8c0; }
         .fc .fc-toolbar-title { color: #e8d5a3; font-family: Georgia, serif; font-size: 18px; }
         .fc .fc-button { background: #162618 !important; border-color: #2a3e28 !important; color: #8a9e88 !important; font-size: 12px !important; }
         .fc .fc-button:hover { background: #1e3020 !important; color: #c8d8c0 !important; }
@@ -95,14 +91,14 @@ function CalendarContent() {
         .fc .fc-col-header-cell-cushion { color: #5a7058; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; }
         .fc .fc-daygrid-day-number { color: #8a9e88; text-decoration: none; font-size: 13px; }
         .fc .fc-day-today .fc-daygrid-day-number { color: #7ab87a; font-weight: 700; }
-        .fc .fc-daygrid-day:hover { background: #162618 !important; }
         .fc-theme-standard td, .fc-theme-standard th { border-color: #2a3e28; }
         .fc-theme-standard .fc-scrollgrid { border-color: #2a3e28; }
         .fc .fc-daygrid-body { background: #0d1a12; }
+        .fc .fc-event { cursor: pointer; }
       `}</style>
 
       {/* Nav */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
         <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
           RUKA <span style={{ color: "#7ab87a" }}>TRARO</span>
         </div>
@@ -123,7 +119,7 @@ function CalendarContent() {
             {cabinName}
           </h1>
           <p style={{ color: "#5a7058", fontSize: "12px", marginTop: "6px", letterSpacing: "0.5px" }}>
-            Toca un día libre para bloquearlo · Toca un día ocupado para liberarlo
+            Tocá un día ocupado para liberarlo · Las reservas en <span style={{ color: "#27ae60" }}>verde</span> ya están pagadas
           </p>
         </div>
 
@@ -149,11 +145,22 @@ function CalendarContent() {
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             locale={esLocale}
-            dateClick={handleDateClick}
             eventClick={handleEventClick}
             events={events}
             height="auto"
           />
+        </div>
+
+        {/* Leyenda */}
+        <div style={{ display: "flex", gap: "20px", marginTop: "14px", padding: "0 4px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#5a7058" }}>
+            <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#e63946" }} />
+            Bloqueado / pendiente
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#5a7058" }}>
+            <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#27ae60" }} />
+            Reserva confirmada (pagada)
+          </div>
         </div>
       </div>
     </div>

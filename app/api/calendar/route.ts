@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
@@ -19,16 +19,29 @@ export async function GET(req: Request) {
 
   const { data: blocks, error } = await supabase
     .from("calendar_blocks")
-    .select("id, start_date, end_date")
+    .select("id, start_date, end_date, booking_id")
     .eq("cabin_id", cabinId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Verificar cuáles bookings están confirmados (pagados)
+  const bookingIds = [...new Set((blocks || []).filter(b => b.booking_id).map(b => b.booking_id))]
+  let confirmedSet = new Set<string>()
+  if (bookingIds.length > 0) {
+    const { data: confirmed } = await supabase
+      .from("bookings")
+      .select("id")
+      .in("id", bookingIds)
+      .eq("status", "confirmed")
+    confirmedSet = new Set((confirmed || []).map((b: any) => b.id))
+  }
 
   const events = (blocks || []).map(b => ({
     id: b.id,
     start: b.start_date,
     end: b.end_date,
-    color: "#e63946",
+    has_booking: !!b.booking_id,
+    is_confirmed: b.booking_id ? confirmedSet.has(b.booking_id) : false,
   }))
 
   return NextResponse.json({ events, cabin_name: cabin?.name || "Cabana" })

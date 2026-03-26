@@ -27,7 +27,7 @@ export default async function Home({
 
   const { data: link } = await supabase
     .from("dashboard_links")
-    .select("tenant_id")
+    .select("tenant_id, owner_name")
     .eq("token_hash", tokenHash)
     .eq("active", true)
     .maybeSingle()
@@ -39,6 +39,8 @@ export default async function Home({
       </div>
     )
   }
+
+  const ownerName: string = (link as any).owner_name || "Johanna"
 
   const { data: cabins } = await supabase
     .from("cabins")
@@ -55,17 +57,52 @@ export default async function Home({
 
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
+
       {/* Nav */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
         <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
           RUKA <span style={{ color: "#7ab87a" }}>TRARO</span>
         </div>
-        <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "#4a6a48" }}>
-          Panel del Propietario
-        </div>
+        <a
+          href="https://takai.cl"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", opacity: 0.6 }}
+        >
+          <img src="/takai-logo.png" alt="Takai" style={{ width: "20px", height: "20px", objectFit: "contain", borderRadius: "3px" }} />
+          <span style={{ fontSize: "10px", color: "#5a7058", letterSpacing: "0.5px" }}>Takai.cl</span>
+        </a>
       </nav>
 
       <main style={{ padding: "28px 20px", maxWidth: "680px", margin: "0 auto" }}>
+
+        {/* Bienvenida */}
+        <div style={{ marginBottom: "28px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "#7ab87a", marginBottom: "8px" }}>
+            Panel del Propietario
+          </div>
+          <h1 style={{ fontFamily: "Georgia,serif", fontSize: "26px", color: "#e8d5a3", margin: "0 0 6px 0", fontWeight: 400 }}>
+            Bienvenida, {ownerName}
+          </h1>
+          <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
+            Desde acá gestionás tus cabañas, confirmás pagos y bloqueás fechas en el calendario.
+          </p>
+        </div>
+
+        {/* Botón nueva reserva — arriba */}
+        <ManualBookingForm
+          cabins={(cabins || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            capacity: c.capacity,
+            base_price_night: Number(c.base_price_night),
+          }))}
+          tenantId={link.tenant_id}
+        />
+
+        {/* Separador */}
+        <div style={{ borderTop: "1px solid #2a3e28", margin: "24px 0" }} />
+
         {/* Cabañas */}
         <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: "#7ab87a", marginBottom: "14px" }}>
           Tus cabañas
@@ -107,20 +144,13 @@ export default async function Home({
           </div>
         ))}
 
+        {/* Reservas pendientes */}
         <BookingsList
           bookings={bookings || []}
           cabins={(cabins || []).map((c: any) => ({ id: c.id, name: c.name }))}
           tenantId={link.tenant_id}
         />
-        <ManualBookingForm
-          cabins={(cabins || []).map((c: any) => ({
-            id: c.id,
-            name: c.name,
-            capacity: c.capacity,
-            base_price_night: Number(c.base_price_night),
-          }))}
-          tenantId={link.tenant_id}
-        />
+
       </main>
     </div>
   )
