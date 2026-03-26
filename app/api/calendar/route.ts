@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // Verificar cuáles bookings están confirmados (pagados)
-  const bookingIds = [...new Set((blocks || []).filter(b => b.booking_id).map(b => b.booking_id))]
+  const bookingIds = Array.from(new Set((blocks || []).filter(b => b.booking_id).map(b => b.booking_id)))
   let confirmedSet = new Set<string>()
   if (bookingIds.length > 0) {
     const { data: confirmed } = await supabase
