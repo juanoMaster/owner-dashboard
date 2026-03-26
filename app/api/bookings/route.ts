@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       whatsapp: guest_whatsapp,
       codigo: bookingCode,
       notas: notes || "",
-      origen: "manual",
+      origen: "web",
       tinaja: String(tinajaCount)
     })
 
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       .insert([{
         tenant_id, cabin_id,
         start_date: check_in, end_date: check_out,
-        reason: "manual", booking_id: booking.id
+        reason: "transfer_pending", booking_id: booking.id
       }])
 
     if (blockError) {

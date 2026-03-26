@@ -70,15 +70,7 @@ export default async function Home({
         <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
           {businessName.toUpperCase()}
         </div>
-        <a
-          href="https://takai.cl"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", opacity: 0.6 }}
-        >
-          <img src="/takai-logo.png" alt="Takai" style={{ width: "20px", height: "20px", objectFit: "contain", borderRadius: "3px" }} />
-          <span style={{ fontSize: "10px", color: "#5a7058", letterSpacing: "0.5px" }}>Takai.cl</span>
-        </a>
+        <div />
       </nav>
 
       <main style={{ padding: "28px 20px", maxWidth: "680px", margin: "0 auto" }}>

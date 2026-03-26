@@ -1,6 +1,7 @@
 export const metadata = {
   title: "Dashboard Reservas",
-  description: "Resumen semanal de reservas"
+  description: "Panel de gestión de reservas",
+  icons: { icon: "/icon.svg" }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

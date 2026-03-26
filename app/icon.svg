@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fondo oscuro -->
+  <rect width="32" height="32" rx="5" fill="#0d1a12"/>
+  <!-- Cuerpo del halcon -->
+  <ellipse cx="15" cy="19" rx="5" ry="7" fill="#e8d5a3" transform="rotate(-10 15 19)"/>
+  <!-- Cabeza -->
+  <circle cx="19" cy="11" r="5.5" fill="#e8d5a3"/>
+  <!-- Pico curvo (halcon) -->
+  <path d="M23 10 L29 9 L26 13 L22 12 Z" fill="#c8a060"/>
+  <!-- Ojo -->
+  <circle cx="21" cy="10" r="1.8" fill="#0a1510"/>
+  <circle cx="21.5" cy="9.5" r="0.6" fill="#e8d5a360"/>
+  <!-- Ala izquierda -->
+  <path d="M11 16 C7 13 3 14 2 18 C5 16 9 16 12 18 Z" fill="#d4c090"/>
+  <!-- Cola -->
+  <path d="M13 25 L15 31 L17 25 L15 26 Z" fill="#d4c090"/>
+</svg>

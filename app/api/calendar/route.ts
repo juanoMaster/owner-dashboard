@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 
   const { data: blocks, error } = await supabase
     .from("calendar_blocks")
-    .select("id, start_date, end_date, booking_id")
+    .select("id, start_date, end_date, booking_id, reason")
     .eq("cabin_id", cabinId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -44,6 +44,7 @@ export async function GET(req: Request) {
     id: b.id,
     start: b.start_date,
     end: b.end_date,
+    reason: b.reason,
     has_booking: !!b.booking_id,
     is_confirmed: b.booking_id ? confirmedSet.has(b.booking_id) : false,
   }))

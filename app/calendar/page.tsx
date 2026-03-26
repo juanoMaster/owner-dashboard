@@ -27,17 +27,25 @@ function CalendarContent() {
     const eventsFormatted = list.map((e: any) => {
       const d = new Date(e.end + "T12:00:00")
       d.setDate(d.getDate() + 1)
+      let color = "#f97316"
+      let title = "Pendiente"
+      if (e.reason === "manual") {
+        color = "#2563eb"; title = "Reserva manual"
+      } else if (e.reason === "system_booking" || e.is_confirmed) {
+        color = "#27ae60"; title = "Confirmada"
+      }
       return {
         id: e.id,
-        title: e.is_confirmed ? "Confirmada" : "Ocupado",
+        title,
         start: e.start,
         end: d.toISOString().split("T")[0],
-        color: e.is_confirmed ? "#27ae60" : "#e63946",
+        color,
         allDay: true,
         display: "block",
         extendedProps: {
           isConfirmed: e.is_confirmed,
           hasBooking: e.has_booking,
+          reason: e.reason,
         },
       }
     })
@@ -106,16 +114,16 @@ function CalendarContent() {
         <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
           {businessName || "Panel"}
         </div>
-        <a
-          href={"/?token=" + token}
-          style={{ background: "transparent", border: "1px solid #2a3e28", color: "#8a9e88", fontSize: "12px", padding: "7px 16px", borderRadius: "20px", cursor: "pointer", textDecoration: "none", letterSpacing: "0.5px" }}
-        >
-          ← Volver al panel
-        </a>
       </nav>
 
       <div style={{ padding: "24px 20px", maxWidth: "900px", margin: "0 auto" }}>
         <div style={{ marginBottom: "20px" }}>
+          <a
+            href={"/?token=" + token}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "transparent", border: "1px solid #2a3e28", color: "#8a9e88", fontSize: "12px", padding: "8px 18px", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "18px" }}
+          >
+            ← Volver al panel
+          </a>
           <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: "#7ab87a", marginBottom: "6px" }}>
             Calendario
           </div>
@@ -123,7 +131,7 @@ function CalendarContent() {
             {cabinName}
           </h1>
           <p style={{ color: "#5a7058", fontSize: "12px", marginTop: "6px", letterSpacing: "0.5px" }}>
-            Toca un día ocupado para liberarlo · Las reservas en <span style={{ color: "#27ae60" }}>verde</span> ya están pagadas
+            Toca un bloque para liberarlo · Colores: <span style={{ color: "#f97316" }}>naranja</span> = pendiente, <span style={{ color: "#27ae60" }}>verde</span> = confirmada, <span style={{ color: "#2563eb" }}>azul</span> = manual
           </p>
         </div>
 
@@ -156,14 +164,18 @@ function CalendarContent() {
         </div>
 
         {/* Leyenda */}
-        <div style={{ display: "flex", gap: "20px", marginTop: "14px", padding: "0 4px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginTop: "14px", padding: "0 4px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#5a7058" }}>
-            <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#e63946" }} />
-            Bloqueado / pendiente
+            <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#f97316" }} />
+            Reserva turista · pendiente
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#5a7058" }}>
             <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#27ae60" }} />
-            Reserva confirmada (pagada)
+            Reserva turista · confirmada
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#5a7058" }}>
+            <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#2563eb" }} />
+            Reserva manual (sin comisión)
           </div>
         </div>
       </div>
