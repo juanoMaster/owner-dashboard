@@ -40,7 +40,14 @@ export default async function Home({
     )
   }
 
-  const ownerName = "Johanna"
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("owner_name, business_name")
+    .eq("id", link.tenant_id)
+    .maybeSingle()
+
+  const ownerName = tenant?.owner_name?.split(" ")[0] || "Propietaria"
+  const businessName = tenant?.business_name || "Panel"
 
   const { data: cabins } = await supabase
     .from("cabins")
@@ -61,7 +68,7 @@ export default async function Home({
       {/* Nav */}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
         <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
-          RUKA <span style={{ color: "#7ab87a" }}>TRARO</span>
+          {businessName.toUpperCase()}
         </div>
         <a
           href="https://takai.cl"
