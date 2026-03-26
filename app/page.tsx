@@ -92,7 +92,7 @@ export default async function Home({
             Bienvenida, {ownerName}
           </h1>
           <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
-            Desde acá gestionás tus cabañas, confirmás pagos y bloqueás fechas en el calendario.
+            Desde aquí gestionas tus cabañas, confirmas pagos y bloqueas fechas en el calendario.
           </p>
         </div>
 

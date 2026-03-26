@@ -60,7 +60,7 @@ function CalendarContent() {
 
     // Segunda confirmación solo si la reserva está PAGADA
     if (isConfirmed) {
-      if (!confirm("⚠️ ATENCIÓN\n\nEsta reserva YA ESTÁ PAGADA.\n¿Estás segura de que querés eliminarla?\n\nEsta acción no se puede deshacer.")) return
+      if (!confirm("⚠️ ATENCIÓN\n\nEsta reserva YA ESTÁ PAGADA.\n¿Estás segura de que quieres eliminarla?\n\nEsta acción no se puede deshacer.")) return
     }
 
     setLoading(true); setMessage("")
@@ -123,7 +123,7 @@ function CalendarContent() {
             {cabinName}
           </h1>
           <p style={{ color: "#5a7058", fontSize: "12px", marginTop: "6px", letterSpacing: "0.5px" }}>
-            Tocá un día ocupado para liberarlo · Las reservas en <span style={{ color: "#27ae60" }}>verde</span> ya están pagadas
+            Toca un día ocupado para liberarlo · Las reservas en <span style={{ color: "#27ae60" }}>verde</span> ya están pagadas
           </p>
         </div>
 
