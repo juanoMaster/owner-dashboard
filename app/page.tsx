@@ -68,8 +68,14 @@ export default async function Home({
 
       {/* Nav */}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
-        <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }}>
-          {businessName.toUpperCase()}
+        <div style={{ fontFamily: "Georgia,serif", fontSize: "20px", letterSpacing: "4px", color: "#e8d5a3", textTransform: "uppercase" }}>
+          {businessName.split(" ").map(function(word, i) {
+            return (
+              <span key={i} style={{ color: i === 0 ? "#e8d5a3" : "#7ab87a" }}>
+                {i > 0 ? " " : ""}{word.toUpperCase()}
+              </span>
+            )
+          })}
         </div>
         <div />
       </nav>
