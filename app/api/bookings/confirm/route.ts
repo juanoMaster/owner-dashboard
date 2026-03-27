@@ -40,10 +40,11 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("bookings").update({ status: "confirmed" }).eq("id", booking_id)
     if (error) return NextResponse.json({ error: "Error al actualizar: " + error.message }, { status: 500 })
 
-    // Actualizar TODOS los bloques del booking (incluyendo reason="manual")
+    // Actualizar bloques del booking, pero preservar reason="manual" (color azul)
     await supabase.from("calendar_blocks")
       .update({ reason: "system_booking" })
       .eq("booking_id", booking_id)
+      .neq("reason", "manual")
 
     await logAudit({
       tenant_id,
