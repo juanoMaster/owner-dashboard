@@ -224,9 +224,12 @@ function ReservarInner() {
     <div style={s.page}>
       <style>{"@media (min-width: 768px) { .reservar-body { max-width: 820px !important; } .paso1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .paso1-grid > div:nth-child(2) { grid-column: 1; grid-row: 2; } .paso1-grid > div:nth-child(3) { grid-column: 2; grid-row: 1 / 3; align-self: start; } .paso2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } }"}</style>
       <nav style={s.nav}>
-        <div style={s.logo}>Ruka<span style={s.logoSpan}>traro</span></div>
+        {isTrinidad
+          ? <div style={s.logo}>{"CABA\u00d1AS"}<span style={s.logoSpan}>{" TRINIDAD"}</span></div>
+          : <div style={s.logo}>Ruka<span style={s.logoSpan}>traro</span></div>
+        }
         {paso === 1 && (
-          <a href="/inicio" style={{ ...s.backBtn, textDecoration: "none" }}>&#8592; Volver</a>
+          <a href={isTrinidad ? "/trinidad" : "/inicio"} style={{ ...s.backBtn, textDecoration: "none" }}>&#8592; Volver</a>
         )}
         {paso > 1 && paso < 4 && (
           <button style={s.backBtn} onClick={() => { setSubmitError(""); setPaso(p => p - 1) }}>Volver</button>
@@ -288,7 +291,7 @@ function ReservarInner() {
               )}
               {dispStatus === "occupied" && redTakai && (
                 <div style={s.err}>
-                  <strong>{"Todas las caba\u00f1as de Rukatraro est\u00e1n ocupadas para esas fechas."}</strong>
+                  <strong>{isTrinidad ? "Todas las caba\u00f1as de Trinidad est\u00e1n ocupadas para esas fechas." : "Todas las caba\u00f1as de Rukatraro est\u00e1n ocupadas para esas fechas."}</strong>
                   <br /><br />
                   {"Te recomendamos elegir otras fechas. Pronto podr\u00e1s ver otras caba\u00f1as disponibles en la zona."}
                 </div>
@@ -486,7 +489,7 @@ function ReservarInner() {
               {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que "}{isTrinidad ? "Ang\u00e9lica" : "Rukatraro"}{" identifique tu pago."}
             </div>
             
-            <a href="/inicio"
+            <a href={isTrinidad ? "/trinidad" : "/inicio"}
               style={{ display: "block", marginTop: "24px", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
             >
               Volver al inicio
