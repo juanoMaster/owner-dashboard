@@ -171,7 +171,7 @@ function CalendarContent() {
 
         <div style={{ marginBottom: "28px" }}>
           <a href={"/?token=" + token}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#6a8a68", fontSize: "11px", padding: "7px 16px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "20px" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#6a8a68", fontSize: "14px", padding: "11px 24px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "20px" }}>
             {"← Volver al panel"}
           </a>
           <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "4px" }}>{"Cabaña"}</div>

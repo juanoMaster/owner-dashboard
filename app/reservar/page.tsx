@@ -7,6 +7,12 @@ function fmt(n: number) {
   return "$" + n.toLocaleString("es-CL")
 }
 
+const TRINIDAD_CABIN_IDS = new Set([
+  "b0fd873b-fe33-479a-b00c-908c3ac6c52d",
+  "6802b931-398e-4f38-9b08-b724a672b702",
+  "6650debc-4258-4045-9b4c-55c9352d6fcf",
+])
+
 function ReservarInner() {
   const params = useSearchParams()
   const cabin_id = params.get("cabin_id") || ""
@@ -14,6 +20,7 @@ function ReservarInner() {
   const visitedParam = params.get("visited") || ""
   const visitedCabins = visitedParam ? visitedParam.split(",").filter(Boolean) : []
 
+  const isTrinidad = TRINIDAD_CABIN_IDS.has(cabin_id)
   const precio_noche = Number(params.get("price")) || 30000
   const capacidad = Number(params.get("capacity")) || 4
   const today = new Date().toISOString().split("T")[0]
@@ -455,7 +462,7 @@ function ReservarInner() {
             <div style={s.successCode}>{codigo}</div>
             <div style={s.successDesc}>
               Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
-              {"Una vez que Rukatraro verifique tu transferencia de "}<strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
+              {"Una vez que "}{isTrinidad ? "Ang\u00e9lica" : "Rukatraro"}{"  verifique tu transferencia de "}<strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
               {" recibir\u00e1s la confirmaci\u00f3n en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}
               {" y en el correo que indicaste"}{email ? " (" + email + ")" : ""}.
             </div>
@@ -468,7 +475,7 @@ function ReservarInner() {
               ))}
             </div>
             <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
-              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que Rukatraro identifique tu pago."}
+              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que "}{isTrinidad ? "Ang\u00e9lica" : "Rukatraro"}{" identifique tu pago."}
             </div>
             
             <a href="/inicio"

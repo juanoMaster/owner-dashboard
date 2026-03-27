@@ -1,7 +1,7 @@
 "use client"
 import { Suspense } from "react"
 
-const MAP_URL = "https://www.google.com/maps/search/Caba%C3%B1as+Trinidad+Licanray/@-39.4833,-72.1500,14z"
+const MAP_URL = "https://www.google.com/maps/search/?api=1&query=Caba%C3%B1as+Trinidad+Licanray+Los+R%C3%ADos+Chile"
 
 // Datos reales de las 3 cabañas de Angélica — tenant_id: db307f3e-fd56-49b3-b4c5-868c7607c31e
 const CABINS = [
@@ -146,9 +146,9 @@ function TrinidadInner() {
         </div>
 
         <div className="hero-text-tr" style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", padding: "40px 20px 16px" }}>
-          <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Orillas del Lago Calafquén"}</div>
+          <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Cabañas en la naturaleza"}</div>
           <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
-            {"El lago como"}<br/><span style={{ color: "#a8d4b8" }}>{"tu ventana"}</span>
+            {"Descónectate en el"}<br/><span style={{ color: "#b8d8a0" }}>{"sur de Chile"}</span>
           </div>
           <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
             {"Bosque nativo, aguas cristalinas y el Volcán Villarrica como telón de fondo. Licanray, Lago Calafquén."}

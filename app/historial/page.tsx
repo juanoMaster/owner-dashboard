@@ -71,7 +71,7 @@ export default async function HistorialPage({
       <main style={{ padding: "36px 24px", maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ marginBottom: "32px" }}>
           <a href={"/?token=" + token}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#6a8a68", fontSize: "11px", padding: "7px 16px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "20px" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#6a8a68", fontSize: "14px", padding: "11px 24px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "20px" }}>
             {"← Volver al panel"}
           </a>
           <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#4a7a48", marginBottom: "6px", fontWeight: 600 }}>
