@@ -308,6 +308,7 @@ function ReservarInner() {
                   </option>
                 ))}
               </select>
+              {!isTrinidad && (<>
               <span style={s.lbl}>{"Tinaja de madera (+$30.000/d\u00eda)"}</span>
               <select style={s.sel} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
                 <option value={0}>Sin tinaja</option>
@@ -315,6 +316,7 @@ function ReservarInner() {
                   <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"} {"\u2014"} {fmt(n * 30000)}</option>
                 ))}
               </select>
+              </>)}
             </div>
 
             <div style={s.card}>
@@ -344,7 +346,7 @@ function ReservarInner() {
             <div style={s.eye}>Resumen de tu reserva</div>
             <div style={{ ...s.title, marginBottom: "14px" }}>{cabin_name}</div>
 
-            {tinajaDias === 0 && (
+            {tinajaDias === 0 && !isTrinidad && (
               <div style={{ ...s.warn, padding: "12px", marginBottom: "12px" }}>
                 <div style={s.warnTitle}>{"\u00bfOlvidaste la tinaja?"}</div>
                 <div style={{ ...s.warnDesc, fontSize: "11px" }}>{"Tinaja de madera calentada a le\u00f1a. Solo $30.000/d\u00eda."}</div>
@@ -429,12 +431,15 @@ function ReservarInner() {
               {metodoPago === "transferencia" && (
                 <div style={s.payBody}>
                   <div style={{ ...s.priceBox, marginTop: "10px" }}>
-                    {[["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.665.466-3"],["Nombre","Rukatraro"],["Monto exacto",fmt(deposito)]].map(([k,v]) => (
+                    {(isTrinidad
+                      ? [["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.157.523"],["Titular","Ang\u00e9lica Ancalef"],["RUT","13.157.523-8"],["Monto exacto",fmt(deposito)]]
+                      : [["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.665.466-3"],["Nombre","Rukatraro"],["Monto exacto",fmt(deposito)]]
+                    ).map(([k,v]) => (
                       <div key={k} style={s.priceRow}><span style={s.priceKey}>{k}</span><span style={s.priceVal}>{v}</span></div>
                     ))}
                   </div>
                   <div style={{ marginTop: "12px", fontSize: "12px", color: "#8a9e88", lineHeight: 1.6 }}>
-                    {"Una vez que Rukatraro verifique tu transferencia, recibir\u00e1s la confirmaci\u00f3n de reserva en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
+                    {"Una vez que "}{isTrinidad ? "Ang\u00e9lica" : "Rukatraro"}{" verifique tu transferencia, recibir\u00e1s la confirmaci\u00f3n de reserva en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
                   </div>
                 </div>
               )}
@@ -468,7 +473,10 @@ function ReservarInner() {
             </div>
             <div style={s.bank}>
               <div style={s.bankTitle}>Datos para la transferencia</div>
-              {[["Banco","BancoEstado"],["Cuenta RUT","15.665.466-3"],["Titular","Rukatraro"],["Monto exacto",fmt(deposito)],["Glosa / Concepto",codigo]].map(([k,v],idx,arr) => (
+              {(isTrinidad
+                ? [["Banco","BancoEstado"],["Cuenta RUT","15.157.523"],["Titular","Ang\u00e9lica Ancalef"],["RUT titular","13.157.523-8"],["Monto exacto",fmt(deposito)],["Glosa / Concepto",codigo]]
+                : [["Banco","BancoEstado"],["Cuenta RUT","15.665.466-3"],["Titular","Rukatraro"],["Monto exacto",fmt(deposito)],["Glosa / Concepto",codigo]]
+              ).map(([k,v],idx,arr) => (
                 <div key={k} style={{ ...s.bankRow, borderBottom: idx === arr.length - 1 ? "none" : "1px solid #ffffff07" }}>
                   <span style={s.bankKey}>{k}</span><span style={s.bankVal}>{v}</span>
                 </div>
