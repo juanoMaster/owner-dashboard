@@ -1,7 +1,6 @@
 "use client"
 import { Suspense } from "react"
 
-const MAP_URL = "https://www.google.com/maps/search/?api=1&query=Caba%C3%B1as+Trinidad+Licanray+Los+R%C3%ADos+Chile"
 
 // Datos reales de las 3 cabañas de Angélica — tenant_id: db307f3e-fd56-49b3-b4c5-868c7607c31e
 const CABINS = [
@@ -176,19 +175,6 @@ function TrinidadInner() {
         </div>
       </div>
 
-      {/* ── MAPA ── */}
-      <div style={{ padding: "18px 16px 0", maxWidth: "800px", margin: "0 auto" }}>
-        <a href={MAP_URL} target="_blank" rel="noopener noreferrer"
-          style={{ display: "inline-flex", alignItems: "center", gap: "12px", background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "12px", padding: "11px 18px", textDecoration: "none" }}>
-          <div style={{ width: "34px", height: "34px", background: "#1a2e1a", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>
-            {"📍"}
-          </div>
-          <div>
-            <div style={{ fontFamily: "sans-serif", fontSize: "12px", color: "#c8d8c0", fontWeight: 600, marginBottom: "2px" }}>{"Licanray, Lago Calafquén"}</div>
-            <div style={{ fontFamily: "sans-serif", fontSize: "10px", color: "#5a7a58" }}>{"Ver cómo llegar →"}</div>
-          </div>
-        </a>
-      </div>
 
       {/* ── CABAÑAS — mismo estilo que Rukatraro ── */}
       <div style={{ padding: "24px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
