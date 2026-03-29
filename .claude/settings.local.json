@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:owner-dashboard-navy.vercel.app)",
+      "Skill(update-config)"
+    ]
+  }
+}

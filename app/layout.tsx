@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 export const metadata = {
   title: "Dashboard Reservas",
   description: "Panel de gestión de reservas",
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span style={{ fontSize: "10px", color: "#4a6a48", letterSpacing: "1px" }}>Creado por <strong style={{ color: "#5a7a58" }}>Takai.cl</strong></span>
           </a>
         </div>
+        <Analytics />
       </body>
     </html>
   );

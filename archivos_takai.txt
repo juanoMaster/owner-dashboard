@@ -1,0 +1,1129 @@
+﻿export const metadata = {
+  title: "Dashboard Reservas",
+  description: "Resumen semanal de reservas"
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="es">
+      <body style={{ margin: 0, fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial" }}>
+        {children}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "12px 16px" }}><a href="https://takai.cl" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", textDecoration: "none" }}><img src="/takai-logo.png" alt="Takai" style={{ width: "26px", height: "26px", objectFit: "contain", borderRadius: "3px" }} /><span style={{ fontSize: "11px", color: "#888", letterSpacing: "0.5px" }}>Creado por <strong style={{ color: "#aaa" }}>Takai.cl</strong></span></a></div>
+      </body>
+    </html>
+  );
+}
+"use client"
+
+import { useState } from "react"
+
+interface Booking {
+  id: string
+  cabin_id: string
+  check_in: string
+  check_out: string
+  nights: number
+  total_amount: number
+  deposit_amount: number
+  balance_amount: number
+  notes: string
+  created_at: string
+}
+
+interface Cabin {
+  id: string
+  name: string
+}
+
+function parseNotes(notes: string): Record<string, string> {
+  const result: Record<string, string> = {}
+  if (!notes) return result
+  notes.split("|").forEach((part) => {
+    const idx = part.indexOf(":")
+    if (idx > -1) {
+      const key = part.slice(0, idx).trim()
+      const val = part.slice(idx + 1).trim()
+      if (key && val) result[key] = val
+    }
+  })
+  return result
+}
+
+function fmt(n: number): string {
+  return "$" + Math.round(n).toLocaleString("es-CL")
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00")
+  return d.toLocaleDateString("es-CL", { day: "numeric", month: "short" })
+}
+
+function cleanPhone(phone: string): string {
+  return phone.replace(/[^0-9+]/g, "")
+}
+
+export default function BookingsList({ bookings: initial, cabins, tenantId }: { bookings: Booking[]; cabins: Cabin[]; tenantId: string }) {
+  const [bookings, setBookings] = useState(initial)
+  const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  const cabinMap: Record<string, string> = {}
+  cabins.forEach((c) => { cabinMap[c.id] = c.name })
+
+  async function handleConfirm(id: string) {
+    if (!confirm("Confirmar esta reserva? Las fechas pasar\u00e1n a verde en el calendario.")) return
+    setLoadingId(id)
+    try {
+      const res = await fetch("/api/bookings/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: id, tenant_id: tenantId }),
+      })
+      if (res.ok) {
+        setBookings((prev) => prev.filter((b) => b.id !== id))
+      } else {
+        alert("Error al confirmar la reserva")
+      }
+    } catch (e) {
+      alert("Error de conexi\u00f3n")
+    }
+    setLoadingId(null)
+  }
+
+  async function handleCancel(id: string) {
+    if (!confirm("Cancelar esta reserva? Las fechas se liberar\u00e1n.")) return
+    setLoadingId(id)
+    try {
+      const res = await fetch("/api/bookings/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: id, tenant_id: tenantId }),
+      })
+      if (res.ok) {
+        setBookings((prev) => prev.filter((b) => b.id !== id))
+      } else {
+        alert("Error al cancelar la reserva")
+      }
+    } catch (e) {
+      alert("Error de conexi\u00f3n")
+    }
+    setLoadingId(null)
+  }
+
+  return (
+    <div style={{ marginTop: "28px" }}>
+      <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "14px" }}>
+        {"Reservas pendientes (" + bookings.length + ")"}
+      </div>
+
+      {bookings.length === 0 ? (
+        <div style={{ textAlign: "center" as const, padding: "28px 20px", background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", fontSize: "13px", color: "#5a7058" }}>
+          No hay reservas pendientes por confirmar
+        </div>
+      ) : (
+        bookings.map((b) => {
+          const info = parseNotes(b.notes || "")
+          const nombre = info["Nombre"] || "Sin nombre"
+          const whatsapp = info["WhatsApp"] || ""
+          const codigo = info["Codigo"] || info["C\u00f3digo"] || ""
+          const tinajaRaw = info["Tinaja"] || ""
+          const tinajaDias = parseInt(tinajaRaw) || 0
+          const isLoading = loadingId === b.id
+          const phone = cleanPhone(whatsapp)
+
+          return (
+            <div key={b.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "18px 16px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                {codigo && <div style={{ fontSize: "11px", color: "#5a7058", letterSpacing: "1px", fontFamily: "monospace" }}>{codigo}</div>}
+                <div style={{ fontSize: "10px", color: "#c0392b", background: "#c0392b15", border: "1px solid #c0392b33", padding: "2px 8px", borderRadius: "8px" }}>Pendiente</div>
+              </div>
+
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "4px" }}>{nombre}</div>
+              <div style={{ fontSize: "12px", color: "#6a8a68", marginBottom: "12px" }}>{cabinMap[b.cabin_id] || "Caba\u00f1a"}</div>
+
+              <div style={{ background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "10px", padding: "12px", marginBottom: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
+                  <span style={{ color: "#5a7058" }}>Fechas</span>
+                  <span style={{ color: "#c8d8c0" }}>{formatDate(b.check_in)} &#8594; {formatDate(b.check_out)} ({b.nights} noches)</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
+                  <span style={{ color: "#5a7058" }}>Total</span>
+                  <span style={{ color: "#c8d8c0", fontWeight: 600 }}>{fmt(b.total_amount)}</span>
+                </div>
+                {tinajaDias > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
+                    <span style={{ color: "#5a7058" }}>Tinaja</span>
+                    <span style={{ color: "#c8d8c0" }}>{tinajaDias} {tinajaDias === 1 ? "d\u00eda" : "d\u00edas"}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#c0392b12", border: "1px solid #c0392b28", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
+                <span style={{ fontSize: "12px", color: "#e67a7a" }}>Transferencia a confirmar</span>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: "#e67a7a", fontFamily: "Georgia, serif" }}>{fmt(b.deposit_amount)}</span>
+              </div>
+
+              {phone && (
+                <div style={{ marginBottom: "14px" }}>
+                  <a href={"https://wa.me/" + phone.replace("+", "")} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#25d366", color: "white", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                    {"WhatsApp: " + whatsapp}
+                  </a>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button onClick={() => handleConfirm(b.id)} disabled={isLoading}
+                  style={{ flex: 1, padding: "11px", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: 700, cursor: isLoading ? "not-allowed" : "pointer", background: isLoading ? "#2a3e28" : "#27ae60", color: "white", opacity: isLoading ? 0.5 : 1, fontFamily: "sans-serif" }}>
+                  {isLoading ? "..." : "Confirmar pago"}
+                </button>
+                <button onClick={() => handleCancel(b.id)} disabled={isLoading}
+                  style={{ flex: 1, padding: "11px", border: "1px solid #c0392b44", borderRadius: "10px", fontSize: "13px", fontWeight: 600, cursor: isLoading ? "not-allowed" : "pointer", background: "transparent", color: "#e67a7a", opacity: isLoading ? 0.5 : 1, fontFamily: "sans-serif" }}>
+                  {isLoading ? "..." : "Cancelar"}
+                </button>
+              </div>
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+"use client"
+import { useState, CSSProperties } from "react"
+
+interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
+interface Props { cabins: Cabin[]; tenantId: string }
+
+function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL") }
+
+export default function ManualBookingForm({ cabins, tenantId }: Props) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState<{ code: string; total: number; nights: number } | null>(null)
+  const [cabinId, setCabinId] = useState(cabins[0]?.id || "")
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [guestName, setGuestName] = useState("")
+  const [guestWhatsapp, setGuestWhatsapp] = useState("")
+  const [guestCount, setGuestCount] = useState("2")
+  const [tinajaUse, setTinajaUse] = useState(false)
+  const [tinajaDays, setTinajaDays] = useState("1")
+  const [notes, setNotes] = useState("")
+
+  const selectedCabin = cabins.find(c => c.id === cabinId)
+
+  function calcNights() {
+    if (!checkIn || !checkOut) return 0
+    const n = Math.round((new Date(checkOut + "T12:00:00").getTime() - new Date(checkIn + "T12:00:00").getTime()) / 86400000)
+    return n > 0 ? n : 0
+  }
+
+  function calcTotal() {
+    const n = calcNights()
+    if (!selectedCabin || n === 0) return { subtotal: 0, extras: 0, tinaja: 0, total: 0, deposit: 0 }
+    const extra = Math.max(0, parseInt(guestCount) - (selectedCabin.capacity - 2))
+    const subtotal = selectedCabin.base_price_night * n
+    const extras = extra * 5000 * n
+    const tinaja = tinajaUse ? parseInt(tinajaDays) * 30000 : 0
+    const total = subtotal + extras + tinaja
+    return { subtotal, extras, tinaja, total, deposit: Math.round(total * 0.2) }
+  }
+
+  function reset() {
+    setCabinId(cabins[0]?.id || ""); setCheckIn(""); setCheckOut(""); setGuestName(""); setGuestWhatsapp(""); setGuestCount("2"); setTinajaUse(false); setTinajaDays("1"); setNotes(""); setError(""); setSuccess(null)
+  }
+
+  async function handleSubmit() {
+    setError("")
+    if (!checkIn || !checkOut || !guestName || !guestWhatsapp) { setError("Por favor completa todos los campos obligatorios."); return }
+    if (calcNights() < 1) { setError("Las fechas no son v\u00e1lidas."); return }
+    setLoading(true)
+    try {
+      const res = await fetch("/api/bookings/manual", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tenant_id: tenantId, cabin_id: cabinId, check_in: checkIn, check_out: checkOut, guest_name: guestName, guest_whatsapp: guestWhatsapp, guests: guestCount, tinaja_days: tinajaUse ? tinajaDays : "0", notes }) })
+      const data = await res.json()
+      if (!data.success) setError(data.message || "Error al guardar.")
+      else {
+  setSuccess({ code: data.booking_code, total: data.total, nights: data.nights })
+  setTimeout(() => { window.location.reload() }, 2000)
+}
+    } catch { setError("Error de conexi\u00f3n.") } finally { setLoading(false) }
+  }
+
+  const nights = calcNights()
+  const calc = calcTotal()
+  const today = new Date().toISOString().split("T")[0]
+
+  const inp: CSSProperties = { width: "100%", padding: "10px 12px", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "14px", color: "#e8d5a3", background: "#0d1a12", boxSizing: "border-box", outline: "none" }
+  const sel: CSSProperties = { ...inp, cursor: "pointer" }
+  const lbl: CSSProperties = { display: "block", fontSize: "13px", fontWeight: 600, color: "#8a9e88", marginBottom: "6px" }
+  const fg: CSSProperties = { marginBottom: "16px" }
+  const r2: CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }
+  const ov: CSSProperties = { position: "fixed", inset: "0", background: "rgba(0,0,0,0.65)", zIndex: 50, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "24px 16px" }
+  const mdl: CSSProperties = { background: "#111a11", border: "1px solid #2a3e28", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "540px", marginTop: "20px" }
+  const sumBox: CSSProperties = { background: "#0d1a12", border: "1px solid #7ab87a44", borderRadius: "8px", padding: "16px", marginBottom: "20px" }
+  const sumRow: CSSProperties = { display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#8a9e88", marginBottom: "6px" }
+  const sumTotal: CSSProperties = { display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: 700, color: "#7ab87a", borderTop: "1px solid #2a3e28", paddingTop: "10px", marginTop: "6px" }
+  const errBox: CSSProperties = { background: "#3a0d0d", border: "1px solid #c0392b44", borderRadius: "8px", padding: "12px", color: "#e67a7a", fontSize: "14px", marginBottom: "16px" }
+  const sucBox: CSSProperties = { background: "#0d1a12", border: "1px solid #7ab87a44", borderRadius: "8px", padding: "20px", textAlign: "center" }
+  const btnG: CSSProperties = { background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }
+  const btnS: CSSProperties = { background: "transparent", color: "#5a7058", border: "1px solid #2a3e28", borderRadius: "8px", padding: "10px 20px", fontSize: "14px", cursor: "pointer" }
+  const btnOk: CSSProperties = { background: "#27ae60", color: "white", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "14px", fontWeight: 700, cursor: "pointer", flex: 1 }
+  const btnDis: CSSProperties = { background: "#2a3e28", color: "#5a7058", border: "none", borderRadius: "8px", padding: "12px 24px", fontSize: "14px", cursor: "not-allowed", flex: 1 }
+
+  return (
+    <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #2a3e28" }}>
+      <button style={btnG} onClick={() => setOpen(true)}>{"+ Nueva reserva manual"}</button>
+      {open && (
+        <div style={ov} onClick={e => { if (e.target === e.currentTarget) { setOpen(false); reset() } }}>
+          <div style={mdl}>
+            {success ? (
+              <div>
+                <div style={sucBox}>
+                  <div style={{ fontSize: "36px" }}>{"\u2705"}</div>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#7ab87a", marginTop: "8px" }}>{"Reserva guardada con \u00e9xito"}</div>
+                  <div style={{ fontSize: "20px", fontWeight: 700, color: "#e8d5a3", letterSpacing: "2px", margin: "12px 0" }}>{success.code}</div>
+                  <div style={{ fontSize: "13px", color: "#5a7058" }}>{success.nights} {success.nights === 1 ? "noche" : "noches"} {"\u00b7"} Total: {fmt(success.total)}</div>
+                  <div style={{ fontSize: "11px", color: "#4a6a48", marginTop: "6px" }}>{"Calendario bloqueado autom\u00e1ticamente"}</div>
+                </div>
+                <div style={{ marginTop: "16px", display: "flex", gap: "12px" }}>
+                  <button style={{ ...btnS, flex: 1 }} onClick={() => reset()}>{"Agregar otra"}</button>
+                  <button style={{ ...btnG, flex: 1, justifyContent: "center" }} onClick={() => { setOpen(false); reset() }}>{"Cerrar"}</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "20px", color: "#e8d5a3", marginBottom: "6px" }}>{"Nueva reserva manual"}</div>
+                <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "20px" }}>{"Reservas de clientes propios. Sin comisi\u00f3n Takai."}</div>
+                {error && <div style={errBox}>{error}</div>}
+                <div style={fg}>
+                  <label style={lbl}>{"Caba\u00f1a"}</label>
+                  <select style={sel} value={cabinId} onChange={e => setCabinId(e.target.value)}>
+                    {cabins.map(c => <option key={c.id} value={c.id}>{c.name} {"\u2014"} {fmt(c.base_price_night)}/noche</option>)}
+                  </select>
+                </div>
+                <div style={r2}>
+                  <div><label style={lbl}>{"Check-in"}</label><input type="date" style={inp} min={today} value={checkIn} onChange={e => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut("") }} /></div>
+                  <div><label style={lbl}>{"Check-out"}</label><input type="date" style={inp} min={checkIn || today} value={checkOut} onChange={e => setCheckOut(e.target.value)} /></div>
+                </div>
+                <div style={fg}>
+                  <label style={lbl}>{"Nombre del cliente *"}</label>
+                  <input type="text" style={inp} placeholder={"Nombre completo"} value={guestName} onChange={e => setGuestName(e.target.value)} />
+                </div>
+                <div style={r2}>
+                  <div><label style={lbl}>{"WhatsApp *"}</label><input type="tel" style={inp} placeholder={"+56 9 XXXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} /></div>
+                  <div><label style={lbl}>{"N\u00famero de hu\u00e9spedes"}</label><select style={sel} value={guestCount} onChange={e => setGuestCount(e.target.value)}>{Array.from({ length: selectedCabin?.capacity || 4 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}</option>)}</select></div>
+                </div>
+                <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
+                  <input type="checkbox" id="tinaja-m" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
+                  <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera ($30.000/d\u00eda)"}</label>
+                  {tinajaUse && <select style={{ ...sel, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>{Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"}</option>)}</select>}
+                </div>
+                <div style={fg}>
+                  <label style={lbl}>{"Notas (opcional)"}</label>
+                  <input type="text" style={inp} placeholder={"Pago efectivo, llegada tarde, etc."} value={notes} onChange={e => setNotes(e.target.value)} />
+                </div>
+                {nights > 0 && calc.total > 0 && (
+                  <div style={sumBox}>
+                    <div style={sumRow}><span>{"Alojamiento"}</span><span>{fmt(calc.subtotal)} ({nights} {nights === 1 ? "noche" : "noches"})</span></div>
+                    {calc.extras > 0 && <div style={sumRow}><span>{"Personas extra"}</span><span>{fmt(calc.extras)}</span></div>}
+                    {calc.tinaja > 0 && <div style={sumRow}><span>{"Tinaja"}</span><span>{fmt(calc.tinaja)}</span></div>}
+                    <div style={sumTotal}><span>{"Total"}</span><span>{fmt(calc.total)}</span></div>
+                    <div style={{ ...sumRow, marginTop: "8px", fontSize: "11px", color: "#4a6a48" }}><span>{"Adelanto 20%"}</span><span>{fmt(calc.deposit)}</span></div>
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                  <button style={btnS} onClick={() => { setOpen(false); reset() }}>{"Cancelar"}</button>
+                  <button style={loading ? btnDis : btnOk} onClick={handleSubmit} disabled={loading}>{loading ? "Guardando..." : "Guardar reserva"}</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+"use client"
+import { Suspense } from "react"
+
+function SelloGrande() {
+  return (
+    <svg width="120" height="144" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="2.5"/>
+      <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="0.8"/>
+      <path d="M75 24 L120 43 L120 86 C120 114 99 133 75 143 C51 133 30 114 30 86 L30 43 Z" fill="none" stroke="#e8d5a322" strokeWidth="0.5"/>
+      <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="1.5"/>
+      <circle cx="75" cy="65" r="15" fill="#e8d5a308" stroke="#e8d5a355" strokeWidth="0.5"/>
+      <path d="M66 65 L72 71 L84 59" stroke="#e8d5a3" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <line x1="40" y1="100" x2="110" y2="100" stroke="#e8d5a333" strokeWidth="0.5"/>
+      <text x="75" y="117" textAnchor="middle" fontFamily="Georgia, serif" fontSize="10" fill="#e8d5a3" fontWeight="700" letterSpacing="2">VERIFICADO</text>
+      <line x1="40" y1="124" x2="110" y2="124" stroke="#e8d5a333" strokeWidth="0.5"/>
+      <text x="75" y="140" textAnchor="middle" fontFamily="sans-serif" fontSize="8" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
+      <circle cx="32" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/><circle cx="118" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/>
+      <circle cx="22" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/><circle cx="128" cy="55" r="2.5" fill="#e8d5a3" opacity="0.12"/>
+      <circle cx="18" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/><circle cx="132" cy="80" r="2" fill="#e8d5a3" opacity="0.08"/>
+    </svg>
+  )
+}
+
+function InicioInner() {
+  const cabins = [
+    { id: "f935a02e-2572-4272-9a08-af40b29f0912", name: "Caba\u00f1a N\u00ba 1", cap: 4, price: 30000 },
+    { id: "100598b1-5232-46a0-adf5-6dc969ce2f9f", name: "Caba\u00f1a N\u00ba 2", cap: 5, price: 40000 },
+  ]
+  function fmt(n: number) { return "$" + n.toLocaleString("es-CL") }
+
+  return (
+    <div style={{ fontFamily: "Georgia, serif", background: "#0a0f0a", minHeight: "100vh", color: "#f0ede8" }}>
+
+      <style>{"\
+        @media (max-width: 640px) {\
+          .hero-text { padding-top: 108px !important; }\
+        }\
+        @media (min-width: 768px) {\
+          .hero-wrap { max-height: 360px !important; }\
+          .hero-wrap svg { max-height: 360px !important; }\
+          .hero-text { padding-top: 30px !important; padding-bottom: 10px !important; }\
+        }\
+        @media (max-width: 640px) {\
+          .sello-pc { display: flex !important; }\
+          .sello-float { display: none !important; }\
+        }\
+        @media (min-width: 641px) {\
+          .sello-pc { display: none !important; }\
+          .sello-float { display: flex !important; }\
+        }\
+      "}</style>
+
+      <div className="hero-wrap" style={{ position: "relative", width: "100%", overflow: "hidden", background: "#0a1208" }}>
+        <svg style={{ display: "block", width: "100%", height: "auto", minHeight: "340px" }} viewBox="0 0 1200 520" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#080e08"/><stop offset="60%" stopColor="#0a1208"/><stop offset="100%" stopColor="#0c160c"/></linearGradient>
+            <linearGradient id="mt1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#14241a"/><stop offset="100%" stopColor="#0e1a0c"/></linearGradient>
+            <linearGradient id="mt2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0f1c0e"/><stop offset="100%" stopColor="#0a1208"/></linearGradient>
+            <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0a0f0a" stopOpacity="0"/><stop offset="100%" stopColor="#0a0f0a" stopOpacity="1"/></linearGradient>
+            <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#c8d8a0" stopOpacity="0.08"/><stop offset="100%" stopColor="#c8d8a0" stopOpacity="0"/></radialGradient>
+          </defs>
+          <rect width="1200" height="520" fill="url(#sky)"/>
+          <circle cx="80" cy="30" r="0.8" fill="#ffffff30"/><circle cx="150" cy="55" r="0.6" fill="#ffffff20"/>
+          <circle cx="260" cy="22" r="1" fill="#ffffff38"/><circle cx="370" cy="45" r="0.7" fill="#ffffff28"/>
+          <circle cx="480" cy="18" r="0.9" fill="#ffffff22"/><circle cx="560" cy="52" r="0.6" fill="#ffffff1a"/>
+          <circle cx="650" cy="28" r="0.8" fill="#ffffff30"/><circle cx="740" cy="60" r="0.7" fill="#ffffff20"/>
+          <circle cx="830" cy="15" r="1" fill="#ffffff35"/><circle cx="920" cy="42" r="0.6" fill="#ffffff1a"/>
+          <circle cx="1010" cy="25" r="0.8" fill="#ffffff28"/><circle cx="1100" cy="50" r="0.7" fill="#ffffff20"/>
+          <circle cx="200" cy="70" r="0.5" fill="#ffffff15"/><circle cx="440" cy="72" r="0.6" fill="#ffffff18"/>
+          <circle cx="700" cy="68" r="0.5" fill="#ffffff15"/><circle cx="980" cy="65" r="0.6" fill="#ffffff1a"/>
+          <circle cx="1140" cy="35" r="0.9" fill="#ffffff25"/><circle cx="50" cy="65" r="0.7" fill="#ffffff18"/>
+          <circle cx="950" cy="80" r="80" fill="url(#moonGlow)"/>
+          <circle cx="950" cy="80" r="3" fill="#d8e8c0" opacity="0.25"/>
+          <path d="M0 340 L100 260 L180 290 L280 220 L360 255 L460 195 L540 230 L600 210 L660 215 L740 240 L820 200 L900 230 L960 210 L1040 245 L1120 225 L1200 260 L1200 520 L0 520Z" fill="url(#mt1)" opacity="0.5"/>
+          <path d="M0 380 L80 320 L160 350 L240 310 L320 340 L400 305 L480 335 L560 300 L640 325 L720 310 L800 330 L880 295 L960 320 L1040 305 L1120 325 L1200 300 L1200 520 L0 520Z" fill="url(#mt2)" opacity="0.85"/>
+          <path d="M0 420 L100 385 L200 400 L300 378 L400 395 L500 372 L600 390 L700 375 L800 392 L900 370 L1000 388 L1100 376 L1200 385 L1200 520 L0 520Z" fill="#0d1a0b" opacity="0.95"/>
+          <rect x="55" y="330" width="4" height="130" fill="#0f1a0e" opacity="0.9"/>
+          <line x1="57" y1="420" x2="28" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="420" x2="86" y2="402" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
+          <line x1="57" y1="400" x2="24" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/><line x1="57" y1="400" x2="90" y2="382" stroke="#0f1a0e" strokeWidth="2.2" opacity="0.9"/>
+          <line x1="57" y1="380" x2="30" y2="366" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/><line x1="57" y1="380" x2="84" y2="366" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/>
+          <line x1="57" y1="362" x2="36" y2="350" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/><line x1="57" y1="362" x2="78" y2="350" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/>
+          <circle cx="28" cy="401" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="86" cy="401" r="5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="24" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/><circle cx="90" cy="381" r="5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="30" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/><circle cx="84" cy="365" r="4" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="57" cy="328" r="7" fill="#0f1a0e" opacity="0.9"/>
+          <rect x="1128" y="310" width="5" height="150" fill="#0f1a0e" opacity="0.9"/>
+          <line x1="1130" y1="418" x2="1098" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="418" x2="1162" y2="400" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
+          <line x1="1130" y1="396" x2="1094" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/><line x1="1130" y1="396" x2="1166" y2="378" stroke="#0f1a0e" strokeWidth="2.5" opacity="0.9"/>
+          <line x1="1130" y1="376" x2="1100" y2="362" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/><line x1="1130" y1="376" x2="1160" y2="362" stroke="#0f1a0e" strokeWidth="2" opacity="0.9"/>
+          <line x1="1130" y1="358" x2="1108" y2="346" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/><line x1="1130" y1="358" x2="1152" y2="346" stroke="#0f1a0e" strokeWidth="1.8" opacity="0.9"/>
+          <circle cx="1098" cy="399" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1162" cy="399" r="5.5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="1094" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1166" cy="377" r="5.5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="1100" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/><circle cx="1160" cy="361" r="4.5" fill="#0f1a0e" opacity="0.85"/>
+          <circle cx="1130" cy="308" r="8" fill="#0f1a0e" opacity="0.9"/>
+          <rect x="265" y="375" width="3" height="90" fill="#0f1a0e" opacity="0.75"/>
+          <line x1="266" y1="430" x2="248" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="430" x2="284" y2="418" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
+          <line x1="266" y1="416" x2="250" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/><line x1="266" y1="416" x2="282" y2="406" stroke="#0f1a0e" strokeWidth="1.5" opacity="0.75"/>
+          <line x1="266" y1="402" x2="254" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/><line x1="266" y1="402" x2="278" y2="394" stroke="#0f1a0e" strokeWidth="1.3" opacity="0.75"/>
+          <circle cx="248" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/><circle cx="284" cy="417" r="3.5" fill="#0f1a0e" opacity="0.7"/>
+          <circle cx="266" cy="373" r="5" fill="#0f1a0e" opacity="0.75"/>
+          <line x1="170" y1="460" x2="170" y2="385" stroke="#142610" strokeWidth="2.5"/>
+          <polygon points="170,385 155,412 185,412" fill="#142610" opacity="0.85"/>
+          <polygon points="170,398 152,428 188,428" fill="#162812" opacity="0.85"/>
+          <polygon points="170,412 148,448 192,448" fill="#1a2e14" opacity="0.85"/>
+          <line x1="420" y1="465" x2="420" y2="395" stroke="#142610" strokeWidth="2.2"/>
+          <polygon points="420,395 408,418 432,418" fill="#142610" opacity="0.8"/>
+          <polygon points="420,406 405,432 435,432" fill="#162812" opacity="0.8"/>
+          <polygon points="420,418 402,450 438,450" fill="#1a2e14" opacity="0.8"/>
+          <line x1="780" y1="465" x2="780" y2="370" stroke="#142610" strokeWidth="2.8"/>
+          <polygon points="780,370 764,400 796,400" fill="#142610" opacity="0.85"/>
+          <polygon points="780,385 760,418 800,418" fill="#162812" opacity="0.85"/>
+          <polygon points="780,400 756,440 804,440" fill="#1a2e14" opacity="0.85"/>
+          <polygon points="780,418 752,458 808,458" fill="#1c3016" opacity="0.85"/>
+          <line x1="1020" y1="462" x2="1020" y2="408" stroke="#142610" strokeWidth="2"/>
+          <polygon points="1020,408 1010,426 1030,426" fill="#142610" opacity="0.75"/>
+          <polygon points="1020,416 1008,438 1032,438" fill="#162812" opacity="0.75"/>
+          <polygon points="1020,426 1005,452 1035,452" fill="#1a2e14" opacity="0.75"/>
+          <line x1="650" y1="455" x2="650" y2="402" stroke="#121e10" strokeWidth="1.8"/>
+          <polygon points="650,402 641,420 659,420" fill="#121e10" opacity="0.65"/>
+          <polygon points="650,410 639,432 661,432" fill="#142210" opacity="0.65"/>
+          <polygon points="650,420 636,446 664,446" fill="#162610" opacity="0.65"/>
+          <line x1="520" y1="462" x2="520" y2="415" stroke="#121e10" strokeWidth="1.5"/>
+          <polygon points="520,415 512,430 528,430" fill="#121e10" opacity="0.6"/>
+          <polygon points="520,422 510,440 530,440" fill="#142210" opacity="0.6"/>
+          <polygon points="520,432 508,454 532,454" fill="#162610" opacity="0.6"/>
+          <rect x="0" y="440" width="1200" height="80" fill="url(#mist)"/>
+        </svg>
+
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #080e08 0%, transparent 20%, transparent 55%, #0a0f0a 100%)", pointerEvents: "none" }}/>
+
+        <div className="sello-float" style={{ position: "absolute", right: "18%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column" as any, alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
+          <SelloGrande />
+          <div style={{ background: "#0d1a12cc", border: "1px solid #e8d5a322", borderRadius: "8px", padding: "6px 12px", textAlign: "center" as any }}>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>Alojamiento verificado</div>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>personalmente por</div>
+            <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#7ab87a", letterSpacing: "1.5px", fontWeight: 700, marginTop: "2px" }}>TAKAI.CL</div>
+          </div>
+        </div>
+
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 28px", zIndex: 10 }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", letterSpacing: "5px", color: "#e8d5a3", textShadow: "0 2px 12px #000000cc" }}>
+            RUKA<span style={{ color: "#7ab87a" }}>TRARO</span>
+          </div>
+          <div style={{ fontSize: "11px", color: "#a8c8a055", letterSpacing: "2px", textTransform: "uppercase" as const }}>Licanray</div>
+        </div>
+
+        <div className="hero-text" style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, justifyContent: "center", alignItems: "center", textAlign: "center" as const, padding: "40px 20px 16px" }}>
+          <div style={{ fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>{"Caba\u00f1as en la naturaleza"}</div>
+
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(26px, 5vw, 48px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.15, marginBottom: "14px" }}>
+              {"Descon\u00e9ctate en el"}<br/><span style={{ color: "#b8d8a0" }}>sur de Chile</span>
+            </div>
+
+          
+
+          <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
+            {"Bosque nativo, Lago Calafqu\u00e9n y el Volc\u00e1n Villarrica como tel\u00f3n de fondo."}
+          </div>
+
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "11px", color: "#9ab898" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7ab87a", flexShrink: 0, display: "inline-block" }}/>
+            {"Licanray \u00b7 Regi\u00f3n de La Araucan\u00eda \u00b7 5 min del lago"}
+          </div>
+
+          <div className="sello-pc" style={{ display: "none", flexDirection: "row" as any, alignItems: "center", gap: "10px", marginTop: "14px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+            <svg width="50" height="60" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
+              <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
+              <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
+              <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="13" fill="#e8d5a3" fontWeight="700" letterSpacing="1.5">VERIFICADO</text>
+              <text x="75" y="137" textAnchor="middle" fontFamily="sans-serif" fontSize="11" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
+            </svg>
+            <div style={{ fontFamily: "Georgia, serif", fontSize: "10px", color: "#e8d5a3", letterSpacing: "0.5px", textAlign: "left" as any, lineHeight: 1.4 }}>Alojamiento verificado<br/>personalmente por<br/><span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "11px", letterSpacing: "1.5px" }}>TAKAI.CL</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: "24px 16px 6px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "10px" }}>{"Reserva tu caba\u00f1a"}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "4px" }}>
+          {cabins.map(c => (
+            <div key={c.id} style={{ background: "#111a11", border: "1px solid #2a3a2a", borderRadius: "14px", padding: "16px", display: "flex", flexDirection: "column" as const, alignItems: "center", textAlign: "center" as const }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "#7ab87a14", border: "1px solid #7ab87a22", color: "#7ab87a", fontSize: "9px", padding: "2px 7px", borderRadius: "10px", marginBottom: "12px" }}>
+                <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#7ab87a", display: "inline-block" }}/>
+                Disponible
+              </div>
+              <div style={{ marginBottom: "10px" }}>
+                <svg width="40" height="36" viewBox="0 0 48 40" fill="none">
+                  <path d="M24 4 L44 20 L44 38 L4 38 L4 20 Z" fill="#162618" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <path d="M24 4 L44 20 L4 20 Z" fill="#1e3020" stroke="#3a5a38" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <rect x="18" y="26" width="12" height="12" rx="2" fill="#0d1a0d" stroke="#3a5a38" strokeWidth="1"/>
+                  <rect x="8" y="24" width="8" height="6" rx="1" fill="#7ab87a22" stroke="#3a5a38" strokeWidth="0.8"/>
+                  <line x1="12" y1="24" x2="12" y2="30" stroke="#3a5a38" strokeWidth="0.8"/>
+                </svg>
+              </div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "4px" }}>{c.name}</div>
+              <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "12px" }}>Hasta {c.cap} personas</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#c8d8c0", marginBottom: "2px" }}>{fmt(c.price)}</div>
+              <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "14px" }}>por noche</div>
+              <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name) + "&price=" + c.price + "&capacity=" + c.cap}
+                style={{ display: "block", boxSizing: "border-box" as const, width: "100%", background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "10px", padding: "11px", fontSize: "13px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                {"Reservar \u2192"}
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap" as const, justifyContent: "center", gap: "7px", padding: "4px 16px 14px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
+        {[
+          { ico: "\uD83C\uDFDE\uFE0F", name: "Lago", isImg: false },
+          { ico: "\uD83C\uDF0B", name: "Volc\u00e1n", isImg: false },
+          { ico: "/tinaja.png", name: "Tinaja", isImg: true },
+          { ico: "\u2668\uFE0F", name: "Termas", isImg: false },
+          { ico: "\uD83D\uDEA3", name: "Kayak", isImg: false },
+          { ico: "\uD83E\uDD7E", name: "Trekking", isImg: false },
+        ].map(f => (
+          <div key={f.name} style={{ background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "12px", padding: "9px 11px", textAlign: "center" as const, width: "70px" }}>
+            {f.isImg ? (
+              <img src={f.ico} alt={f.name} style={{ width: "24px", height: "24px", objectFit: "contain" as const, borderRadius: "4px", marginBottom: "4px" }} />
+            ) : (
+              <div style={{ fontSize: "18px", marginBottom: "4px" }}>{f.ico}</div>
+            )}
+            <div style={{ fontSize: "10px", color: "#8a9e88", fontWeight: 500 }}>{f.name}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: "#0d140d", padding: "16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+          <div style={{ fontFamily: "Georgia, serif", fontSize: "17px", color: "#e8d5a3", marginBottom: "12px" }}>{"Qu\u00e9 hacer en Licanray"}</div>
+          {[
+            { ico: "\uD83C\uDFDE\uFE0F", name: "Lago Calafqu\u00e9n", desc: "Aguas de origen glaciar a 5 min \u2014 kayak, pesca y ba\u00f1os en verano" },
+            { ico: "\uD83C\uDF0B", name: "Volc\u00e1n Villarrica", desc: "A 45 min \u2014 trekking hasta uno de los volcanes m\u00e1s activos de Sudam\u00e9rica" },
+            { ico: "\u2668\uFE0F", name: "Termas de Co\u00f1aripe", desc: "Aguas termales naturales rodeadas de monta\u00f1a y bosque, a solo 20 min" },
+            { ico: "\uD83E\uDD7E", name: "Senderismo y miradores", desc: "Rutas en bosque nativo con vistas panor\u00e1micas a la cordillera andina" },
+          ].map(a => (
+            <div key={a.name} style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "10px", paddingBottom: "10px", borderBottom: "1px solid #ffffff07" }}>
+              <div style={{ width: "36px", height: "36px", background: "#162618", border: "1px solid #2a3820", borderRadius: "9px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>{a.ico}</div>
+              <div>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#c8d8c0", marginBottom: "2px" }}>{a.name}</div>
+                <div style={{ fontSize: "11px", color: "#6a8a68", lineHeight: 1.5 }}>{a.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ background: "#0a0f0a", padding: "13px 16px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+          <div style={{ fontSize: "10px", fontWeight: 600, color: "#8a9e88", letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "7px" }}>Normas del lugar</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px" }}>
+            {["No mascotas", "No fiestas", "No visitas externas", "No fumar adentro", "No papeles al WC", "M\u00fasica moderada"].map(r => (
+              <div key={r} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "#6a8a68" }}>
+                <span style={{ color: "#c0504888", fontSize: "11px", fontWeight: 700 }}>{"\u2715"}</span>
+                {r}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: "12px", padding: "13px", borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+        <a href="https://www.facebook.com/share/16ZGGvPzZD/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#8a9e88", textDecoration: "none" }}>
+          <span style={{ width: "16px", height: "16px", background: "#1877F2", borderRadius: "3px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "10px", fontWeight: 700, fontFamily: "Georgia, serif", flexShrink: 0 }}>f</span>
+          @rukatraro
+        </a>
+        <a href="https://instagram.com/rukatraro" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#111a11", border: "1px solid #1e2e1e", borderRadius: "9px", padding: "7px 14px", fontSize: "11px", color: "#8a9e88", textDecoration: "none" }}>
+          <span style={{ width: "16px", height: "16px", borderRadius: "4px", background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" stroke="white" strokeWidth="2.2"/><circle cx="12" cy="12" r="5" stroke="white" strokeWidth="2"/><circle cx="17.5" cy="6.5" r="1.8" fill="white"/></svg>
+          </span>
+          @rukatraro
+        </a>
+      </div>
+
+      <div style={{ textAlign: "center" as const, padding: "12px", fontSize: "10px", color: "#5a7058", letterSpacing: "1.5px", textTransform: "uppercase" as const, borderTop: "1px solid #1a261a", fontFamily: "sans-serif" }}>
+        {"Rukatraro \u00b7 Licanray \u00b7 Lago Calafqu\u00e9n \u00b7 Chile"}
+      </div>
+    </div>
+  )
+}
+
+export default function InicioPage() {
+  return (
+    <Suspense fallback={<div style={{ background: "#0a0f0a", minHeight: "100vh" }}/>}>
+      <InicioInner />
+    </Suspense>
+  )
+}
+"use client"
+import { Suspense, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import type { CSSProperties } from "react"
+
+function fmt(n: number) {
+  return "$" + n.toLocaleString("es-CL")
+}
+
+function ReservarInner() {
+  const params = useSearchParams()
+  const cabin_id = params.get("cabin_id") || ""
+  const cabin_name = params.get("cabin_name") || "Cabana"
+  const visitedParam = params.get("visited") || ""
+  const visitedCabins = visitedParam ? visitedParam.split(",").filter(Boolean) : []
+
+  const precio_noche = Number(params.get("price")) || 30000
+  const capacidad = Number(params.get("capacity")) || 4
+  const today = new Date().toISOString().split("T")[0]
+
+  const [paso, setPaso] = useState(1)
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [guests, setGuests] = useState(2)
+  const [tinajaDias, setTinajaDias] = useState(0)
+  const [nombre, setNombre] = useState("")
+  const [whatsapp, setWhatsapp] = useState("")
+  const [email, setEmail] = useState("")
+  const [metodoPago, setMetodoPago] = useState("transferencia")
+  const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+  const [codigo, setCodigo] = useState("")
+  const [dispStatus, setDispStatus] = useState("idle")
+  const [autoAssignId, setAutoAssignId] = useState("")
+  const [suggest, setSuggest] = useState<any>(null)
+  const [redTakai, setRedTakai] = useState(false)
+
+  const noches = checkIn && checkOut
+    ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
+    : 0
+  const extrasPersonas = Math.max(0, guests - capacidad) * 5000 * noches
+  const subtotal = precio_noche * noches + extrasPersonas
+  const tinaja = tinajaDias * 30000
+  const total = subtotal + tinaja
+  const deposito = Math.round(total * 0.2)
+  const noches_ok = noches >= 2
+  const fechas_ok = noches_ok && dispStatus === "ok"
+  const form_ok = fechas_ok && nombre.trim().length > 0 && whatsapp.trim().length > 0
+
+  useEffect(() => {
+    if (!checkIn || !checkOut || !noches_ok || !cabin_id) {
+      setDispStatus("idle")
+      setAutoAssignId("")
+      setSuggest(null)
+      setRedTakai(false)
+      return
+    }
+    setDispStatus("checking")
+    const timer = setTimeout(async () => {
+      try {
+        const vParam = visitedCabins.join(",")
+        const res = await fetch(
+          "/api/availability?cabin_id=" + cabin_id + "&check_in=" + checkIn + "&check_out=" + checkOut + "&visited=" + encodeURIComponent(vParam)
+        )
+        const data = await res.json()
+        if (data.available) {
+          setDispStatus("ok")
+          setAutoAssignId("")
+          setSuggest(null)
+          setRedTakai(false)
+        } else if (data.auto_assign) {
+          setAutoAssignId(data.auto_assign.cabin_id)
+          setDispStatus("ok")
+          setSuggest(null)
+          setRedTakai(false)
+        } else if (data.suggest) {
+          setDispStatus("occupied")
+          setSuggest(data.suggest)
+          setRedTakai(false)
+          setAutoAssignId("")
+        } else if (data.red_takai) {
+          setDispStatus("occupied")
+          setSuggest(null)
+          setRedTakai(true)
+          setAutoAssignId("")
+        } else {
+          setDispStatus("occupied")
+          setSuggest(null)
+          setRedTakai(false)
+          setAutoAssignId("")
+        }
+      } catch (e) {
+        setDispStatus("idle")
+      }
+    }, 700)
+    return () => clearTimeout(timer)
+  }, [checkIn, checkOut, cabin_id, noches_ok])
+
+  async function confirmar() {
+    setLoading(true)
+    setSubmitError("")
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cabin_id: autoAssignId || cabin_id,
+          check_in: checkIn,
+          check_out: checkOut,
+          guests,
+          nights: noches,
+          subtotal,
+          total,
+          deposit: deposito,
+          tinaja_days: tinajaDias,
+          nombre: nombre.trim(),
+          whatsapp: whatsapp.trim(),
+          email: email.trim(),
+          metodo_pago: metodoPago,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Error al confirmar")
+      setCodigo(data.codigo)
+      setPaso(4)
+    } catch (e: any) {
+      setSubmitError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const newVisited = [...visitedCabins, cabin_id].join(",")
+
+  const s: Record<string, CSSProperties> = {
+    page: { fontFamily: "sans-serif", color: "#f0ede8", background: "#0d1a12", minHeight: "100vh" },
+    nav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" },
+    logo: { fontFamily: "Georgia,serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" as const },
+    logoSpan: { color: "#7ab87a" },
+    backBtn: { background: "transparent", border: "1px solid #2a3e28", color: "#8a9e88", fontSize: "12px", padding: "7px 16px", borderRadius: "20px", cursor: "pointer" },
+    steps: { display: "flex", background: "#0a1510", borderBottom: "1px solid #ffffff08" },
+    stepBase: { flex: 1, padding: "14px 6px", textAlign: "center" as const, fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#2a3e28", borderBottom: "2px solid transparent" },
+    stepActive: { flex: 1, padding: "14px 6px", textAlign: "center" as const, fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#7ab87a", borderBottom: "2px solid #7ab87a" },
+    stepDone: { flex: 1, padding: "14px 6px", textAlign: "center" as const, fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#4a6e48", borderBottom: "2px solid #4a6e48" },
+    body: { padding: "24px 20px", maxWidth: "480px", margin: "0 auto" },
+    eye: { fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "6px" },
+    title: { fontFamily: "Georgia,serif", fontSize: "28px", color: "#e8d5a3", marginBottom: "20px" },
+    card: { background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "20px", marginBottom: "14px" },
+    cardTitle: { fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "16px", paddingBottom: "12px", borderBottom: "1px solid #ffffff0a" },
+    g2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "14px" },
+    lbl: { display: "block", fontSize: "10px", fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a7058", marginBottom: "6px" },
+    inp: { width: "100%", boxSizing: "border-box" as const, padding: "10px 8px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "10px", fontSize: "12px", color: "#c8d8c0", fontFamily: "sans-serif", outline: "none" },
+    sel: { width: "100%", padding: "12px 14px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "10px", fontSize: "14px", color: "#c8d8c0", fontFamily: "sans-serif", outline: "none", marginBottom: "14px" },
+    err: { background: "#e6394615", border: "1px solid #e6394633", borderRadius: "10px", padding: "14px", fontSize: "13px", color: "#e67a7a", marginBottom: "14px", lineHeight: 1.6 },
+    ok: { background: "#7ab87a18", border: "1px solid #7ab87a33", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px", fontSize: "12px", color: "#7ab87a" },
+    info: { background: "#7ab87a10", border: "1px solid #7ab87a22", borderRadius: "10px", padding: "12px 14px", marginBottom: "14px", fontSize: "12px", color: "#7ab87a", lineHeight: 1.6 },
+    warn: { background: "#e8a21a18", border: "1px solid #e8a21a33", borderRadius: "10px", padding: "14px", marginBottom: "14px" },
+    warnTitle: { fontSize: "13px", fontWeight: 600, color: "#e8b84a", marginBottom: "4px" },
+    warnDesc: { fontSize: "12px", color: "#c8a060", lineHeight: 1.6 },
+    priceBox: { background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "12px", padding: "16px" },
+    priceRow: { display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "5px 0" },
+    priceKey: { color: "#6a7e68" },
+    priceVal: { color: "#c8d8c0", fontWeight: 500 },
+    hr: { border: "none", borderTop: "1px solid #ffffff0a", margin: "10px 0" },
+    totalRow: { display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "8px 0 0" },
+    totalKey: { fontSize: "12px", color: "#8a9e88" },
+    totalVal: { fontFamily: "Georgia,serif", fontSize: "28px", color: "#e8d5a3" },
+    deposit: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "#7ab87a14", border: "1px solid #7ab87a2a", borderRadius: "10px", padding: "12px 14px", margin: "14px 0" },
+    depKey: { fontSize: "12px", color: "#7ab87a" },
+    depVal: { fontSize: "17px", fontWeight: 700, color: "#7ab87a" },
+    btn: { width: "100%", background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "sans-serif" },
+    btnDisabled: { width: "100%", background: "#2a3e28", color: "#4a6e48", border: "none", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, cursor: "not-allowed" as const, fontFamily: "sans-serif" },
+    btnBack: { width: "100%", background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, cursor: "pointer", fontFamily: "sans-serif", marginTop: "10px" },
+    resItem: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #ffffff07" },
+    resKey: { fontSize: "13px", color: "#6a7e68" },
+    resVal: { fontSize: "13px", color: "#c8d8c0", fontWeight: 500 },
+    payOpt: { border: "2px solid #2a3e28", borderRadius: "14px", padding: "18px", marginBottom: "12px", cursor: "pointer", background: "#0d1a12" },
+    payOptSel: { border: "2px solid #7ab87a", borderRadius: "14px", padding: "18px", marginBottom: "12px", cursor: "pointer", background: "#7ab87a0a" },
+    payHead: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" },
+    radio: { width: "18px", height: "18px", borderRadius: "50%", border: "2px solid #4a6e48", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
+    radioSel: { width: "18px", height: "18px", borderRadius: "50%", border: "2px solid #7ab87a", background: "#7ab87a", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
+    radioDot: { width: "8px", height: "8px", borderRadius: "50%", background: "#0d1a12" },
+    payTitle: { fontSize: "14px", fontWeight: 600, color: "#e8d5a3" },
+    paySub: { fontSize: "11px", color: "#5a7058" },
+    payBody: { fontSize: "12px", color: "#8a9e88", lineHeight: 1.6, paddingLeft: "30px", marginTop: "8px" },
+    successWrap: { textAlign: "center" as const, padding: "40px 20px" },
+    successIco: { fontSize: "48px", marginBottom: "20px" },
+    successTitle: { fontFamily: "Georgia,serif", fontSize: "28px", color: "#e8d5a3", marginBottom: "10px" },
+    successCode: { fontFamily: "Georgia,serif", fontSize: "22px", color: "#7ab87a", background: "#7ab87a14", border: "1px solid #7ab87a2a", borderRadius: "12px", padding: "14px 20px", margin: "16px 0", letterSpacing: "2px" },
+    successDesc: { fontSize: "13px", color: "#8a9e88", lineHeight: 1.75, marginBottom: "20px" },
+    bank: { background: "#162618", border: "1px solid #2a3e28", borderRadius: "14px", padding: "18px", textAlign: "left" as const },
+    bankTitle: { fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a7058", marginBottom: "12px" },
+    bankRow: { display: "flex", justifyContent: "space-between", fontSize: "13px", padding: "6px 0", borderBottom: "1px solid #ffffff07" },
+    bankKey: { color: "#6a7e68" },
+    bankVal: { color: "#c8d8c0", fontWeight: 500 },
+    cardCompact: { background: "#162618", border: "1px solid #2a3e28", borderRadius: "14px", padding: "14px 16px", marginBottom: "12px" },
+    cardTitleCompact: { fontFamily: "Georgia,serif", fontSize: "14px", color: "#e8d5a3", marginBottom: "10px", paddingBottom: "8px", borderBottom: "1px solid #ffffff0a" },
+    resItemCompact: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid #ffffff07" },
+    resKeyCompact: { fontSize: "12px", color: "#6a7e68" },
+    resValCompact: { fontSize: "12px", color: "#c8d8c0", fontWeight: 500 },
+    priceBoxCompact: { background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "10px", padding: "12px" },
+    priceRowCompact: { display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" },
+    totalRowCompact: { display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "6px 0 0" },
+    totalValCompact: { fontFamily: "Georgia,serif", fontSize: "24px", color: "#e8d5a3" },
+    depositCompact: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "#7ab87a14", border: "1px solid #7ab87a2a", borderRadius: "8px", padding: "10px 12px", marginTop: "10px" },
+    payLogos: { display: "flex", gap: "8px", flexWrap: "wrap" as const, paddingLeft: "30px", marginTop: "10px", marginBottom: "6px" },
+    payLogo: { display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", border: "1px solid #2a3e28", background: "#0d1a12" },
+  }
+
+  function stepStyle(i: number) {
+    if (paso === i + 1) return s.stepActive
+    if (paso > i + 1) return s.stepDone
+    return s.stepBase
+  }
+
+  return (
+    <div style={s.page}>
+      <style>{"@media (min-width: 768px) { .reservar-body { max-width: 820px !important; } .paso1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .paso1-grid > div:nth-child(2) { grid-column: 1; grid-row: 2; } .paso1-grid > div:nth-child(3) { grid-column: 2; grid-row: 1 / 3; align-self: start; } .paso2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } }"}</style>
+      <nav style={s.nav}>
+        <div style={s.logo}>Ruka<span style={s.logoSpan}>traro</span></div>
+        {paso === 1 && (
+          <a href="/inicio" style={{ ...s.backBtn, textDecoration: "none" }}>&#8592; Volver</a>
+        )}
+        {paso > 1 && paso < 4 && (
+          <button style={s.backBtn} onClick={() => { setSubmitError(""); setPaso(p => p - 1) }}>Volver</button>
+        )}
+      </nav>
+
+      {paso < 4 && (
+        <div style={s.steps}>
+          {["Datos", "Resumen", "Pago"].map((label, i) => (
+            <div key={label} style={stepStyle(i)}>{label}</div>
+          ))}
+        </div>
+      )}
+
+      <div className="reservar-body" style={s.body}>
+
+        {paso === 1 && (
+          <>
+            <div style={s.eye}>Reserva directa</div>
+            <div style={s.title}>{cabin_name}</div>
+
+            <div className="paso1-grid">
+            <div style={s.card}>
+              <div style={s.cardTitle}>{"Fechas de estad\u00eda"}</div>
+              <div style={s.g2}>
+                <div>
+                  <span style={s.lbl}>Check-in</span>
+                  <input style={s.inp} type="date" min={today} value={checkIn}
+                    onChange={e => { setCheckIn(e.target.value); setCheckOut(""); setDispStatus("idle") }} />
+                </div>
+                <div>
+                  <span style={s.lbl}>Check-out</span>
+                  <input style={s.inp} type="date" min={checkIn || today} value={checkOut}
+                    onChange={e => setCheckOut(e.target.value)} />
+                </div>
+              </div>
+
+              {checkIn && checkOut && !noches_ok && (
+                <div style={s.err}>{"La estad\u00eda m\u00ednima es de 2 noches."}</div>
+              )}
+              {dispStatus === "checking" && (
+                <div style={{ fontSize: "12px", color: "#6a7e68", padding: "8px 0" }}>Verificando disponibilidad...</div>
+              )}
+              {dispStatus === "ok" && (
+                <div style={s.ok}>Fechas disponibles. Puedes continuar.</div>
+              )}
+              {dispStatus === "occupied" && suggest && (
+                <div style={s.err}>
+                  <strong>{cabin_name} no tiene disponibilidad para esas fechas.</strong>
+                  <br /><br />
+                  Puedes probar con:<br /><br />
+                  <a href={"/reservar?cabin_id=" + suggest.cabin_id + "&cabin_name=" + encodeURIComponent(suggest.cabin_name) + "&visited=" + encodeURIComponent(newVisited)}
+                    style={{ color: "#e8b84a", textDecoration: "underline", fontWeight: 600 }}>
+                    {suggest.cabin_name} {" \u2014 hasta "}{suggest.capacity}{" personas \u2014 "}{fmt(suggest.price || 0)}/noche
+                  </a>
+                  <br /><br />
+                  O elige otras fechas para {cabin_name}.
+                </div>
+              )}
+              {dispStatus === "occupied" && redTakai && (
+                <div style={s.err}>
+                  <strong>{"Todas las caba\u00f1as de Rukatraro est\u00e1n ocupadas para esas fechas."}</strong>
+                  <br /><br />
+                  {"Te recomendamos elegir otras fechas. Pronto podr\u00e1s ver otras caba\u00f1as disponibles en la zona."}
+                </div>
+              )}
+              {dispStatus === "occupied" && !suggest && !redTakai && (
+                <div style={s.err}>{"Estas fechas no est\u00e1n disponibles. Por favor elige otras."}</div>
+              )}
+            </div>
+
+            <div style={s.card}>
+              <div style={s.cardTitle}>{"Hu\u00e9spedes y extras"}</div>
+              <span style={s.lbl}>{"N\u00famero de personas (cap. "}{capacidad}{")"}</span>
+              <select style={s.sel} value={guests} onChange={e => setGuests(Number(e.target.value))}>
+                {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>
+                    {n} {n === 1 ? "persona" : "personas"}{n > capacidad ? " (+" + fmt(5000) + "/noche)" : ""}
+                  </option>
+                ))}
+              </select>
+              <span style={s.lbl}>{"Tinaja de madera (+$30.000/d\u00eda)"}</span>
+              <select style={s.sel} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
+                <option value={0}>Sin tinaja</option>
+                {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"} {"\u2014"} {fmt(n * 30000)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={s.card}>
+              <div style={s.cardTitle}>Tus datos de contacto</div>
+              <div style={s.info}>{"Revisa bien tu n\u00famero de WhatsApp y correo. Ah\u00ed recibir\u00e1s la confirmaci\u00f3n de tu reserva."}</div>
+              <span style={s.lbl}>Nombre completo</span>
+              <input style={{ ...s.inp, marginBottom: "14px" }} type="text" placeholder="Maria Gonzalez"
+                value={nombre} onChange={e => setNombre(e.target.value)} />
+              <span style={s.lbl}>WhatsApp</span>
+              <input style={{ ...s.inp, marginBottom: "14px" }} type="tel" placeholder="+56 9 1234 5678"
+                value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
+              <span style={s.lbl}>{"Correo electr\u00f3nico"}</span>
+              <input style={s.inp} type="email" placeholder="tu@correo.com"
+                value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+
+            </div>
+            <button style={form_ok ? s.btn : s.btnDisabled} disabled={!form_ok} onClick={() => setPaso(2)}>
+              Reservar ahora con 20% de anticipo
+            </button>
+            <a href="/inicio" style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif", marginTop: "10px", cursor: "pointer" }}>{"\u2190 Volver"}</a>
+          </>
+        )}
+
+        {paso === 2 && (
+          <>
+            <div style={s.eye}>Resumen de tu reserva</div>
+            <div style={{ ...s.title, marginBottom: "14px" }}>{cabin_name}</div>
+
+            {tinajaDias === 0 && (
+              <div style={{ ...s.warn, padding: "12px", marginBottom: "12px" }}>
+                <div style={s.warnTitle}>{"\u00bfOlvidaste la tinaja?"}</div>
+                <div style={{ ...s.warnDesc, fontSize: "11px" }}>{"Tinaja de madera calentada a le\u00f1a. Solo $30.000/d\u00eda."}</div>
+                <select style={{ width: "100%", padding: "8px 10px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "12px", color: "#c8d8c0", fontFamily: "sans-serif", marginTop: "8px", outline: "none" }} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
+                  <option value={0}>Sin tinaja</option>
+                  {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
+                    <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"} {"\u2014"} {fmt(n * 30000)}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="paso2-row">
+              <div style={s.cardCompact}>
+                <div style={s.cardTitleCompact}>Detalle</div>
+                {[
+                  ["Hu\u00e9sped", nombre], ["WhatsApp", whatsapp], ["Correo", email || "\u2014"],
+                  ["Check-in", checkIn], ["Check-out", checkOut],
+                  ["Noches", String(noches)], ["Personas", String(guests)],
+                  ["Tinaja", tinajaDias > 0 ? tinajaDias + (tinajaDias === 1 ? " d\u00eda" : " d\u00edas") : "No"],
+                ].map(([k, v], idx) => (
+                  <div key={k} style={{ ...s.resItemCompact, borderBottom: idx === 7 ? "none" : "1px solid #ffffff07" }}>
+                    <span style={s.resKeyCompact}>{k}</span>
+                    <span style={s.resValCompact}>{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={s.cardCompact}>
+                <div style={s.cardTitleCompact}>Precio</div>
+                <div style={s.priceBoxCompact}>
+                  <div style={s.priceRowCompact}><span style={s.priceKey}>{fmt(precio_noche)} x {noches} noches</span><span style={s.priceVal}>{fmt(precio_noche * noches)}</span></div>
+                  {extrasPersonas > 0 && <div style={s.priceRowCompact}><span style={s.priceKey}>Personas extra</span><span style={s.priceVal}>{fmt(extrasPersonas)}</span></div>}
+                  {tinaja > 0 && <div style={s.priceRowCompact}><span style={s.priceKey}>Tinaja {tinajaDias} {tinajaDias === 1 ? "d\u00eda" : "d\u00edas"}</span><span style={s.priceVal}>{fmt(tinaja)}</span></div>}
+                  <hr style={{ ...s.hr, margin: "6px 0" }} />
+                  <div style={s.totalRowCompact}><span style={{ ...s.totalKey, fontSize: "11px" }}>{"Total estad\u00eda"}</span><span style={s.totalValCompact}>{fmt(total)}</span></div>
+                </div>
+                <div style={s.depositCompact}><span style={{ ...s.depKey, fontSize: "11px" }}>Adelanto 20%</span><span style={{ ...s.depVal, fontSize: "16px" }}>{fmt(deposito)}</span></div>
+              </div>
+            </div>
+
+            <button style={s.btn} onClick={() => setPaso(3)}>Continuar al pago</button>
+            <button style={s.btnBack} onClick={() => setPaso(1)}>Volver y modificar</button>
+          </>
+        )}
+
+        {paso === 3 && (
+          <>
+            <div style={s.eye}>{"Elige c\u00f3mo pagar"}</div>
+            <div style={s.title}>Adelanto: {fmt(deposito)}</div>
+
+            <div style={metodoPago === "tarjeta" ? s.payOptSel : s.payOpt} onClick={() => setMetodoPago("tarjeta")}>
+              <div style={s.payHead}>
+                <div style={metodoPago === "tarjeta" ? s.radioSel : s.radio}>{metodoPago === "tarjeta" && <div style={s.radioDot} />}</div>
+                <div><div style={s.payTitle}>{"Tarjeta de cr\u00e9dito o d\u00e9bito"}</div><div style={s.paySub}>{"Pr\u00f3ximamente disponible"}</div></div>
+              </div>
+              <div style={s.payLogos}>
+                <span style={{ ...s.payLogo, color: "#1a1f71", background: "#e8eaf6" }}>VISA</span>
+                <span style={{ ...s.payLogo, color: "#333", background: "#fff3e0" }}>
+                  <span style={{ display: "inline-flex", gap: "2px", alignItems: "center" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#eb001b", display: "inline-block" }}></span>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f79e1b", display: "inline-block", marginLeft: "-4px" }}></span>
+                    <span style={{ marginLeft: "4px", fontSize: "10px", fontWeight: 700 }}>Mastercard</span>
+                  </span>
+                </span>
+                <span style={{ ...s.payLogo, color: "#00529b", background: "#e3f2fd" }}>Redcompra</span>
+                <span style={{ ...s.payLogo, color: "#1b3a6b", background: "#e8eaf6" }}>Transbank</span>
+              </div>
+              {metodoPago === "tarjeta" && (
+                <div style={s.payBody}>
+                  {"Tu reserva se "}<strong>{"confirma autom\u00e1ticamente"}</strong>{" al pagar. Recibir\u00e1s el comprobante en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
+                  <br /><br /><em style={{ color: "#e8a21a", fontSize: "11px" }}>{"Esta opci\u00f3n estar\u00e1 disponible muy pronto."}</em>
+                </div>
+              )}
+            </div>
+
+            <div style={metodoPago === "transferencia" ? s.payOptSel : s.payOpt} onClick={() => setMetodoPago("transferencia")}>
+              <div style={s.payHead}>
+                <div style={metodoPago === "transferencia" ? s.radioSel : s.radio}>{metodoPago === "transferencia" && <div style={s.radioDot} />}</div>
+                <div><div style={s.payTitle}>Transferencia bancaria</div><div style={s.paySub}>{"BancoEstado \u00b7 Cuenta RUT"}</div></div>
+              </div>
+              {metodoPago === "transferencia" && (
+                <div style={s.payBody}>
+                  <div style={{ ...s.priceBox, marginTop: "10px" }}>
+                    {[["Banco","BancoEstado"],["Tipo","Cuenta RUT"],["N\u00famero","15.665.466-3"],["Nombre","Rukatraro"],["Monto exacto",fmt(deposito)]].map(([k,v]) => (
+                      <div key={k} style={s.priceRow}><span style={s.priceKey}>{k}</span><span style={s.priceVal}>{v}</span></div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: "12px", fontSize: "12px", color: "#8a9e88", lineHeight: 1.6 }}>
+                    {"Una vez que Rukatraro verifique tu transferencia, recibir\u00e1s la confirmaci\u00f3n de reserva en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}{" y en el correo que indicaste"}{email ? " (" + email + ")" : " en el paso anterior"}.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {submitError && <div style={s.err}>{submitError}</div>}
+
+            <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: 1.6 }}>
+              {"Al confirmar quedar\u00e1 registrada tu solicitud con un c\u00f3digo \u00fanico. \u00dasalo como glosa en tu transferencia."}
+            </div>
+
+            <button style={loading || metodoPago === "tarjeta" ? s.btnDisabled : s.btn}
+              disabled={loading || metodoPago === "tarjeta"} onClick={confirmar}>
+              {loading ? "Registrando..." : metodoPago === "tarjeta" ? "Pr\u00f3ximamente disponible" : "Reservar ahora con 20% de anticipo"}
+            </button>
+            <button style={s.btnBack} onClick={() => setPaso(2)}>Volver al resumen</button>
+          </>
+        )}
+
+        {paso === 4 && (
+          <div style={s.successWrap}>
+            <div style={s.successIco}>&#127807;</div>
+            <div style={s.successTitle}>Solicitud enviada</div>
+            <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" as const }}>{"Tu c\u00f3digo de reserva"}</div>
+            <div style={s.successCode}>{codigo}</div>
+            <div style={s.successDesc}>
+              Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
+              {"Una vez que Rukatraro verifique tu transferencia de "}<strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>,
+              {" recibir\u00e1s la confirmaci\u00f3n en tu WhatsApp "}{whatsapp ? "(" + whatsapp + ")" : ""}
+              {" y en el correo que indicaste"}{email ? " (" + email + ")" : ""}.
+            </div>
+            <div style={s.bank}>
+              <div style={s.bankTitle}>Datos para la transferencia</div>
+              {[["Banco","BancoEstado"],["Cuenta RUT","15.665.466-3"],["Titular","Rukatraro"],["Monto exacto",fmt(deposito)],["Glosa / Concepto",codigo]].map(([k,v],idx,arr) => (
+                <div key={k} style={{ ...s.bankRow, borderBottom: idx === arr.length - 1 ? "none" : "1px solid #ffffff07" }}>
+                  <span style={s.bankKey}>{k}</span><span style={s.bankVal}>{v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
+              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que Rukatraro identifique tu pago."}
+            </div>
+            
+            <a href="/inicio"
+              style={{ display: "block", marginTop: "24px", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
+            >
+              Volver al inicio
+            </a>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
+export default function ReservarPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "32px", background: "#0d1a12", minHeight: "100vh" }} />}>
+      <ReservarInner />
+    </Suspense>
+  )
+}
