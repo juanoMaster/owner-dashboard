@@ -1,4 +1,6 @@
-"use client"
+const fs = require("fs")
+
+const content = `"use client"
 import { Suspense, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 
@@ -64,7 +66,7 @@ function SlugInner() {
 
   if (notFound || !tenant) return (
     <div style={{ background: "#0a0f0a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: "#4a6a48", fontFamily: "sans-serif", fontSize: "13px" }}>{"Caba\u00f1as no encontradas"}</div>
+      <div style={{ color: "#4a6a48", fontFamily: "sans-serif", fontSize: "13px" }}>{"Caba\\u00f1as no encontradas"}</div>
     </div>
   )
 
@@ -90,7 +92,7 @@ function SlugInner() {
 
       {/* HERO */}
       <div style={{ paddingTop: "120px", paddingBottom: "40px", textAlign: "center", background: "linear-gradient(180deg, #0a1208 0%, #0a0f0a 100%)", padding: "80px 24px 40px" }}>
-        <div style={{ fontSize: "10px", letterSpacing: "3px", textTransform: "uppercase", color: "#7ab87a", marginBottom: "12px", fontFamily: "sans-serif" }}>{"Alojamiento \u00b7 Sur de Chile"}</div>
+        <div style={{ fontSize: "10px", letterSpacing: "3px", textTransform: "uppercase", color: "#7ab87a", marginBottom: "12px", fontFamily: "sans-serif" }}>{"Alojamiento \\u00b7 Sur de Chile"}</div>
         <div style={{ fontFamily: "Georgia, serif", fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 700, color: "#f0ede8", lineHeight: 1.1, marginBottom: "16px" }}>
           <span style={{ color: "#e8d5a3" }}>{first}</span>
           {rest && <span style={{ color: "#b8d8a0" }}>{" " + rest}</span>}
@@ -102,7 +104,7 @@ function SlugInner() {
 
       {/* CABAÑAS */}
       <div style={{ padding: "0 16px 32px", maxWidth: "800px", margin: "0 auto" }}>
-        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase", color: "#4a6a48", marginBottom: "12px", fontFamily: "sans-serif" }}>{"Elige tu caba\u00f1a"}</div>
+        <div style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase", color: "#4a6a48", marginBottom: "12px", fontFamily: "sans-serif" }}>{"Elige tu caba\\u00f1a"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
           {cabins.map(function(c) {
             return (
@@ -117,7 +119,7 @@ function SlugInner() {
                 <div style={{ fontSize: "11px", color: "#6a8a68", marginBottom: "16px", fontFamily: "sans-serif" }}>por noche</div>
                 <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name) + "&price=" + c.base_price_night + "&capacity=" + c.capacity}
                   style={{ display: "block", width: "100%", boxSizing: "border-box", background: "#7ab87a", color: "#0a0f0a", borderRadius: "10px", padding: "12px", fontSize: "13px", fontWeight: 700, textAlign: "center", textDecoration: "none", fontFamily: "sans-serif" }}>
-                  {"Reservar \u2192"}
+                  {"Reservar \\u2192"}
                 </a>
               </div>
             )
@@ -142,7 +144,7 @@ function SlugInner() {
           <div style={{ background: "#0a1510", border: "1px solid #2a3e28", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "400px", boxShadow: "0 20px 60px #00000080" }}>
             {contactSent ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <div style={{ fontSize: "36px", marginBottom: "14px" }}>{"\u2705"}</div>
+                <div style={{ fontSize: "36px", marginBottom: "14px" }}>{"\\u2705"}</div>
                 <div style={{ fontFamily: "Georgia,serif", fontSize: "20px", color: "#e8d5a3", marginBottom: "8px" }}>{"Mensaje enviado"}</div>
                 <div style={{ fontSize: "13px", color: "#8a9e88", marginBottom: "24px" }}>{"Nos comunicaremos contigo a la brevedad."}</div>
                 <button
@@ -154,11 +156,11 @@ function SlugInner() {
             ) : (
               <>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                  <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", color: "#e8d5a3" }}>{"Consulta r\u00e1pida"}</div>
+                  <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", color: "#e8d5a3" }}>{"Consulta r\\u00e1pida"}</div>
                   <button
                     onClick={function() { setShowContact(false) }}
                     style={{ background: "transparent", border: "1px solid #2a3e28", borderRadius: "8px", color: "#5a7058", fontSize: "16px", cursor: "pointer", padding: "4px 10px", lineHeight: 1, fontFamily: "sans-serif" }}>
-                    {"\u00d7"}
+                    {"\\u00d7"}
                   </button>
                 </div>
 
@@ -166,7 +168,7 @@ function SlugInner() {
                 <input
                   value={contactNombre}
                   onChange={function(e: any) { setContactNombre(e.target.value) }}
-                  placeholder={"C\u00f3mo te llamás"}
+                  placeholder={"C\\u00f3mo te llamás"}
                   style={{ display: "block", width: "100%", boxSizing: "border-box", background: "#162618", border: "1px solid #2a3e28", borderRadius: "8px", color: "#c8d8c0", fontSize: "14px", padding: "10px 12px", marginBottom: "14px", fontFamily: "sans-serif", outline: "none" }}
                 />
 
@@ -213,3 +215,7 @@ export default function SlugPage() {
     </Suspense>
   )
 }
+`
+
+fs.writeFileSync("app/[slug]/page.tsx", content, "utf8")
+console.log("OK: app/[slug]/page.tsx escrito")
