@@ -218,11 +218,21 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                         </span>
                       </td>
                       <td style={TD}>
-                        <div style={{ display: "flex", gap: "6px" }}>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" as const }}>
                           <button onClick={() => setModal({ type: "tenant", data: { ...t } })} style={BTN("#9a78c8")}>Editar</button>
                           <button onClick={() => saveTenant({ action: "toggle", id: t.id, active: !t.active })} style={BTN(t.active ? "#e63946" : "#27ae60")}>
                             {t.active ? "Desactivar" : "Activar"}
                           </button>
+                          {t.slug && (
+                            <a href={"/" + t.slug} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#7ab87a"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                              Ver página
+                            </a>
+                          )}
+                          {t.dashboard_token && (
+                            <a href={"/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                              Abrir panel
+                            </a>
+                          )}
                         </div>
                       </td>
                     </tr>

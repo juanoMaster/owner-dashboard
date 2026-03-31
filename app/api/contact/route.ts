@@ -1,38 +1,47 @@
 import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const { nombre, mensaje, tenant_name } = body
+  try {
+    const body = await req.json()
+    const { nombre, cabanas, whatsapp, cantidad } = body
+    const apiKey = process.env.RESEND_API_KEY
 
-  const RESEND_API_KEY = process.env.RESEND_API_KEY
-  const NOTIFICATION_EMAIL = process.env.NOTIFICATION_EMAIL
-
-  if (RESEND_API_KEY && NOTIFICATION_EMAIL) {
-    try {
+    if (apiKey) {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          "Authorization": "Bearer " + RESEND_API_KEY,
+          "Authorization": "Bearer " + apiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           from: "Takai.cl <onboarding@resend.dev>",
-          to: NOTIFICATION_EMAIL,
-          subject: "Nueva consulta — " + (tenant_name || "Cabaña"),
+          to: ["contacto@takai.cl"],
+          subject: "Nueva solicitud: " + (nombre || "") + " — " + (cabanas || ""),
           html:
-            "<h2 style='font-family:sans-serif;color:#1a2a18'>Nueva consulta de contacto</h2>" +
-            "<p style='font-family:sans-serif'><strong>Cabaña:</strong> " + (tenant_name || "—") + "</p>" +
-            "<p style='font-family:sans-serif'><strong>Nombre:</strong> " + (nombre || "—") + "</p>" +
-            "<p style='font-family:sans-serif'><strong>Mensaje:</strong></p>" +
-            "<p style='font-family:sans-serif;background:#f5f5f5;padding:12px;border-radius:6px'>" + (mensaje || "—") + "</p>" +
-            "<hr style='border:none;border-top:1px solid #eee;margin:20px 0'/>" +
-            "<p style='font-family:sans-serif;font-size:12px;color:#888'>Enviado desde Takai.cl</p>",
+            "<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px'>" +
+            "<h2 style='color:#0a0700;font-size:22px;margin-bottom:20px'>Nueva solicitud — Takai.cl</h2>" +
+            "<table style='width:100%;border-collapse:collapse'>" +
+            "<tr><td style='padding:10px 0;color:#555;font-size:14px;width:140px'>Nombre</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:600'>" + (nombre || "—") + "</td></tr>" +
+            "<tr style='border-top:1px solid #eee'><td style='padding:10px 0;color:#555;font-size:14px'>Cabañas</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:600'>" + (cabanas || "—") + "</td></tr>" +
+            "<tr style='border-top:1px solid #eee'><td style='padding:10px 0;color:#555;font-size:14px'>WhatsApp</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:600'>" + (whatsapp || "—") + "</td></tr>" +
+            "<tr style='border-top:1px solid #eee'><td style='padding:10px 0;color:#555;font-size:14px'>Cantidad</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:600'>" + (cantidad || "—") + "</td></tr>" +
+            "</table>" +
+            "<p style='margin-top:24px;font-size:12px;color:#999'>Enviado desde el formulario de contacto de Takai.cl</p>" +
+            "</div>",
         }),
       })
-    } catch (e) {
-      // fallo silencioso — no bloquear al usuario
     }
-  }
 
-  return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error("Error sending email:", err)
+    return NextResponse.json({ ok: false }, { status: 500 })
+  }
 }
+```
+
+Después de guardarlo en Cursor:
+```
+git add .
+git commit -m "fix: reemplazar resend package por fetch directo"
+git push
