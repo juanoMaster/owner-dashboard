@@ -18,6 +18,8 @@ export async function POST(req: Request) {
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      // Guardar el raw_token en tenants.dashboard_token para acceso rápido desde admin
+      await supabase.from("tenants").update({ dashboard_token: rawToken }).eq("id", body.tenant_id)
       return NextResponse.json({ success: true, token: data, raw_token: rawToken })
     }
     if (action === "deactivate") {
