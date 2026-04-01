@@ -107,9 +107,48 @@ export async function POST(req: Request) {
       details: { check_in, check_out, nights, total_amount: total, deposit_amount: deposit, origen: "formulario_turista", guest_name, booking_code: bookingCode },
       performed_by: "formulario_turista",
     })
-    return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
+    // Notificación por email
+    const resendKey = process.env.RESEND_API_KEY
+    if (resendKey) {
+      try {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + resendKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Takai.cl <onboarding@resend.dev>",
+            to: ["contacto@takai.cl"],
+            subject: "🏕️ Nueva reserva — " + bookingCode,
+            html:
+              "<div style='font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px'>" +
+              "<div style='background:#27ae60;padding:16px 24px;border-radius:8px 8px 0 0'>" +
+              "<h2 style='margin:0;color:white;font-size:18px'>Nueva reserva recibida</h2>" +
+              "</div>" +
+              "<div style='background:white;padding:24px;border-radius:0 0 8px 8px'>" +
+              "<table style='width:100%;border-collapse:collapse'>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;width:140px;border-bottom:1px solid #eee'>Código</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:700;border-bottom:1px solid #eee'>" + bookingCode + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Huésped</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + guest_name + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>WhatsApp</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + guest_whatsapp + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Cabaña</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + cabin.name + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Check-in</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + check_in + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Check-out</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + check_out + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Noches</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + nights + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Personas</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + guests + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Total</td><td style='padding:10px 0;color:#111;font-size:16px;font-weight:700;border-bottom:1px solid #eee'>$" + total.toLocaleString("es-CL") + "</td></tr>" +
+              "<tr><td style='padding:10px 0;color:#e67e22;font-size:14px'>Adelanto 20%</td><td style='padding:10px 0;color:#e67e22;font-size:16px;font-weight:700'>$" + deposit.toLocaleString("es-CL") + "</td></tr>" +
+              "</table>" +
+              "<div style='margin-top:20px;padding:14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#856404'>" +
+              "💬 Contactar huésped por WhatsApp: <a href='https://wa.me/" + guest_whatsapp.replace(/[^0-9]/g, "") + "' style='color:#856404'>" + guest_whatsapp + "</a>" +
+              "</div>" +
+              "</div>" +
+              "</div>",
+          }),
+        })
+      } catch (e) {
+        // fallo silencioso
+      }
+    }
 
-  } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message || "Error interno" }, { status: 500 })
-  }
-}
+    return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
