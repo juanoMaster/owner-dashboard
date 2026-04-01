@@ -451,7 +451,7 @@ function ReservarInner() {
             {submitError && <div style={s.err}>{submitError}</div>}
 
             <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: 1.6 }}>
-              {"Al confirmar quedar\u00e1 registrada tu solicitud con un c\u00f3digo \u00fanico. \u00dasalo como glosa en tu transferencia."}
+              {"Al confirmar quedar\u00e1 registrada tu solicitud con un c\u00f3digo \u00fanico. \u00dasalo como glosa en tu transferencia. La transferencia debe realizarse dentro de las pr\u00f3ximas 24 horas. Si no se recibe el pago en ese plazo, la reserva ser\u00e1 cancelada autom\u00e1ticamente y las fechas quedar\u00e1n disponibles nuevamente."}
             </div>
 
             <button style={loading || metodoPago === "tarjeta" ? s.btnDisabled : s.btn}
@@ -486,7 +486,7 @@ function ReservarInner() {
               ))}
             </div>
             <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
-              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que "}{isTrinidad ? "Ang\u00e9lica" : "Rukatraro"}{" identifique tu pago."}
+              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que "}{isTrinidad ? "Ang\u00e9lica" : "Rukatraro"}{" identifique tu pago. Tienes un m\u00e1ximo de 24 horas para realizar la transferencia. Pasado ese plazo, la reserva ser\u00e1 cancelada y las fechas quedar\u00e1n disponibles nuevamente."}
             </div>
             
             <a href={isTrinidad ? "/trinidad" : "/inicio"}
