@@ -152,3 +152,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
+  } catch (err: any) {
+    return NextResponse.json({ success: false, message: err.message || "Error interno" }, { status: 500 })
+  }
+}
