@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
             "<tr style='border-top:1px solid #eee'><td style='padding:10px 0;color:#555;font-size:14px'>WhatsApp</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:600'>" + (whatsapp || "—") + "</td></tr>" +
             "<tr style='border-top:1px solid #eee'><td style='padding:10px 0;color:#555;font-size:14px'>Cantidad</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:600'>" + (cantidad || "—") + "</td></tr>" +
             "</table>" +
-            "<p style='margin-top:24px;font-size:12px;color:#999'>Enviado desde el formulario de contacto de Takai.cl</p>" +
+            "<p style='margin-top:24px;font-size:12px;color:#999'>Enviado desde takai.cl</p>" +
             "</div>",
         }),
       })
@@ -38,10 +38,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
-```
-
-Después de guardarlo en Cursor:
-```
-git add .
-git commit -m "fix: reemplazar resend package por fetch directo"
-git push
