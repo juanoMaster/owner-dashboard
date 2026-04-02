@@ -106,7 +106,7 @@ function MiradorInner() {
 
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 28px", zIndex: 10 }}>
           <div style={{ fontFamily: "Georgia, serif", fontSize: "22px", letterSpacing: "5px", color: "#e8d5a3", textShadow: "0 2px 12px #000000cc" }}>
-            {"EL"}<span style={{ color: "#7ab87a" }}>{" MIRADOR"}</span>
+            <span style={{ color: "#7ab87a" }}>{"EL MIRADOR DE LICANRAY"}</span>
           </div>
           <div style={{ fontSize: "11px", color: "#a8c8a055", letterSpacing: "2px", textTransform: "uppercase" as const }}>Licanray</div>
         </div>
