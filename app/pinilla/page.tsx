@@ -117,7 +117,7 @@ function MiradorInner() {
             {"El Mirador"}<br/><span style={{ color: "#b8d8a0" }}>{"de Licanray"}</span>
           </div>
           <div style={{ fontFamily: "sans-serif", fontSize: "clamp(12px, 1.6vw, 16px)", color: "#8ab888", lineHeight: 1.7, maxWidth: "380px", margin: "0 auto 16px" }}>
-            {"Vista privilegiada al Lago Calafquén y el Volcán Villarrica. Naturaleza, tranquilidad y confort en el corazón del sur de Chile."}
+            {"Naturaleza, tranquilidad y confort en el corazón del sur de Chile. Desconéctate en Licanray, a pasos del Lago Calafquén."}
           </div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#ffffff07", border: "1px solid #ffffff12", borderRadius: "20px", padding: "6px 16px", fontFamily: "sans-serif", fontSize: "11px", color: "#9ab898" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7ab87a", flexShrink: 0, display: "inline-block" }}/>
