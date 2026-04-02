@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       .eq("cabin_id", booking.cabin_id)
       .eq("tenant_id", tenant_id)
       .eq("status", "confirmed")
+      .is("deleted_at", null)
       .neq("id", booking_id)
       .lt("check_in", booking.check_out)
       .gt("check_out", booking.check_in)
