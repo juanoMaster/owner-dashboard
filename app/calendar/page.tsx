@@ -301,10 +301,12 @@ function CalendarContent() {
                         {modalLoading ? "Procesando..." : "Rechazar reserva"}
                       </button>
                     )}
-                    <button onClick={handleLiberar} disabled={modalLoading}
-                      style={{ width: "100%", padding: "11px", background: "transparent", border: "1px solid #2a3e28", borderRadius: "10px", color: "#5a7058", fontSize: "11px", cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif" }}>
-                      {modalLoading ? "Procesando..." : "Liberar fecha"}
-                    </button>
+                    {!modal.hasBooking && (
+                      <button onClick={handleLiberar} disabled={modalLoading}
+                        style={{ width: "100%", padding: "11px", background: "transparent", border: "1px solid #2a3e28", borderRadius: "10px", color: "#5a7058", fontSize: "11px", cursor: modalLoading ? "not-allowed" : "pointer", opacity: modalLoading ? 0.6 : 1, fontFamily: "sans-serif" }}>
+                        {modalLoading ? "Procesando..." : "Liberar fecha"}
+                      </button>
+                    )}
                   </div>
                 </>
               )
