@@ -464,6 +464,7 @@ function TenantModal({ data, saving, onSave, onClose }: any) {
     owner_name: data.owner_name || "",
     owner_whatsapp: data.owner_whatsapp || "",
     deposit_percent: data.deposit_percent || 20,
+    gender: data.gender || "female",
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   return (
@@ -483,6 +484,13 @@ function TenantModal({ data, saving, onSave, onClose }: any) {
             <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
           </div>
         ))}
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Género</label>
+          <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))} style={{ ...INPUT }}>
+            <option value="female">Mujer — Bienvenida</option>
+            <option value="male">Hombre — Bienvenido</option>
+          </select>
+        </div>
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
           <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}
             style={{ flex: 1, padding: "12px", background: "#7a5a98", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>

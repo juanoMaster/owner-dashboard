@@ -42,11 +42,12 @@ export default async function Home({
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("owner_name, business_name")
+    .select("owner_name, business_name, gender")
     .eq("id", link.tenant_id)
     .maybeSingle()
 
   const ownerName = tenant?.owner_name?.split(" ")[0] || "Propietaria"
+const greeting = tenant?.gender === "male" ? "Bienvenido" : "Bienvenida"
   const businessName = tenant?.business_name || "Panel"
 
   const { data: cabins } = await supabase
@@ -88,7 +89,7 @@ export default async function Home({
             Panel del Propietario
           </div>
           <h1 style={{ fontFamily: "Georgia,serif", fontSize: "26px", color: "#e8d5a3", margin: "0 0 6px 0", fontWeight: 400 }}>
-            Bienvenida, {ownerName}
+            {greeting}, {ownerName}
           </h1>
           <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
             Desde aquí gestionas tus cabañas, confirmas pagos y bloqueas fechas en el calendario.

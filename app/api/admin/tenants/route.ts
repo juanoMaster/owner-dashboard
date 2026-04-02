@@ -14,6 +14,7 @@ export async function POST(req: Request) {
         owner_name: body.owner_name,
         owner_whatsapp: body.owner_whatsapp || null,
         deposit_percent: Number(body.deposit_percent) || 20,
+        gender: body.gender || "female",
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
         owner_name: body.owner_name,
         owner_whatsapp: body.owner_whatsapp || null,
         deposit_percent: Number(body.deposit_percent) || 20,
+        gender: body.gender || "female",
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })
