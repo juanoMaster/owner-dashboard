@@ -9,14 +9,10 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Convierte "mi-cabaña" → "mi cabaña" para buscar en business_name
-  const searchTerm = params.slug.replace(/-/g, " ")
-
-  // Busca por slug exacto primero (columna slug si existe), luego por business_name
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, business_name, owner_name, owner_whatsapp")
-    .or(`slug.eq.${params.slug},business_name.ilike.%${searchTerm}%`)
+    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url")
+    .eq("slug", params.slug)
     .eq("active", true)
     .maybeSingle()
 
@@ -37,6 +33,8 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       business_name: tenant.business_name,
       owner_name: tenant.owner_name,
       owner_whatsapp: tenant.owner_whatsapp,
+      facebook_url: tenant.facebook_url || null,
+      instagram_url: tenant.instagram_url || null,
     },
     cabins: cabins || [],
   })
