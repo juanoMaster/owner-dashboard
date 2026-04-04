@@ -5,7 +5,6 @@ import { useParams } from "next/navigation"
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
 interface TenantData {
   business_name: string
-  owner_whatsapp: string
   facebook_url?: string | null
   instagram_url?: string | null
 }
@@ -36,11 +35,6 @@ function SlugInner() {
   const [cabins, setCabins] = useState<Cabin[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [showContact, setShowContact] = useState(false)
-  const [contactNombre, setContactNombre] = useState("")
-  const [contactMsg, setContactMsg] = useState("")
-  const [contactLoading, setContactLoading] = useState(false)
-  const [contactSent, setContactSent] = useState(false)
 
   useEffect(function() {
     if (!slug) return
@@ -57,20 +51,6 @@ function SlugInner() {
       })
       .catch(function() { setNotFound(true); setLoading(false) })
   }, [slug])
-
-  async function handleContact() {
-    if (!contactNombre.trim() || !contactMsg.trim()) return
-    setContactLoading(true)
-    try {
-      await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre: contactNombre, mensaje: contactMsg, tenant_name: tenant ? tenant.business_name : "" }),
-      })
-      setContactSent(true)
-    } catch { /* fail silently */ }
-    setContactLoading(false)
-  }
 
   function fmt(n: number) { return "$" + n.toLocaleString("es-CL") }
 
@@ -89,7 +69,6 @@ function SlugInner() {
   const parts = tenant.business_name.split(" ")
   const first = parts[0]
   const rest = parts.slice(1).join(" ")
-  const wa = tenant.owner_whatsapp ? tenant.owner_whatsapp.replace(/[^0-9]/g, "") : ""
   const hasSocial = !!(tenant.facebook_url || tenant.instagram_url)
 
   return (
@@ -371,80 +350,6 @@ function SlugInner() {
         {tenant.business_name + " \u00b7 Licanray \u00b7 Lago Calafqu\u00e9n \u00b7 Chile"}
       </div>
 
-      {/* ── POPUP CONTACTO ── */}
-      {showContact && (
-        <div
-          style={{ position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}
-          onClick={function(e: any) { if (e.target === e.currentTarget) setShowContact(false) }}
-        >
-          <div style={{ background: "#0a1510", border: "1px solid #2a3e28", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "400px", boxShadow: "0 20px 60px #00000080" }}>
-            {contactSent ? (
-              <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <div style={{ fontSize: "36px", marginBottom: "14px" }}>{"\u2705"}</div>
-                <div style={{ fontFamily: "Georgia,serif", fontSize: "20px", color: "#e8d5a3", marginBottom: "8px" }}>{"Mensaje enviado"}</div>
-                <div style={{ fontSize: "13px", color: "#8a9e88", marginBottom: "24px" }}>{"Nos comunicaremos contigo a la brevedad."}</div>
-                <button
-                  onClick={function() { setShowContact(false); setContactSent(false) }}
-                  style={{ width: "100%", padding: "13px", background: "#7ab87a", border: "none", borderRadius: "10px", color: "#0a0f0a", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "sans-serif" }}>
-                  {"Cerrar"}
-                </button>
-              </div>
-            ) : (
-              <>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                  <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", color: "#e8d5a3" }}>{"Consulta r\u00e1pida"}</div>
-                  <button
-                    onClick={function() { setShowContact(false) }}
-                    style={{ background: "transparent", border: "1px solid #2a3e28", borderRadius: "8px", color: "#5a7058", fontSize: "16px", cursor: "pointer", padding: "4px 10px", lineHeight: 1, fontFamily: "sans-serif" }}>
-                    {"\u00d7"}
-                  </button>
-                </div>
-                <div style={{ fontSize: "11px", color: "#5a7058", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "6px", fontFamily: "sans-serif" }}>{"Tu nombre"}</div>
-                <input
-                  value={contactNombre}
-                  onChange={function(e: any) { setContactNombre(e.target.value) }}
-                  placeholder={"C\u00f3mo te llam\u00e1s"}
-                  style={{ display: "block", width: "100%", boxSizing: "border-box", background: "#162618", border: "1px solid #2a3e28", borderRadius: "8px", color: "#c8d8c0", fontSize: "14px", padding: "10px 12px", marginBottom: "14px", fontFamily: "sans-serif", outline: "none" }}
-                />
-                <div style={{ fontSize: "11px", color: "#5a7058", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "6px", fontFamily: "sans-serif" }}>{"Tu consulta"}</div>
-                <textarea
-                  value={contactMsg}
-                  onChange={function(e: any) { setContactMsg(e.target.value) }}
-                  rows={4}
-                  placeholder={"Fechas, disponibilidad, preguntas..."}
-                  style={{ display: "block", width: "100%", boxSizing: "border-box", background: "#162618", border: "1px solid #2a3e28", borderRadius: "8px", color: "#c8d8c0", fontSize: "14px", padding: "10px 12px", marginBottom: "16px", fontFamily: "sans-serif", resize: "vertical", outline: "none" }}
-                />
-                <button
-                  onClick={handleContact}
-                  disabled={contactLoading || !contactNombre.trim() || !contactMsg.trim()}
-                  style={{ width: "100%", padding: "13px", background: "#7ab87a", border: "none", borderRadius: "10px", color: "#0a0f0a", fontSize: "14px", fontWeight: 700, cursor: (contactLoading || !contactNombre.trim() || !contactMsg.trim()) ? "not-allowed" : "pointer", fontFamily: "sans-serif", letterSpacing: "0.5px", opacity: (!contactNombre.trim() || !contactMsg.trim()) ? 0.5 : 1 }}>
-                  {contactLoading ? "Enviando..." : "ENVIAR"}
-                </button>
-                {wa && (
-                  <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid #1a261a", display: "flex", alignItems: "center", gap: "10px" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", background: "#25d36618", border: "1px solid #25d36630", borderRadius: "50%", flexShrink: 0 }}>
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    </span>
-                    <div>
-                      <div style={{ fontSize: "10px", color: "#3a5a38", letterSpacing: "1px", textTransform: "uppercase" as const, fontFamily: "sans-serif", marginBottom: "2px" }}>{"WhatsApp"}</div>
-                      <div style={{ fontSize: "13px", color: "#8a9e88", fontFamily: "sans-serif" }}>{"+" + wa}</div>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Botón flotante Consultas */}
-      <div style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 40 }}>
-        <button
-          onClick={function() { setShowContact(true); setContactSent(false); setContactNombre(""); setContactMsg("") }}
-          style={{ background: "#7ab87a", color: "#0a0f0a", border: "none", borderRadius: "28px", padding: "12px 22px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 4px 20px #7ab87a40", letterSpacing: "0.5px" }}>
-          {"Consultas"}
-        </button>
-      </div>
     </div>
   )
 }
@@ -456,3 +361,4 @@ export default function SlugPage() {
     </Suspense>
   )
 }
+// v2 — sin formulario de contacto
