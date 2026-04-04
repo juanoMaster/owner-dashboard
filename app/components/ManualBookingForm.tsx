@@ -1,5 +1,5 @@
 "use client"
-import { useState, CSSProperties } from "react"
+import { useState, useEffect, CSSProperties } from "react"
 
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
 interface Props { cabins: Cabin[]; tenantId: string }
@@ -20,8 +20,23 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
   const [tinajaUse, setTinajaUse] = useState(false)
   const [tinajaDays, setTinajaDays] = useState("1")
   const [notes, setNotes] = useState("")
+  const [dispStatus, setDispStatus] = useState<"idle" | "checking" | "ok" | "occupied">("idle")
 
   const selectedCabin = cabins.find(c => c.id === cabinId)
+
+  useEffect(() => {
+    const nights = checkIn && checkOut
+      ? Math.round((new Date(checkOut + "T12:00:00").getTime() - new Date(checkIn + "T12:00:00").getTime()) / 86400000)
+      : 0
+    if (!checkIn || !checkOut || nights < 1) { setDispStatus("idle"); return }
+    setDispStatus("checking")
+    const controller = new AbortController()
+    fetch("/api/availability?cabin_id=" + cabinId + "&check_in=" + checkIn + "&check_out=" + checkOut, { signal: controller.signal })
+      .then(r => r.json())
+      .then(data => setDispStatus(data.available ? "ok" : "occupied"))
+      .catch(() => {})
+    return () => controller.abort()
+  }, [checkIn, checkOut, cabinId])
 
   function calcNights() {
     if (!checkIn || !checkOut) return 0
@@ -41,7 +56,7 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
   }
 
   function reset() {
-    setCabinId(cabins[0]?.id || ""); setCheckIn(""); setCheckOut(""); setGuestName(""); setGuestWhatsapp(""); setGuestCount("2"); setTinajaUse(false); setTinajaDays("1"); setNotes(""); setError(""); setSuccess(null)
+    setCabinId(cabins[0]?.id || ""); setCheckIn(""); setCheckOut(""); setGuestName(""); setGuestWhatsapp(""); setGuestCount("2"); setTinajaUse(false); setTinajaDays("1"); setNotes(""); setError(""); setSuccess(null); setDispStatus("idle")
   }
 
   async function handleSubmit() {
@@ -116,6 +131,15 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
                   <div><label style={lbl}>{"Check-in"}</label><input type="date" style={inp} min={today} value={checkIn} onChange={e => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut("") }} /></div>
                   <div><label style={lbl}>{"Check-out"}</label><input type="date" style={inp} min={checkIn || today} value={checkOut} onChange={e => setCheckOut(e.target.value)} /></div>
                 </div>
+                {dispStatus === "checking" && (
+                  <div style={{ fontSize: "12px", color: "#8a9e88", marginTop: "-10px", marginBottom: "14px" }}>{"Verificando..."}</div>
+                )}
+                {dispStatus === "ok" && (
+                  <div style={{ fontSize: "12px", color: "#27ae60", marginTop: "-10px", marginBottom: "14px" }}>{"Fechas disponibles"}</div>
+                )}
+                {dispStatus === "occupied" && (
+                  <div style={{ fontSize: "12px", color: "#e63946", marginTop: "-10px", marginBottom: "14px" }}>{"Estas fechas no est\u00e1n disponibles"}</div>
+                )}
                 <div style={fg}>
                   <label style={lbl}>{"Nombre del cliente *"}</label>
                   <input type="text" style={inp} placeholder={"Nombre completo"} value={guestName} onChange={e => setGuestName(e.target.value)} />
@@ -144,7 +168,7 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
                 )}
                 <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
                   <button style={btnS} onClick={() => { setOpen(false); reset() }}>{"Cancelar"}</button>
-                  <button style={loading ? btnDis : btnOk} onClick={handleSubmit} disabled={loading}>{loading ? "Guardando..." : "Guardar reserva"}</button>
+                  <button style={(loading || dispStatus !== "ok") ? btnDis : btnOk} onClick={handleSubmit} disabled={loading || dispStatus !== "ok"}>{loading ? "Guardando..." : "Guardar reserva"}</button>
                 </div>
               </>
             )}
