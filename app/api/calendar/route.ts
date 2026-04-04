@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { createHash } from "crypto"
 
 export async function GET(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const { searchParams } = new URL(req.url)
   const cabinId = searchParams.get("cabin_id")
   if (!cabinId) return NextResponse.json({ error: "cabin_id es requerido" }, { status: 400 })
@@ -65,11 +65,26 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   try {
-    const { date, cabin_id } = await req.json()
-    if (!date || !cabin_id) {
-      return NextResponse.json({ error: "date y cabin_id son requeridos" }, { status: 400 })
+    const { start_date, end_date, cabin_id, token } = await req.json()
+    if (!start_date || !end_date || !cabin_id || !token) {
+      return NextResponse.json({ error: "start_date, end_date, cabin_id y token son requeridos" }, { status: 400 })
     }
+
+    const tokenHash = createHash("sha256").update(token).digest("hex")
+
+    const { data: link } = await supabase
+      .from("dashboard_links")
+      .select("tenant_id")
+      .eq("token_hash", tokenHash)
+      .eq("active", true)
+      .maybeSingle()
+
+    if (!link) return NextResponse.json({ error: "Token inválido o inactivo" }, { status: 401 })
 
     const { data: cabin } = await supabase
       .from("cabins")
@@ -79,9 +94,13 @@ export async function POST(req: Request) {
 
     if (!cabin) return NextResponse.json({ error: "Cabana no encontrada" }, { status: 404 })
 
+    if (link.tenant_id !== cabin.tenant_id) {
+      return NextResponse.json({ error: "Sin autorización para esta cabaña" }, { status: 401 })
+    }
+
     const { error } = await supabase.from("calendar_blocks").insert([{
-      start_date: date,
-      end_date: date,
+      start_date,
+      end_date,
       reason: "manual",
       cabin_id,
       tenant_id: cabin.tenant_id,

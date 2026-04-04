@@ -3,28 +3,18 @@ import { NextResponse } from "next/server"
 
 export const revalidate = 60
 
+const TRINIDAD_TENANT_ID = "db307f3e-fd56-49b3-b4c5-868c7607c31e"
+
 export async function GET() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Busca el tenant por nombre — ajustar si el business_name en Supabase es diferente
-  const { data: tenant } = await supabase
-    .from("tenants")
-    .select("id")
-    .ilike("business_name", "%Trinidad%")
-    .eq("active", true)
-    .maybeSingle()
-
-  if (!tenant) {
-    return NextResponse.json({ cabins: [] })
-  }
-
   const { data: cabins } = await supabase
     .from("cabins")
     .select("id, name, capacity, base_price_night")
-    .eq("tenant_id", tenant.id)
+    .eq("tenant_id", TRINIDAD_TENANT_ID)
     .eq("active", true)
     .order("name")
 

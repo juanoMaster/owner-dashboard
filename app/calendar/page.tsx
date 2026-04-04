@@ -130,6 +130,33 @@ function CalendarContent() {
     else alert("Error al cancelar la reserva")
   }
 
+  async function handleDateClick(info: any) {
+    const clickedDate = info.dateStr
+    const existing = events.find(e => e.start <= clickedDate && clickedDate < e.end)
+
+    if (existing) {
+      if (!confirm("¿Liberar este día?")) return
+      const res = await fetch("/api/calendar/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cabin_id: cabinId, id: existing.id }),
+      })
+      const data = await res.json()
+      if (!data.success) alert("Error al liberar el día.")
+      else await loadEvents()
+    } else {
+      if (!confirm("¿Marcar como ocupado?")) return
+      const res = await fetch("/api/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ start_date: clickedDate, end_date: clickedDate, cabin_id: cabinId, token }),
+      })
+      const data = await res.json()
+      if (!res.ok) alert("Error al marcar el día: " + (data.error || res.status))
+      else await loadEvents()
+    }
+  }
+
   async function handleLiberar() {
     const range = modal?.start === modal?.endStr ? modal?.start : modal?.start + " al " + modal?.endStr
     if (!confirm("¿Liberar fechas: " + range + "?")) return
@@ -201,6 +228,7 @@ function CalendarContent() {
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             locale={esLocale}
+            dateClick={handleDateClick}
             eventClick={handleEventClick}
             events={events}
             height="auto"
