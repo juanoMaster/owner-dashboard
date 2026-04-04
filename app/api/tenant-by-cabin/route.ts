@@ -28,7 +28,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("business_name, owner_name, slug, owner_whatsapp")
+    .select("business_name, owner_name, slug, owner_whatsapp, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, has_tinaja")
     .eq("id", cabin.tenant_id)
     .single()
 
@@ -36,16 +36,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Tenant no encontrado" }, { status: 404 })
   }
 
-  const TENANTS_WITHOUT_TINAJA = new Set([
-    "db307f3e-fd56-49b3-b4c5-868c7607c31e", // Trinidad
-  ])
-
   return NextResponse.json({
     tenant_id: cabin.tenant_id,
     business_name: tenant.business_name,
     owner_name: tenant.owner_name,
     slug: tenant.slug,
     owner_whatsapp: tenant.owner_whatsapp,
-    has_tinaja: !TENANTS_WITHOUT_TINAJA.has(cabin.tenant_id),
+    bank_name: tenant.bank_name || null,
+    bank_account_type: tenant.bank_account_type || null,
+    bank_account_number: tenant.bank_account_number || null,
+    bank_account_holder: tenant.bank_account_holder || null,
+    bank_rut: tenant.bank_rut || null,
+    has_tinaja: tenant.has_tinaja ?? true,
   })
 }

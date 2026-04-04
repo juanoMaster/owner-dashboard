@@ -465,6 +465,12 @@ function TenantModal({ data, saving, onSave, onClose }: any) {
     owner_whatsapp: data.owner_whatsapp || "",
     deposit_percent: data.deposit_percent || 20,
     gender: data.gender || "female",
+    bank_name: data.bank_name || "",
+    bank_account_type: data.bank_account_type || "",
+    bank_account_number: data.bank_account_number || "",
+    bank_account_holder: data.bank_account_holder || "",
+    bank_rut: data.bank_rut || "",
+    has_tinaja: data.has_tinaja ?? true,
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   return (
@@ -490,6 +496,25 @@ function TenantModal({ data, saving, onSave, onClose }: any) {
             <option value="female">Mujer — Bienvenida</option>
             <option value="male">Hombre — Bienvenido</option>
           </select>
+        </div>
+        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Datos bancarios</div>
+        </div>
+        {[
+          { key: "bank_name", label: "Nombre del banco" },
+          { key: "bank_account_type", label: "Tipo de cuenta" },
+          { key: "bank_account_number", label: "Número de cuenta" },
+          { key: "bank_account_holder", label: "Titular de la cuenta" },
+          { key: "bank_rut", label: "RUT titular" },
+        ].map(f => (
+          <div key={f.key} style={{ marginBottom: "16px" }}>
+            <label style={LABEL}>{f.label}</label>
+            <input type="text" value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
+          </div>
+        ))}
+        <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <input type="checkbox" id="has-tinaja" checked={form.has_tinaja} onChange={e => setForm(p => ({ ...p, has_tinaja: e.target.checked }))} style={{ width: "16px", height: "16px", cursor: "pointer" }} />
+          <label htmlFor="has-tinaja" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>¿Tiene tinaja de madera?</label>
         </div>
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
           <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}

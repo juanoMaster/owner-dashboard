@@ -7,26 +7,12 @@ function fmt(n: number) {
   return "$" + n.toLocaleString("es-CL")
 }
 
-const TRINIDAD_CABIN_IDS = new Set([
-  "b0fd873b-fe33-479a-b00c-908c3ac6c52d",
-  "6802b931-398e-4f38-9b08-b724a672b702",
-  "6650debc-4258-4045-9b4c-55c9352d6fcf",
-])
-
-const BANK_INFO: Record<string, { banco: string; tipo: string; numero: string; titular: string; rut?: string }> = {
-  "11518e5f-6a0b-4bdc-bb6a-a1e142544579": { banco: "BancoEstado", tipo: "Cuenta RUT", numero: "15.665.466-3", titular: "Rukatraro" },
-  "db307f3e-fd56-49b3-b4c5-868c7607c31e": { banco: "BancoEstado", tipo: "Cuenta RUT", numero: "15.157.523", titular: "Angélica Ancalef", rut: "13.157.523-8" },
-}
-
-function LogoNegocio({ businessName, tenantId }: { businessName: string; tenantId: string }) {
-  const isTrinidad = tenantId === "db307f3e-fd56-49b3-b4c5-868c7607c31e"
+function LogoNegocio({ businessName }: { businessName: string }) {
   const parts = businessName.split(" ")
   const first = parts[0] || "Takai"
   const rest = parts.slice(1).join(" ")
   const logoStyle: CSSProperties = { fontFamily: "Georgia,serif", fontSize: "20px", letterSpacing: "3px", color: "#e8d5a3", textTransform: "uppercase" }
   const spanStyle: CSSProperties = { color: "#7ab87a" }
-
-  if (isTrinidad) return <div style={logoStyle}>{"CABAÑAS"}<span style={spanStyle}>{" TRINIDAD"}</span></div>
   return <div style={logoStyle}>{first}<span style={spanStyle}>{rest ? " " + rest : ""}</span></div>
 }
 
@@ -37,7 +23,6 @@ function ReservarInner() {
   const visitedParam = params.get("visited") || ""
   const visitedCabins = visitedParam ? visitedParam.split(",").filter(Boolean) : []
 
-  const isTrinidad = TRINIDAD_CABIN_IDS.has(cabin_id)
   const precio_noche = Number(params.get("price")) || 30000
   const capacidad = Number(params.get("capacity")) || 4
   const today = new Date().toISOString().split("T")[0]
@@ -47,6 +32,11 @@ function ReservarInner() {
   const [ownerName, setOwnerName] = useState("")
   const [slug, setSlug] = useState("")
   const [hasTinaja, setHasTinaja] = useState(true)
+  const [bankName, setBankName] = useState("")
+  const [bankAccountType, setBankAccountType] = useState("")
+  const [bankAccountNumber, setBankAccountNumber] = useState("")
+  const [bankAccountHolder, setBankAccountHolder] = useState("")
+  const [bankRut, setBankRut] = useState("")
 
   const [paso, setPaso] = useState(1)
   const [checkIn, setCheckIn] = useState("")
@@ -75,6 +65,11 @@ function ReservarInner() {
         if (data.owner_name) setOwnerName(data.owner_name)
         if (data.slug) setSlug(data.slug)
         if (typeof data.has_tinaja === "boolean") setHasTinaja(data.has_tinaja)
+        if (data.bank_name) setBankName(data.bank_name)
+        if (data.bank_account_type) setBankAccountType(data.bank_account_type)
+        if (data.bank_account_number) setBankAccountNumber(data.bank_account_number)
+        if (data.bank_account_holder) setBankAccountHolder(data.bank_account_holder)
+        if (data.bank_rut) setBankRut(data.bank_rut)
       })
       .catch(() => {})
   }, [cabin_id])
@@ -91,24 +86,25 @@ function ReservarInner() {
   const fechas_ok = noches_ok && dispStatus === "ok"
   const form_ok = fechas_ok && nombre.trim().length > 0 && whatsapp.trim().length > 0
 
-  const bank = tenantId ? BANK_INFO[tenantId] : null
-  const bankRows = bank
+  const hasBankInfo = !!(bankName && bankAccountNumber && bankAccountHolder)
+  const bankRows = hasBankInfo
     ? [
-        ["Banco", bank.banco],
-        ["Tipo", bank.tipo],
-        ["Número", bank.numero],
-        ["Titular", bank.titular],
-        ...(bank.rut ? [["RUT", bank.rut]] : []),
+        ["Banco", bankName],
+        ...(bankAccountType ? [["Tipo", bankAccountType]] : []),
+        ["Número", bankAccountNumber],
+        ["Titular", bankAccountHolder],
+        ...(bankRut ? [["RUT", bankRut]] : []),
         ["Monto exacto", fmt(deposito)],
       ]
     : [["Monto exacto", fmt(deposito)]]
 
-  const bankRowsFinal = bank
+  const bankRowsFinal = hasBankInfo
     ? [
-        ["Banco", bank.banco],
-        ["Cuenta RUT", bank.numero],
-        ["Titular", bank.titular],
-        ...(bank.rut ? [["RUT titular", bank.rut]] : []),
+        ["Banco", bankName],
+        ...(bankAccountType ? [["Tipo cuenta", bankAccountType]] : []),
+        ["Número", bankAccountNumber],
+        ["Titular", bankAccountHolder],
+        ...(bankRut ? [["RUT titular", bankRut]] : []),
         ["Monto exacto", fmt(deposito)],
         ["Glosa / Concepto", codigo],
       ]
@@ -233,14 +229,14 @@ function ReservarInner() {
     return s.stepBase
   }
 
-  const showTinaja = !isTrinidad
+  const showTinaja = hasTinaja
 
   return (
     <div style={s.page}>
       <style>{"@media (min-width: 768px) { .reservar-body { max-width: 820px !important; } .paso1-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .paso1-grid > div:nth-child(2) { grid-column: 1; grid-row: 2; } .paso1-grid > div:nth-child(3) { grid-column: 2; grid-row: 1 / 3; align-self: start; } .paso2-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } }"}</style>
 
       <nav style={s.nav}>
-        <LogoNegocio businessName={businessName} tenantId={tenantId} />
+        <LogoNegocio businessName={businessName} />
         {paso === 1 && (
           <a href={backHref} style={{ ...s.backBtn, textDecoration: "none" }}>&#8592; Volver</a>
         )}

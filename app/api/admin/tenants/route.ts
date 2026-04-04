@@ -15,6 +15,12 @@ export async function POST(req: Request) {
         owner_whatsapp: body.owner_whatsapp || null,
         deposit_percent: Number(body.deposit_percent) || 20,
         gender: body.gender || "female",
+        bank_name: body.bank_name || null,
+        bank_account_type: body.bank_account_type || null,
+        bank_account_number: body.bank_account_number || null,
+        bank_account_holder: body.bank_account_holder || null,
+        bank_rut: body.bank_rut || null,
+        has_tinaja: body.has_tinaja ?? true,
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -27,6 +33,12 @@ export async function POST(req: Request) {
         owner_whatsapp: body.owner_whatsapp || null,
         deposit_percent: Number(body.deposit_percent) || 20,
         gender: body.gender || "female",
+        bank_name: body.bank_name || null,
+        bank_account_type: body.bank_account_type || null,
+        bank_account_number: body.bank_account_number || null,
+        bank_account_holder: body.bank_account_holder || null,
+        bank_rut: body.bank_rut || null,
+        has_tinaja: body.has_tinaja ?? true,
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })
