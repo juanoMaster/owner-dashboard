@@ -373,7 +373,7 @@ export function emailRecordatorio48h(data: {
 
     ${footer(data.business_name)}
   `)
-}$template = @'
+}
 
 export function emailReservaCancelada(data: {
   business_name: string
