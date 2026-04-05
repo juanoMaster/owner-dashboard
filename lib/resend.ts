@@ -321,13 +321,9 @@ export function emailReservaConfirmada(data: {
               </td></tr>
             </table>
 
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center">
-                  <a href="https://wa.me/${data.owner_whatsapp.replace(/[^0-9]/g, '')}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;">Enviar comprobante por WhatsApp →</a>
-                </td>
-              </tr>
-            </table>
+            <p style="margin:24px 0 0;color:#555;font-size:15px;line-height:1.6;text-align:center;">
+              Gracias por elegir <strong>${data.business_name}</strong>. ¡Te esperamos y esperamos que disfrutes mucho tu estadía! 🏡
+            </p>
           </td>
         </tr>
 
@@ -370,8 +366,8 @@ export function emailRecordatorio48h(data: {
         <tr>
           <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#C9A84C;font-size:13px;letter-spacing:3px;text-transform:uppercase;">powered by</p>
-            <h1 style="margin:4px 0 0;color:#C9A84C;font-size:28px;font-weight:700;letter-spacing:2px;">TAKAI</h1>
-            <p style="margin:8px 0 0;color:#ffffff;font-size:18px;font-weight:600;">${data.business_name}</p>
+            <h1 style="margin:4px 0 0;color:#C9A84C;font-size:42px;font-weight:700;letter-spacing:4px;">TAKAI</h1>
+            <p style="margin:12px 0 0;color:#ffffff;font-size:22px;font-weight:600;letter-spacing:1px;">${data.business_name}</p>
           </td>
         </tr>
 
