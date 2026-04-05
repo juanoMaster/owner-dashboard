@@ -46,8 +46,7 @@ export function emailNuevaReservaTurista(data: {
           <td style="padding:40px;">
             <h2 style="margin:0 0 8px;color:#1a1a1a;font-size:22px;">¡Hola, ${data.guest_name}!</h2>
             <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
-              Recibimos tu solicitud de reserva en <strong>${data.business_name}</strong>. 
-              ${saludo === "la dueña" ? "La dueña" : "El dueño"} revisará tu solicitud y te confirmará a la brevedad.
+              Recibimos tu solicitud de reserva en <strong>${data.business_name}</strong>, lo revisaremos y te confirmaremos a la brevedad.
             </p>
 
             <!-- Detalle reserva -->
@@ -88,7 +87,7 @@ export function emailNuevaReservaTurista(data: {
             </table>
 
             <p style="margin:0 0 8px;color:#555;font-size:14px;line-height:1.6;">
-              Una vez confirmada tu reserva, recibirás los datos de pago para realizar el adelanto.
+              En cuanto ${data.gender === "female" ? "la dueña" : "el dueño"} confirme el pago, recibirás un email con la confirmación oficial de tu reserva.
             </p>
             <p style="margin:0;color:#999;font-size:13px;">
               Guarda tu código <strong style="color:#C9A84C;">${data.booking_code}</strong> para cualquier consulta.
@@ -261,8 +260,8 @@ export function emailReservaConfirmada(data: {
         <tr>
           <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#C9A84C;font-size:13px;letter-spacing:3px;text-transform:uppercase;">powered by</p>
-            <h1 style="margin:4px 0 0;color:#C9A84C;font-size:28px;font-weight:700;letter-spacing:2px;">TAKAI</h1>
-            <p style="margin:8px 0 0;color:#ffffff;font-size:18px;font-weight:600;">${data.business_name}</p>
+            <h1 style="margin:4px 0 0;color:#C9A84C;font-size:42px;font-weight:700;letter-spacing:4px;">TAKAI</h1>
+            <p style="margin:12px 0 0;color:#ffffff;font-size:22px;font-weight:600;letter-spacing:1px;">${data.business_name}</p>
           </td>
         </tr>
 
