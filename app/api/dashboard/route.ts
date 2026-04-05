@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
@@ -14,10 +14,10 @@ export async function GET(req: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 })
     }
-    const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
+    const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
     const { data: link, error: linkError } = await supabaseAdmin
       .from("dashboard_links")
-      .select("*")
+      .select("tenant_id")
       .eq("token_hash", tokenHash)
       .eq("active", true)
       .maybeSingle()
@@ -27,15 +27,48 @@ export async function GET(req: NextRequest) {
     if (!link) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
-    const { data: cabins, error } = await supabaseAdmin
-      .from("cabins")
-      .select("*")
-      .eq("tenant_id", link.tenant_id)
-    if (error) {
+
+    const tenantId = link.tenant_id
+
+    const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
+      supabaseAdmin
+        .from("tenants")
+        .select("owner_name, business_name, gender")
+        .eq("id", tenantId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("cabins")
+        .select("id, name, capacity, base_price_night")
+        .eq("tenant_id", tenantId)
+        .eq("active", true),
+      supabaseAdmin
+        .from("bookings")
+        .select(
+          "id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, created_at"
+        )
+        .eq("tenant_id", tenantId)
+        .eq("status", "draft")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false }),
+    ])
+
+    if (tenantRes.error) {
+      return NextResponse.json({ error: "Error loading tenant" }, { status: 500 })
+    }
+    if (cabinsRes.error) {
       return NextResponse.json({ error: "Error loading cabins" }, { status: 500 })
     }
-    return NextResponse.json({ cabins })
-  } catch (err) {
+    if (bookingsRes.error) {
+      return NextResponse.json({ error: "Error loading bookings" }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      tenant_id: tenantId,
+      tenant: tenantRes.data ?? null,
+      cabins: cabinsRes.data ?? [],
+      bookings: bookingsRes.data ?? [],
+    })
+  } catch {
     return NextResponse.json({ error: "Server crash" }, { status: 500 })
   }
 }
