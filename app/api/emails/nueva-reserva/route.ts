@@ -21,7 +21,7 @@ export async function POST(req: Request) {
           business_name, owner_name, email_owner, owner_whatsapp,
           deposit_percent, has_tinaja, gender, slug,
           bank_name, bank_account_type, bank_account_number,
-          bank_account_holder, bank_rut
+          bank_account_holder, bank_rut, dashboard_token
         )
       `)
       .eq("id", booking_id)
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       (new Date(booking.check_out).getTime() - new Date(booking.check_in).getTime()) / 86400000
     )
     const depositAmount = Math.round(booking.total_amount * (t.deposit_percent / 100))
-    const dashboardUrl = `https://owner-dashboard-navy.vercel.app/?token=${t.slug}`
+    const dashboardUrl = `https://owner-dashboard-navy.vercel.app/?token=${t.dashboard_token}`
 
     const formatDate = (d: string) =>
       new Date(d + "T12:00:00").toLocaleDateString("es-CL", {
