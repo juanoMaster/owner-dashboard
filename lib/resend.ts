@@ -424,6 +424,3 @@ export function emailReservaCancelada(data: {
     ${footer(data.business_name)}
   `)
 }
-'@
-
-Add-Content lib\resend.ts $template
