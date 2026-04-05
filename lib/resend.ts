@@ -373,4 +373,57 @@ export function emailRecordatorio48h(data: {
 
     ${footer(data.business_name)}
   `)
+}$template = @'
+
+export function emailReservaCancelada(data: {
+  business_name: string
+  guest_name: string
+  cabin_name: string
+  check_in: string
+  check_out: string
+  booking_code: string
+}) {
+  return wrapper(`
+    ${header(data.business_name)}
+    <tr>
+      <td style="padding:40px 40px 24px;text-align:center;">
+        <div style="display:inline-block;background:#2a1010;border:1px solid #5a2d2d;border-radius:20px;padding:8px 20px;margin-bottom:20px;">
+          <p style="margin:0;font-family:${FONT_SANS};font-size:11px;color:#e05555;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Reserva no confirmada</p>
+        </div>
+        <h2 style="margin:0 0 12px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Hola, ${data.guest_name}</h2>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
+          Lamentablemente no fue posible confirmar tu reserva en
+          <span style="color:${TEXT_LIGHT};font-weight:600;">${data.business_name}</span>.
+          Las fechas han quedado liberadas.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:0 40px 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
+          ${codeBlock(data.booking_code)}
+          ${detailRow("Cabaña", data.cabin_name)}
+          ${detailRow("Check-in", data.check_in)}
+          ${detailRow("Check-out", data.check_out, false, true)}
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:0 40px 40px;text-align:center;">
+        <p style="margin:0 0 8px;font-family:${FONT};font-size:22px;color:${GOLD};font-weight:400;">
+          Siempre serás bienvenido 🌿
+        </p>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
+          Si tienes dudas o quieres intentarlo en otras fechas,<br/>no dudes en contactarnos.
+        </p>
+      </td>
+    </tr>
+
+    ${footer(data.business_name)}
+  `)
 }
+'@
+
+Add-Content lib\resend.ts $template
