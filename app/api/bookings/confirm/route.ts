@@ -16,6 +16,7 @@ export async function POST(req: Request) {
       .select("cabin_id, check_in, check_out, total_amount, notes, status")
       .eq("id", booking_id)
       .eq("tenant_id", tenant_id)
+      .is("deleted_at", null)
       .maybeSingle()
 
     if (fetchErr) return NextResponse.json({ error: "Error al buscar reserva: " + fetchErr.message }, { status: 500 })

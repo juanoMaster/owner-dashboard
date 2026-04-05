@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
     const { data: link, error: linkError } = await supabaseAdmin
       .from("dashboard_links")
-      .select("tenant_id")
+      .select("id, tenant_id")
       .eq("token_hash", tokenHash)
       .eq("active", true)
       .maybeSingle()
@@ -30,6 +30,12 @@ export async function GET(req: NextRequest) {
     }
 
     const tenantId = link.tenant_id
+
+    supabaseAdmin
+      .from("dashboard_links")
+      .update({ last_used_at: new Date().toISOString() })
+      .eq("id", link.id)
+      .then(() => {})
 
     const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
       supabaseAdmin

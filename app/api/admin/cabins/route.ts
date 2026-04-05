@@ -21,17 +21,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, cabin: data })
     }
     if (action === "update") {
-      const { data, error } = await supabase.from("cabins").update({
+      const q = supabase.from("cabins").update({
         name: body.name,
         capacity: Number(body.capacity) || 4,
         base_price_night: Number(body.base_price_night) || 0,
         cleaning_fee: Number(body.cleaning_fee) || 0,
-      }).eq("id", id).select().single()
+      }).eq("id", id)
+      if (body.tenant_id) q.eq("tenant_id", body.tenant_id)
+      const { data, error } = await q.select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, cabin: data })
     }
     if (action === "toggle") {
-      const { data, error } = await supabase.from("cabins").update({ active: body.active }).eq("id", id).select().single()
+      const q2 = supabase.from("cabins").update({ active: body.active }).eq("id", id)
+      if (body.tenant_id) q2.eq("tenant_id", body.tenant_id)
+      const { data, error } = await q2.select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, cabin: data })
     }

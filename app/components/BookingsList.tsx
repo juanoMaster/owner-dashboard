@@ -12,6 +12,11 @@ interface Booking {
   deposit_amount: number
   balance_amount: number
   notes: string | Record<string, string> | null
+  status: string
+  guest_name: string | null
+  guest_email: string | null
+  guest_phone: string | null
+  booking_code: string | null
   created_at: string
 }
 
@@ -146,9 +151,9 @@ export default function BookingsList({
       ) : (
         bookings.map((b) => {
           const info = parseNotes(b.notes || "")
-          const nombre = info["Nombre"] || "Sin nombre"
-          const whatsapp = info["WhatsApp"] || ""
-          const codigo = info["Codigo"] || info["C\u00f3digo"] || ""
+          const nombre = b.guest_name || info["Nombre"] || "Sin nombre"
+          const whatsapp = b.guest_phone || info["WhatsApp"] || ""
+          const codigo = b.booking_code || info["Codigo"] || info["C\u00f3digo"] || ""
           const tinajaRaw = info["Tinaja"] || ""
           const tinajaDias = parseInt(tinajaRaw) || 0
           const isLoading = loadingId === b.id

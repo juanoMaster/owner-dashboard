@@ -9,10 +9,15 @@ export async function POST(req: Request) {
   const { action, id } = body
   try {
     if (action === "create") {
+      const slug = body.slug ||
+        (body.business_name as string)?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") ||
+        null
       const { data, error } = await supabase.from("tenants").insert([{
         business_name: body.business_name,
         owner_name: body.owner_name,
         owner_whatsapp: body.owner_whatsapp || null,
+        email_owner: body.email_owner || null,
+        slug,
         deposit_percent: Number(body.deposit_percent) || 20,
         gender: body.gender || "female",
         bank_name: body.bank_name || null,
@@ -31,6 +36,7 @@ export async function POST(req: Request) {
         business_name: body.business_name,
         owner_name: body.owner_name,
         owner_whatsapp: body.owner_whatsapp || null,
+        email_owner: body.email_owner || null,
         deposit_percent: Number(body.deposit_percent) || 20,
         gender: body.gender || "female",
         bank_name: body.bank_name || null,
