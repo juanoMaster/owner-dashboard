@@ -17,8 +17,6 @@ export function emailNuevaReservaTurista(data: {
   tinaja_amount?: number
   gender: string
 }) {
-  const saludo = data.gender === "female" ? "la dueña" : "el dueño"
-
   return `
 <!DOCTYPE html>
 <html lang="es">
@@ -31,25 +29,19 @@ export function emailNuevaReservaTurista(data: {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:600px;width:100%;">
-        
-        <!-- Header -->
         <tr>
           <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#C9A84C;font-size:13px;letter-spacing:3px;text-transform:uppercase;">powered by</p>
-            <h1 style="margin:4px 0 0;color:#C9A84C;font-size:28px;font-weight:700;letter-spacing:2px;">TAKAI</h1>
-            <p style="margin:8px 0 0;color:#ffffff;font-size:18px;font-weight:600;">${data.business_name}</p>
+            <h1 style="margin:4px 0 0;color:#C9A84C;font-size:42px;font-weight:700;letter-spacing:4px;">TAKAI</h1>
+            <p style="margin:12px 0 0;color:#ffffff;font-size:22px;font-weight:600;letter-spacing:1px;">${data.business_name}</p>
           </td>
         </tr>
-
-        <!-- Body -->
         <tr>
           <td style="padding:40px;">
             <h2 style="margin:0 0 8px;color:#1a1a1a;font-size:22px;">¡Hola, ${data.guest_name}!</h2>
             <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
               Recibimos tu solicitud de reserva en <strong>${data.business_name}</strong>, lo revisaremos y te confirmaremos a la brevedad.
             </p>
-
-            <!-- Detalle reserva -->
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;overflow:hidden;margin-bottom:24px;">
               <tr><td style="padding:16px 20px;border-bottom:1px solid #eee;">
                 <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Código de reserva</p>
@@ -85,7 +77,6 @@ export function emailNuevaReservaTurista(data: {
                 <p style="margin:4px 0 0;font-size:18px;color:#C9A84C;font-weight:700;">$${data.deposit_amount.toLocaleString("es-CL")} CLP</p>
               </td></tr>
             </table>
-
             <p style="margin:0 0 8px;color:#555;font-size:14px;line-height:1.6;">
               En cuanto ${data.gender === "female" ? "la dueña" : "el dueño"} confirme el pago, recibirás un email con la confirmación oficial de tu reserva.
             </p>
@@ -94,15 +85,12 @@ export function emailNuevaReservaTurista(data: {
             </p>
           </td>
         </tr>
-
-        <!-- Footer -->
         <tr>
           <td style="background:#f0f0f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#999;font-size:12px;">Este email fue enviado por <strong>Takai.cl</strong> en nombre de ${data.business_name}</p>
             <p style="margin:4px 0 0;color:#bbb;font-size:11px;">Sistema de reservas para cabañas en Chile</p>
           </td>
         </tr>
-
       </table>
     </td></tr>
   </table>
@@ -140,20 +128,16 @@ export function emailNuevaReservaDuena(data: {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:600px;width:100%;">
-        
         <tr>
           <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#C9A84C;font-size:13px;letter-spacing:3px;text-transform:uppercase;">TAKAI — NUEVA SOLICITUD</p>
             <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;font-weight:600;">${data.business_name}</h1>
           </td>
         </tr>
-
         <tr>
           <td style="padding:40px;">
             <h2 style="margin:0 0 8px;color:#1a1a1a;font-size:20px;">Nueva reserva recibida 🏡</h2>
             <p style="margin:0 0 24px;color:#555;font-size:15px;">Hola ${data.owner_name}, tienes una nueva solicitud de reserva.</p>
-
-            <!-- Datos del turista -->
             <h3 style="margin:0 0 12px;color:#1a1a1a;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Datos del turista</h3>
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;overflow:hidden;margin-bottom:24px;">
               <tr><td style="padding:14px 20px;border-bottom:1px solid #eee;">
@@ -173,8 +157,6 @@ export function emailNuevaReservaDuena(data: {
                 <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;">${data.guests_count} personas</p>
               </td></tr>
             </table>
-
-            <!-- Detalle reserva -->
             <h3 style="margin:0 0 12px;color:#1a1a1a;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Detalle de la reserva</h3>
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;overflow:hidden;margin-bottom:24px;">
               <tr><td style="padding:14px 20px;border-bottom:1px solid #eee;">
@@ -203,7 +185,6 @@ export function emailNuevaReservaDuena(data: {
                 <p style="margin:4px 0 0;font-size:16px;color:#1a1a1a;font-weight:700;">$${data.total_amount.toLocaleString("es-CL")} / <span style="color:#C9A84C;">$${data.deposit_amount.toLocaleString("es-CL")}</span> CLP</p>
               </td></tr>
             </table>
-
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td align="center">
@@ -213,13 +194,11 @@ export function emailNuevaReservaDuena(data: {
             </table>
           </td>
         </tr>
-
         <tr>
           <td style="background:#f0f0f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#999;font-size:12px;">Takai.cl — Sistema de reservas para cabañas en Chile</p>
           </td>
         </tr>
-
       </table>
     </td></tr>
   </table>
@@ -256,7 +235,6 @@ export function emailReservaConfirmada(data: {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:600px;width:100%;">
-        
         <tr>
           <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#C9A84C;font-size:13px;letter-spacing:3px;text-transform:uppercase;">powered by</p>
@@ -264,19 +242,12 @@ export function emailReservaConfirmada(data: {
             <p style="margin:12px 0 0;color:#ffffff;font-size:22px;font-weight:600;letter-spacing:1px;">${data.business_name}</p>
           </td>
         </tr>
-
         <tr>
           <td style="padding:40px;">
             <div style="text-align:center;margin-bottom:24px;">
               <span style="display:inline-block;background:#e8f5e9;color:#2e7d32;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;">✓ Reserva Confirmada</span>
             </div>
-
-            <h2 style="margin:0 0 8px;color:#1a1a1a;font-size:20px;">¡Tu reserva está confirmada, ${data.guest_name}!</h2>
-            <p style="margin:0 0 24px;color:#555;font-size:15px;line-height:1.6;">
-              Para completar la reserva, realiza el adelanto del depósito a la cuenta indicada abajo e informa el comprobante por WhatsApp.
-            </p>
-
-            <!-- Detalle -->
+            <h2 style="margin:0 0 24px;color:#1a1a1a;font-size:20px;text-align:center;">¡Tu reserva está confirmada, ${data.guest_name}!</h2>
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;overflow:hidden;margin-bottom:24px;">
               <tr><td style="padding:14px 20px;border-bottom:1px solid #eee;">
                 <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Código</p>
@@ -287,52 +258,27 @@ export function emailReservaConfirmada(data: {
                 <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.cabin_name}</p>
               </td></tr>
               <tr><td style="padding:14px 20px;border-bottom:1px solid #eee;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Check-in / Check-out</p>
-                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.check_in} → ${data.check_out}</p>
+                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Check-in</p>
+                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.check_in}</p>
               </td></tr>
               <tr><td style="padding:14px 20px;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Total / Adelanto a pagar</p>
-                <p style="margin:4px 0 0;font-size:16px;color:#1a1a1a;font-weight:700;">$${data.total_amount.toLocaleString("es-CL")} / <span style="color:#C9A84C;">$${data.deposit_amount.toLocaleString("es-CL")} CLP</span></p>
+                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Check-out</p>
+                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.check_out}</p>
               </td></tr>
             </table>
-
-            <!-- Datos bancarios -->
-            <h3 style="margin:0 0 12px;color:#1a1a1a;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Datos de transferencia</h3>
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbf0;border:1px solid #C9A84C;border-radius:8px;overflow:hidden;margin-bottom:24px;">
-              <tr><td style="padding:14px 20px;border-bottom:1px solid #f0e8d0;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Banco</p>
-                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.bank_name}</p>
-              </td></tr>
-              <tr><td style="padding:14px 20px;border-bottom:1px solid #f0e8d0;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Tipo de cuenta</p>
-                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.bank_account_type}</p>
-              </td></tr>
-              <tr><td style="padding:14px 20px;border-bottom:1px solid #f0e8d0;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Número de cuenta</p>
-                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.bank_account_number}</p>
-              </td></tr>
-              <tr><td style="padding:14px 20px;border-bottom:1px solid #f0e8d0;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Titular</p>
-                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.bank_account_holder}</p>
-              </td></tr>
-              <tr><td style="padding:14px 20px;">
-                <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">RUT</p>
-                <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.bank_rut}</p>
-              </td></tr>
-            </table>
-
-            <p style="margin:24px 0 0;color:#555;font-size:15px;line-height:1.6;text-align:center;">
-              Gracias por elegir <strong>${data.business_name}</strong>. ¡Te esperamos y esperamos que disfrutes mucho tu estadía! 🏡
+            <p style="margin:0 0 8px;color:#555;font-size:15px;line-height:1.6;text-align:center;">
+              Gracias por elegirnos, <strong>${data.guest_name}</strong>. Tu reserva está 100% confirmada. 🎉
+            </p>
+            <p style="margin:0;color:#555;font-size:15px;line-height:1.6;text-align:center;">
+              ¡Te esperamos con los brazos abiertos y esperamos que disfrutes cada momento de tu estadía!
             </p>
           </td>
         </tr>
-
         <tr>
           <td style="background:#f0f0f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#999;font-size:12px;">Takai.cl — Sistema de reservas para cabañas en Chile</p>
           </td>
         </tr>
-
       </table>
     </td></tr>
   </table>
@@ -362,7 +308,6 @@ export function emailRecordatorio48h(data: {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:600px;width:100%;">
-        
         <tr>
           <td style="background:#1a1a1a;padding:32px 40px;text-align:center;">
             <p style="margin:0;color:#C9A84C;font-size:13px;letter-spacing:3px;text-transform:uppercase;">powered by</p>
@@ -370,13 +315,11 @@ export function emailRecordatorio48h(data: {
             <p style="margin:12px 0 0;color:#ffffff;font-size:22px;font-weight:600;letter-spacing:1px;">${data.business_name}</p>
           </td>
         </tr>
-
         <tr>
           <td style="padding:40px;text-align:center;">
             <p style="font-size:48px;margin:0 0 16px;">🏡</p>
             <h2 style="margin:0 0 8px;color:#1a1a1a;font-size:22px;">¡Tu estadía es en 2 días!</h2>
             <p style="margin:0 0 32px;color:#555;font-size:15px;">Hola ${data.guest_name}, te recordamos que se acerca tu reserva en <strong>${data.business_name}</strong>.</p>
-
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:8px;overflow:hidden;margin-bottom:24px;text-align:left;">
               <tr><td style="padding:14px 20px;border-bottom:1px solid #eee;">
                 <p style="margin:0;font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Código</p>
@@ -395,17 +338,14 @@ export function emailRecordatorio48h(data: {
                 <p style="margin:4px 0 0;font-size:15px;color:#1a1a1a;font-weight:600;">${data.check_out}</p>
               </td></tr>
             </table>
-
             <a href="https://wa.me/${data.owner_whatsapp.replace(/[^0-9]/g, '')}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;font-size:15px;">Contactar por WhatsApp →</a>
           </td>
         </tr>
-
         <tr>
           <td style="background:#f0f0f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#999;font-size:12px;">Takai.cl — Sistema de reservas para cabañas en Chile</p>
           </td>
         </tr>
-
       </table>
     </td></tr>
   </table>
