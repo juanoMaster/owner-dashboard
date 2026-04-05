@@ -53,7 +53,7 @@ function parseNotes(notes: any): Record<string, string> {
 }
 
 function fmt(n: number): string {
-  return "$" + Math.round(n).toLocaleString("es-CL")
+  return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 })
 }
 
 function formatDate(dateStr: string): string {

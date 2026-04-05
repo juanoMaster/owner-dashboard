@@ -4,7 +4,7 @@ import { useState, useEffect, CSSProperties } from "react"
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
 interface Props { cabins: Cabin[]; tenantId: string }
 
-function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL") }
+function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
 
 export default function ManualBookingForm({ cabins, tenantId }: Props) {
   const [open, setOpen] = useState(false)

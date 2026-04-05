@@ -9,7 +9,6 @@ import { getPersistedToken, setPersistedToken, clearPersistedToken } from "@/lib
 type TenantRow = {
   owner_name: string | null
   business_name: string | null
-  gender: string | null
 }
 
 type DashboardPayload = {
@@ -31,6 +30,11 @@ type DashboardPayload = {
     deposit_amount: number
     balance_amount: number
     notes: string | Record<string, string> | null
+    status: string
+    guest_name: string | null
+    guest_email: string | null
+    guest_phone: string | null
+    booking_code: string | null
     created_at: string
   }>
 }
@@ -153,8 +157,8 @@ export default function HomeDashboardClient() {
   }
 
   const tenant = payload.tenant
-  const ownerName = tenant?.owner_name?.split(" ")[0] || "Propietaria"
-  const greeting = tenant?.gender === "male" ? "Bienvenido" : "Bienvenida"
+  const ownerName = tenant?.owner_name?.split(" ")[0] || "Propietario"
+  const greeting = "Bienvenido/a"
   const businessName = tenant?.business_name || "Panel"
   const cabins = payload.cabins || []
   const bookings = payload.bookings || []
@@ -284,7 +288,7 @@ export default function HomeDashboardClient() {
                 {cabin.name}
               </div>
               <div style={{ color: "#5a7058", fontSize: "12px" }}>
-                {cabin.capacity} personas · ${Number(cabin.base_price_night).toLocaleString("es-CL")}/noche
+                {cabin.capacity} personas · ${Math.round(Number(cabin.base_price_night)).toLocaleString("es-CL", { maximumFractionDigits: 0 })}/noche
               </div>
             </div>
             <a
