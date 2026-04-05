@@ -8,6 +8,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#080808" />
+        <link rel="apple-touch-icon" href="/takai-logo.png" />
+      </head>
       <body style={{ margin: 0, fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial", background: "#0d1a12" }}>
         {children}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "16px", borderTop: "1px solid #1a2e1a" }}>
