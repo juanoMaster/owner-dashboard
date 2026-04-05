@@ -18,7 +18,7 @@ function header(business_name: string) {
   return `
     <tr>
       <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
-        <img src="${LOGO_URL}" alt="Takai" width="120" height="120" style="display:block;margin:0 auto 20px;border-radius:16px;" />
+        <img src="${LOGO_URL}" alt="Takai" width="156" height="156" style="display:block;margin:0 auto 20px;border-radius:16px;" />
         <div style="width:40px;height:2px;background:${GOLD};margin:0 auto 16px;"></div>
         <p style="margin:0;color:${TEXT_LIGHT};font-family:${FONT};font-size:22px;font-weight:400;letter-spacing:2px;">${business_name}</p>
         <p style="margin:6px 0 0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">Reservas · Chile</p>
@@ -37,6 +37,7 @@ function footer(business_name: string) {
         <p style="margin:8px 0 0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;line-height:1.6;">
           Enviado en nombre de ${business_name}<br/>Sistema de reservas para cabañas en Chile
         </p>
+        <p style="margin:12px 0 0;color:#2d3d50;font-family:${FONT_SANS};font-size:10px;letter-spacing:2px;text-transform:uppercase;">Powered by TAKAI</p>
       </td>
     </tr>
   `
@@ -131,7 +132,7 @@ export function emailNuevaReservaTurista(data: {
     <tr>
       <td style="padding:0 40px 40px;">
         <p style="margin:0 0 10px;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};line-height:1.8;">
-          En cuanto ${data.gender === "female" ? "la dueña" : "el dueño"} confirme el pago, recibirás un email con la confirmación oficial de tu reserva.
+          Una vez verificada la transferencia, recibirás la confirmación oficial de tu reserva por este mismo medio.
         </p>
         <p style="margin:0;font-family:${FONT_SANS};font-size:13px;color:#4a5568;">
           Guarda tu código <span style="color:${GOLD};font-weight:700;letter-spacing:2px;">${data.booking_code}</span> para cualquier consulta.
