@@ -19,7 +19,6 @@ export async function POST(req: Request) {
     if (!booking) return NextResponse.json({ error: "Reserva no encontrada (id: " + booking_id + ")" }, { status: 404 })
     if (booking.status === "confirmed") return NextResponse.json({ success: true })
 
-    // Buscar reservas confirmadas con fechas que se cruzan (excluyendo la actual)
     const { data: conflicts } = await supabase
       .from("bookings")
       .select("id, check_in, check_out")
@@ -41,7 +40,6 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("bookings").update({ status: "confirmed" }).eq("id", booking_id)
     if (error) return NextResponse.json({ error: "Error al actualizar: " + error.message }, { status: 500 })
 
-    // Actualizar bloques del booking, pero preservar reason="manual" (color azul)
     await supabase.from("calendar_blocks")
       .update({ reason: "system_booking" })
       .eq("booking_id", booking_id)
@@ -56,6 +54,18 @@ export async function POST(req: Request) {
       details: { check_in: booking.check_in, check_out: booking.check_out, total_amount: booking.total_amount, notes: booking.notes },
       performed_by: "owner_panel",
     })
+
+    // Email reserva confirmada
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app"}/api/emails/reserva-confirmada`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id })
+      })
+    } catch (e) {
+      // fallo silencioso
+    }
+
     return NextResponse.json({ success: true })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

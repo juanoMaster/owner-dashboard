@@ -2,11 +2,6 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 function generateBookingCode(): string {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
   const part1 = Array.from({ length: 3 }, () =>
@@ -17,13 +12,19 @@ function generateBookingCode(): string {
 }
 
 export async function POST(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   try {
     const body = await req.json()
     const { cabin_id, check_in, check_out, guests, tinaja_days, notes } = body
     const guest_name = body.guest_name || body.nombre || ""
-    const guest_whatsapp = body.guest_whatsapp || body.whatsapp || ""
+    const guest_email = body.guest_email || body.email || ""
+    const guest_phone = body.guest_phone || body.guest_whatsapp || body.whatsapp || ""
 
-    if (!cabin_id || !check_in || !check_out || !guest_name || !guest_whatsapp || !guests) {
+    if (!cabin_id || !check_in || !check_out || !guest_name || !guest_phone || !guests) {
       return NextResponse.json({ success: false, message: "Faltan campos obligatorios" }, { status: 400 })
     }
 
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       .single()
 
     if (cabinError || !cabin) {
-      return NextResponse.json({ success: false, message: "Cabana no encontrada" }, { status: 404 })
+      return NextResponse.json({ success: false, message: "Cabaña no encontrada" }, { status: 404 })
     }
 
     const tenant_id = cabin.tenant_id
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     )
 
     if (nights < 1) {
-      return NextResponse.json({ success: false, message: "Las fechas no son validas" }, { status: 400 })
+      return NextResponse.json({ success: false, message: "Las fechas no son válidas" }, { status: 400 })
     }
 
     const guestCount = parseInt(guests)
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
 
     const notesData = JSON.stringify({
       nombre: guest_name,
-      whatsapp: guest_whatsapp,
+      whatsapp: guest_phone,
       codigo: bookingCode,
       notas: notes || "",
       origen: "web",
@@ -76,6 +77,11 @@ export async function POST(req: Request) {
         deposit_percent: 20, deposit_amount: deposit, balance_amount: balance,
         status: "draft",
         notes: notesData,
+        booking_code: bookingCode,
+        guest_name,
+        guest_email,
+        guest_phone,
+        tinaja_amount: tinajaTotal,
         commission_percent: 0, commission_amount: 0, commission_status: "not_applicable"
       }])
       .select("id")
@@ -95,7 +101,7 @@ export async function POST(req: Request) {
 
     if (blockError) {
       await supabase.from("bookings").delete().eq("id", booking.id)
-      return NextResponse.json({ success: false, message: "Las fechas no estan disponibles" }, { status: 409 })
+      return NextResponse.json({ success: false, message: "Las fechas no están disponibles" }, { status: 409 })
     }
 
     await logAudit({
@@ -107,47 +113,17 @@ export async function POST(req: Request) {
       details: { check_in, check_out, nights, total_amount: total, deposit_amount: deposit, origen: "formulario_turista", guest_name, booking_code: bookingCode },
       performed_by: "formulario_turista",
     })
-    // Notificación por email
-    const resendKey = process.env.RESEND_API_KEY
-    if (resendKey) {
+
+    // Email automático via nuevo sistema
+    if (guest_email) {
       try {
-        await fetch("https://api.resend.com/emails", {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app"}/api/emails/nueva-reserva`, {
           method: "POST",
-          headers: {
-            "Authorization": "Bearer " + resendKey,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "Takai.cl <onboarding@resend.dev>",
-            to: ["contacto@takai.cl"],
-            subject: "🏕️ Nueva reserva — " + bookingCode,
-            html:
-              "<div style='font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px'>" +
-              "<div style='background:#27ae60;padding:16px 24px;border-radius:8px 8px 0 0'>" +
-              "<h2 style='margin:0;color:white;font-size:18px'>Nueva reserva recibida</h2>" +
-              "</div>" +
-              "<div style='background:white;padding:24px;border-radius:0 0 8px 8px'>" +
-              "<table style='width:100%;border-collapse:collapse'>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;width:140px;border-bottom:1px solid #eee'>Código</td><td style='padding:10px 0;color:#111;font-size:14px;font-weight:700;border-bottom:1px solid #eee'>" + bookingCode + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Huésped</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + guest_name + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>WhatsApp</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + guest_whatsapp + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Cabaña</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + cabin.name + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Check-in</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + check_in + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Check-out</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + check_out + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Noches</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + nights + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Personas</td><td style='padding:10px 0;color:#111;font-size:14px;border-bottom:1px solid #eee'>" + guests + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#555;font-size:14px;border-bottom:1px solid #eee'>Total</td><td style='padding:10px 0;color:#111;font-size:16px;font-weight:700;border-bottom:1px solid #eee'>$" + total.toLocaleString("es-CL") + "</td></tr>" +
-              "<tr><td style='padding:10px 0;color:#e67e22;font-size:14px'>Adelanto 20%</td><td style='padding:10px 0;color:#e67e22;font-size:16px;font-weight:700'>$" + deposit.toLocaleString("es-CL") + "</td></tr>" +
-              "</table>" +
-              "<div style='margin-top:20px;padding:14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#856404'>" +
-              "💬 Contactar huésped por WhatsApp: <a href='https://wa.me/" + guest_whatsapp.replace(/[^0-9]/g, "") + "' style='color:#856404'>" + guest_whatsapp + "</a>" +
-              "</div>" +
-              "</div>" +
-              "</div>",
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ booking_id: booking.id })
         })
       } catch (e) {
-        // fallo silencioso
+        // fallo silencioso — la reserva ya quedó guardada
       }
     }
 
