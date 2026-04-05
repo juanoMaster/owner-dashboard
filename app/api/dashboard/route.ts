@@ -1,4 +1,5 @@
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
@@ -62,13 +63,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Error loading bookings" }, { status: 500 })
     }
 
+    const bookings = bookingsRes.data ?? []
+    console.log("[/api/dashboard] tenant_id:", tenantId, "| bookings (draft, no deleted):", bookings.length)
+
     return NextResponse.json({
       tenant_id: tenantId,
       tenant: tenantRes.data ?? null,
       cabins: cabinsRes.data ?? [],
-      bookings: bookingsRes.data ?? [],
+      bookings,
     })
   } catch {
     return NextResponse.json({ error: "Server crash" }, { status: 500 })
   }
 }
+
