@@ -1,3 +1,4 @@
+import { sendErrorAlert } from "@/lib/resend"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
@@ -17,9 +18,13 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  let cabin_id: string | undefined
+  let check_in: string | undefined
+  let check_out: string | undefined
   try {
     const body = await req.json()
-    const { cabin_id, check_in, check_out, guests, tinaja_days, notes } = body
+    ;({ cabin_id, check_in, check_out } = body)
+    const { guests, tinaja_days, notes } = body
     const guest_name = body.guest_name || body.nombre || ""
     const guest_email = body.guest_email || body.email || ""
     const guest_phone = body.guest_phone || body.guest_whatsapp || body.whatsapp || ""
@@ -129,6 +134,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
   } catch (err: any) {
+    await sendErrorAlert({ route: "POST /api/bookings", error: err.message, details: { cabin_id, check_in, check_out } })
     return NextResponse.json({ success: false, message: err.message || "Error interno" }, { status: 500 })
   }
 }

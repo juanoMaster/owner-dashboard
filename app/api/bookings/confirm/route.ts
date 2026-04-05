@@ -1,11 +1,14 @@
+import { sendErrorAlert } from "@/lib/resend"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
 export async function POST(req: Request) {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  let booking_id: string | undefined
+  let tenant_id: string | undefined
   try {
-    const { booking_id, tenant_id } = await req.json()
+    ;({ booking_id, tenant_id } = await req.json())
     if (!booking_id || !tenant_id) return NextResponse.json({ error: "booking_id y tenant_id son requeridos" }, { status: 400 })
 
     const { data: booking, error: fetchErr } = await supabase
@@ -68,6 +71,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
+    await sendErrorAlert({ route: "POST /api/bookings/confirm", error: err.message, details: { booking_id } })
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
