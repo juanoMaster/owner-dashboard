@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
+import { getPersistedToken, setPersistedToken } from "@/lib/takai-token"
 import FullCalendar from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
@@ -40,8 +41,10 @@ function formatDate(d: string) {
 
 function CalendarContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const cabinId = searchParams.get("cabin_id") || ""
-  const token = searchParams.get("token") || ""
+  const [token, setToken] = useState("")
+  const [authReady, setAuthReady] = useState(false)
   const [events, setEvents] = useState<any[]>([])
   const [cabinName, setCabinName] = useState("Cabaña")
   const [businessName, setBusinessName] = useState("")
@@ -85,7 +88,25 @@ function CalendarContent() {
     }))
   }
 
-  useEffect(() => { loadEvents() }, [cabinId])
+  useEffect(() => {
+    const urlToken = searchParams.get("token") || ""
+    const stored = typeof window !== "undefined" ? getPersistedToken() || "" : ""
+    const t = urlToken || stored
+    if (typeof window !== "undefined" && urlToken) {
+      setPersistedToken(urlToken)
+      const qs = cabinId ? "?cabin_id=" + encodeURIComponent(cabinId) : ""
+      router.replace("/calendar" + qs)
+    } else if (typeof window !== "undefined" && t) {
+      setPersistedToken(t)
+    }
+    setToken(t)
+    setAuthReady(true)
+  }, [searchParams, cabinId, router])
+
+  useEffect(() => {
+    if (!cabinId) return
+    loadEvents()
+  }, [cabinId])
 
   function handleEventClick(info: any) {
     const p = info.event.extendedProps
@@ -175,11 +196,29 @@ function CalendarContent() {
     else alert("Error al liberar las fechas.")
   }
 
-  if (!cabinId) return (
-    <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
-      Cabaña no especificada
-    </div>
-  )
+  if (!cabinId) {
+    return (
+      <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
+        Cabaña no especificada
+      </div>
+    )
+  }
+
+  if (!authReady) {
+    return (
+      <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
+        Cargando…
+      </div>
+    )
+  }
+
+  if (!token) {
+    return (
+      <div style={{ background: "#0d1a12", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5a7058", fontFamily: "sans-serif" }}>
+        Acceso no autorizado
+      </div>
+    )
+  }
 
   const calendarCss = ".fc { --fc-border-color: #1a2e1a; --fc-today-bg-color: #7ab87a0d; color: #b8ccb8; } .fc .fc-toolbar { margin-bottom: 16px !important; } .fc .fc-toolbar-title { color: #e8d5a3; font-family: Georgia, serif; font-size: 17px; letter-spacing: 0.5px; } .fc .fc-button { background: #0a1510 !important; border: 1px solid #1a2e1a !important; color: #6a8a68 !important; font-size: 11px !important; letter-spacing: 0.5px !important; padding: 6px 14px !important; border-radius: 8px !important; } .fc .fc-button:hover { background: #162618 !important; color: #a8c8a8 !important; } .fc .fc-button-primary:not(:disabled).fc-button-active { background: #7ab87a !important; border-color: #7ab87a !important; color: #0d1a12 !important; font-weight: 700 !important; } .fc .fc-col-header-cell { background: #0a1510; border-color: #1a2e1a; } .fc .fc-col-header-cell-cushion { color: #3a5a38; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; padding: 10px 4px; font-weight: 600; } .fc .fc-daygrid-day-number { color: #5a7a58; text-decoration: none; font-size: 12px; padding: 6px 8px; } .fc .fc-day-today .fc-daygrid-day-number { color: #7ab87a; font-weight: 700; } .fc-theme-standard td, .fc-theme-standard th { border-color: #1a2e1a; } .fc-theme-standard .fc-scrollgrid { border-color: #1a2e1a; border-radius: 12px; overflow: hidden; } .fc .fc-daygrid-body { background: #0d1a12; } .fc .fc-daygrid-day.fc-day-today { background: #7ab87a08; } .fc .fc-event { cursor: pointer; border: none !important; border-radius: 4px !important; padding: 1px 5px !important; font-size: 11px !important; font-weight: 600 !important; letter-spacing: 0.3px !important; } .fc .fc-event:hover { opacity: 0.8; transform: translateY(-1px); transition: all 0.15s; } .fc .fc-daygrid-day:hover { background: #7ab87a05; }"
 
@@ -197,7 +236,7 @@ function CalendarContent() {
       <div style={{ padding: "28px 24px", maxWidth: "1000px", margin: "0 auto" }}>
 
         <div style={{ marginBottom: "28px" }}>
-          <a href={"/?token=" + token}
+          <a href="/"
             style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#6a8a68", fontSize: "14px", padding: "11px 24px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginBottom: "20px" }}>
             {"← Volver al panel"}
           </a>

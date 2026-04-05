@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       }, { status: 409 })
     }
 
-    const { error } = await supabase.from("bookings").update({ status: "confirmed" }).eq("id", booking_id)
+    const { error } = await supabase.from("bookings").update({ status: "confirmed" }).eq("id", booking_id).eq("tenant_id", tenant_id)
     if (error) return NextResponse.json({ error: "Error al actualizar: " + error.message }, { status: 500 })
 
     await supabase.from("calendar_blocks")

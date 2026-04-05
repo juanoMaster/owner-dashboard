@@ -1,5 +1,4 @@
-export const dynamic = 'force-dynamic'
-
+export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
@@ -34,22 +33,16 @@ export async function GET(req: NextRequest) {
     const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
       supabaseAdmin
         .from("tenants")
-        .select("owner_name, business_name")
+        .select("business_name, owner_name")
         .eq("id", tenantId)
         .maybeSingle(),
-      supabaseAdmin
-        .from("cabins")
-        .select("id, name, capacity, base_price_night")
-        .eq("tenant_id", tenantId)
-        .eq("active", true),
+      supabaseAdmin.from("cabins").select("id, name").eq("tenant_id", tenantId),
       supabaseAdmin
         .from("bookings")
         .select(
-          "id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, status, guest_name, guest_email, guest_phone, booking_code, created_at"
+          "id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, status, notes, created_at, deleted_at, deleted_by"
         )
         .eq("tenant_id", tenantId)
-        .eq("status", "draft")
-        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
     ])
 
@@ -63,17 +56,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Error loading bookings" }, { status: 500 })
     }
 
-    const bookings = bookingsRes.data ?? []
-    console.log("[/api/dashboard] tenant_id:", tenantId, "| bookings (draft, no deleted):", bookings.length)
-
     return NextResponse.json({
-      tenant_id: tenantId,
       tenant: tenantRes.data ?? null,
       cabins: cabinsRes.data ?? [],
-      bookings,
+      bookings: bookingsRes.data ?? [],
     })
   } catch {
     return NextResponse.json({ error: "Server crash" }, { status: 500 })
   }
 }
-

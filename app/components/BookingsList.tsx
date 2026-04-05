@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface Booking {
   id: string
@@ -65,9 +65,23 @@ function cleanPhone(phone: string): string {
   return phone.replace(/[^0-9+]/g, "")
 }
 
-export default function BookingsList({ bookings: initial, cabins, tenantId }: { bookings: Booking[]; cabins: Cabin[]; tenantId: string }) {
+export default function BookingsList({
+  bookings: initial,
+  cabins,
+  tenantId,
+  onDashboardRefresh,
+}: {
+  bookings: Booking[]
+  cabins: Cabin[]
+  tenantId: string
+  onDashboardRefresh?: () => Promise<boolean>
+}) {
   const [bookings, setBookings] = useState(initial)
   const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setBookings(initial)
+  }, [initial])
 
   const cabinMap: Record<string, string> = {}
   cabins.forEach((c) => { cabinMap[c.id] = c.name })
@@ -83,7 +97,10 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
       })
       const data = await res.json()
       if (res.ok) {
-        setBookings((prev) => prev.filter((b) => b.id !== id))
+        const ok = (await onDashboardRefresh?.()) ?? false
+        if (!ok) {
+          setBookings((prev) => prev.filter((b) => b.id !== id))
+        }
       } else {
         alert("Error al confirmar: " + (data.error || data.message || "c\u00f3digo " + res.status))
       }
@@ -103,7 +120,10 @@ export default function BookingsList({ bookings: initial, cabins, tenantId }: { 
         body: JSON.stringify({ booking_id: id, tenant_id: tenantId }),
       })
       if (res.ok) {
-        setBookings((prev) => prev.filter((b) => b.id !== id))
+        const ok = (await onDashboardRefresh?.()) ?? false
+        if (!ok) {
+          setBookings((prev) => prev.filter((b) => b.id !== id))
+        }
       } else {
         alert("Error al cancelar la reserva")
       }

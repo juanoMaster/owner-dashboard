@@ -1,5 +1,17 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
 import HomeDashboardClient from "./components/HomeDashboardClient"
+
+/** Manifest distinto al del resto del sitio: el icono del dueño debe abrir "/" (panel), no /inicio (turista). */
+export const metadata: Metadata = {
+  title: "Panel · Takai",
+  description: "Panel de gestión de reservas",
+  manifest: "/manifest-panel.json",
+  appleWebApp: {
+    capable: true,
+    title: "Takai Panel",
+  },
+}
 
 function DashboardFallback() {
   return (

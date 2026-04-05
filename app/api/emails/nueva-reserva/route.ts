@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         cabins(name),
         tenants(
           business_name, owner_name, email_owner, owner_whatsapp,
-          deposit_percent, has_tinaja, gender, slug,
+          deposit_percent, has_tinaja, slug,
           bank_name, bank_account_type, bank_account_number,
           bank_account_holder, bank_rut, dashboard_token
         )
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         ...commonData,
         owner_name: t.owner_name,
         guest_name: booking.guest_name,
-        gender: t.gender,
+        gender: undefined,
       })
     })
 
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
           guest_name: booking.guest_name,
           guest_email: booking.guest_email,
           guest_phone: booking.guest_phone,
-          guests_count: booking.guests_count,
+          guests_count: booking.guests,
           dashboard_url: dashboardUrl,
         })
       })

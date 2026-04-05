@@ -1,18 +1,27 @@
-import { Analytics } from "@vercel/analytics/react";
-export const metadata = {
-  title: "Dashboard Reservas",
-  description: "Panel de gestión de reservas",
-  icons: { icon: "/icon.svg" }
-};
+import { Analytics } from "@vercel/analytics/react"
+import type { Metadata, Viewport } from "next"
+
+export const metadata: Metadata = {
+  title: "Takai",
+  description: "Reservas y panel de cabañas",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/takai-logo.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Takai",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#080808",
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#080808" />
-        <link rel="apple-touch-icon" href="/takai-logo.png" />
-      </head>
       <body style={{ margin: 0, fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial", background: "#0d1a12" }}>
         {children}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "16px", borderTop: "1px solid #1a2e1a" }}>
@@ -24,5 +33,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Analytics />
       </body>
     </html>
-  );
+  )
 }

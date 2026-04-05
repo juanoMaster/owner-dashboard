@@ -4,8 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import BookingsList from "./BookingsList"
 import ManualBookingForm from "./ManualBookingForm"
-
-const TAKAI_TOKEN_KEY = "takai_token"
+import { getPersistedToken, setPersistedToken, clearPersistedToken } from "@/lib/takai-token"
 
 type TenantRow = {
   owner_name: string | null
@@ -82,14 +81,10 @@ export default function HomeDashboardClient() {
   const load = useCallback(
     async (token: string, fromUrl: boolean) => {
       setStatus("loading")
-      const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token))
+      const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token), { cache: "no-store" })
       if (!res.ok) {
         if (!fromUrl) {
-          try {
-            localStorage.removeItem(TAKAI_TOKEN_KEY)
-          } catch {
-            /* ignore */
-          }
+          clearPersistedToken()
         }
         setPayload(null)
         setSessionToken(null)
@@ -98,8 +93,8 @@ export default function HomeDashboardClient() {
       }
       const data = (await res.json()) as DashboardPayload
       try {
+        setPersistedToken(token)
         if (fromUrl) {
-          localStorage.setItem(TAKAI_TOKEN_KEY, token)
           router.replace("/")
         }
       } catch {
@@ -112,10 +107,19 @@ export default function HomeDashboardClient() {
     [router]
   )
 
+  const refreshDashboard = useCallback(async (): Promise<boolean> => {
+    const token = sessionToken
+    if (!token) return false
+    const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token), { cache: "no-store" })
+    if (!res.ok) return false
+    const data = (await res.json()) as DashboardPayload
+    setPayload(data)
+    return true
+  }, [sessionToken])
+
   useEffect(() => {
     const urlToken = searchParams.get("token")
-    const stored =
-      typeof window !== "undefined" ? localStorage.getItem(TAKAI_TOKEN_KEY) : null
+    const stored = typeof window !== "undefined" ? getPersistedToken() : null
     const candidate = urlToken || stored
 
     if (!candidate) {
@@ -154,7 +158,6 @@ export default function HomeDashboardClient() {
   const businessName = tenant?.business_name || "Panel"
   const cabins = payload.cabins || []
   const bookings = payload.bookings || []
-  const token = sessionToken
 
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
@@ -229,7 +232,7 @@ export default function HomeDashboardClient() {
         />
 
         <a
-          href={"/historial?token=" + encodeURIComponent(token)}
+          href="/historial"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -285,12 +288,7 @@ export default function HomeDashboardClient() {
               </div>
             </div>
             <a
-              href={
-                "/calendar?cabin_id=" +
-                encodeURIComponent(cabin.id) +
-                "&token=" +
-                encodeURIComponent(token)
-              }
+              href={"/calendar?cabin_id=" + encodeURIComponent(cabin.id)}
               style={{
                 background: "#7ab87a",
                 color: "#0d1a12",
@@ -311,6 +309,7 @@ export default function HomeDashboardClient() {
           bookings={bookings}
           cabins={cabins.map((c) => ({ id: c.id, name: c.name }))}
           tenantId={payload.tenant_id}
+          onDashboardRefresh={refreshDashboard}
         />
       </main>
     </div>

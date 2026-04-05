@@ -75,6 +75,8 @@ export async function POST(req: Request) {
         subtotal_amount: subtotal, total_amount: total,
         deposit_percent: 20, deposit_amount: deposit, balance_amount: balance,
         status: "draft", notes: notesData,
+        booking_code: bookingCode,
+        guest_name, guest_phone: guest_whatsapp,
         commission_percent: 0, commission_amount: 0, commission_status: "not_applicable"
       }])
       .select("id")

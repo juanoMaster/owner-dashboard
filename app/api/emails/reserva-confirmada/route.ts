@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         cabins(name),
         tenants(
           business_name, owner_name, email_owner, owner_whatsapp,
-          deposit_percent, has_tinaja, gender,
+          deposit_percent, has_tinaja,
           bank_name, bank_account_type, bank_account_number,
           bank_account_holder, bank_rut
         )
@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       .single()
 
     if (error || !booking) return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 })
+    if (!booking.guest_email) return NextResponse.json({ success: true, skipped: "no guest_email" })
 
     const t = booking.tenants
     const nights = Math.round(
