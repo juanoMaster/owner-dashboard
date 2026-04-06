@@ -8,7 +8,8 @@ const TRINIDAD_TENANT_ID = "db307f3e-fd56-49b3-b4c5-868c7607c31e"
 export async function GET() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
   )
 
   const { data: cabins } = await supabase

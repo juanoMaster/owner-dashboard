@@ -5,7 +5,8 @@ import { createClient } from "@supabase/supabase-js"
 export async function GET(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
   )
   const { searchParams } = new URL(req.url)
   const cabin_id = searchParams.get("cabin_id")

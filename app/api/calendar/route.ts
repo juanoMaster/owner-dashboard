@@ -5,7 +5,8 @@ import { createHash } from "crypto"
 export async function GET(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
   )
   const { searchParams } = new URL(req.url)
   const cabinId = searchParams.get("cabin_id")
@@ -67,7 +68,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
   )
   try {
     const { start_date, end_date, cabin_id, token } = await req.json()

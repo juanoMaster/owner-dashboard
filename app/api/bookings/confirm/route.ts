@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
 export async function POST(req: Request) {
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } })
   let booking_id: string | undefined
   let tenant_id: string | undefined
   try {
