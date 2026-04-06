@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
-import { resend, emailReservaCancelada, sendErrorAlert } from "@/lib/resend"
+import { getResend, emailReservaCancelada, sendErrorAlert } from "@/lib/resend"
 
 export async function POST(req: Request) {
   const supabase = createClient(
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     if (booking.guest_email && booking.booking_code) {
       try {
         const t = booking.tenants as any
-        await resend.emails.send({
+        await getResend().emails.send({
           from: t.business_name + " <reservas@takai.cl>",
           to: booking.guest_email,
           subject: "Reserva no confirmada — " + booking.booking_code + " | " + t.business_name,

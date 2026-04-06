@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { resend, emailNuevaReservaTurista, emailNuevaReservaDuena } from "@/lib/resend"
+import { getResend, emailNuevaReservaTurista, emailNuevaReservaDuena } from "@/lib/resend"
 
 export async function POST(req: Request) {
   try {
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     // Email al turista
-    await resend.emails.send({
+    await getResend().emails.send({
       from: `${t.business_name} <reservas@takai.cl>`,
       to: booking.guest_email,
       subject: `Solicitud recibida — ${booking.booking_code} | ${t.business_name}`,
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
     // Email a la dueña (solo si tiene email configurado)
     if (t.email_owner) {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: `Takai.cl <notificaciones@takai.cl>`,
         to: t.email_owner,
         subject: `Nueva reserva — ${booking.booking_code} de ${booking.guest_name}`,

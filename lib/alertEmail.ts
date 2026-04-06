@@ -1,8 +1,8 @@
-import { resend } from "@/lib/resend"
+import { getResend } from "@/lib/resend"
 
 export async function sendAlertEmail(subject: string, details: string): Promise<void> {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "Takai Alertas <notificaciones@takai.cl>",
       to: "contacto@takai.cl",
       subject: "[TAKAI ALERTA] " + subject,

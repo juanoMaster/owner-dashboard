@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { resend, emailReservaConfirmada } from "@/lib/resend"
+import { getResend, emailReservaConfirmada } from "@/lib/resend"
 
 export async function POST(req: Request) {
   try {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         weekday: "long", year: "numeric", month: "long", day: "numeric"
       })
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: `${t.business_name} <reservas@takai.cl>`,
       to: booking.guest_email,
       subject: `✓ Reserva confirmada — ${booking.booking_code} | ${t.business_name}`,

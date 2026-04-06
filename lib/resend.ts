@@ -1,6 +1,10 @@
 import { Resend } from "resend"
 
-export const resend = new Resend(process.env.RESEND_API_KEY)
+let _resend: Resend | null = null
+export function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
+  return _resend
+}
 
 const LOGO_URL = "https://owner-dashboard-navy.vercel.app/takai-logo-email.png"
 const GOLD = "#C9A84C"
@@ -275,7 +279,7 @@ export async function sendErrorAlert(data: {
   details?: any
 }) {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: "Takai Sistema <notificaciones@takai.cl>",
       to: "contacto@takai.cl",
       subject: `🚨 Error en Takai — ${data.route}`,
