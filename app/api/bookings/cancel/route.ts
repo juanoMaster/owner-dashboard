@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
-import { resend, emailReservaCancelada } from "@/lib/resend"
+import { resend, emailReservaCancelada, sendErrorAlert } from "@/lib/resend"
 
 export async function POST(req: Request) {
   const supabase = createClient(
@@ -73,6 +73,7 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ success: true })
   } catch (err: any) {
+    await sendErrorAlert({ route: "POST /api/bookings/cancel", error: err.message })
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

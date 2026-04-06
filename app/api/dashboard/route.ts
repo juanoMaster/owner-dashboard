@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
+import { sendErrorAlert } from "@/lib/resend"
 
 export async function GET(req: NextRequest) {
   const supabaseAdmin = createClient(
@@ -85,7 +86,8 @@ export async function GET(req: NextRequest) {
         "Vercel-CDN-Cache-Control": "no-store",
       },
     })
-  } catch {
+  } catch (err: any) {
+    await sendErrorAlert({ route: "GET /api/dashboard", error: err?.message ?? "Server crash" })
     return NextResponse.json({ error: "Server crash" }, { status: 500 })
   }
 }

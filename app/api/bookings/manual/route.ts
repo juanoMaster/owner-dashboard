@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
+import { sendErrorAlert } from "@/lib/resend"
 
 function generateBookingCode(): string {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
@@ -108,6 +109,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
   } catch (err: any) {
+    await sendErrorAlert({ route: "POST /api/bookings/manual", error: err.message })
     return NextResponse.json({ success: false, message: err.message || "Error interno" }, { status: 500 })
   }
 }
