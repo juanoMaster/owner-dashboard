@@ -13,18 +13,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const token = searchParams.get("token")
     if (!token) {
-      return NextResponse.json({
-  tenant_id: tenantId,
-  tenant: tenantRes.data ?? null,
-  cabins: cabinsRes.data ?? [],
-  bookings,
-}, {
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-    "CDN-Cache-Control": "no-store",
-    "Vercel-CDN-Cache-Control": "no-store",
-  },
-}) error: "Missing token" }, { status: 400 })
+      return NextResponse.json({ error: "Missing token" }, { status: 400 })
     }
     const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
     const { data: link, error: linkError } = await supabaseAdmin
@@ -34,18 +23,7 @@ export async function GET(req: NextRequest) {
       .eq("active", true)
       .maybeSingle()
     if (linkError) {
-      return NextResponse.json({
-  tenant_id: tenantId,
-  tenant: tenantRes.data ?? null,
-  cabins: cabinsRes.data ?? [],
-  bookings,
-}, {
-  headers: {
-    "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-    "CDN-Cache-Control": "no-store",
-    "Vercel-CDN-Cache-Control": "no-store",
-  },
-}) error: "Database error" }, { status: 500 })
+      return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
     if (!link) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
