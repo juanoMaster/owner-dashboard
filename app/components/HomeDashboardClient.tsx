@@ -85,28 +85,34 @@ export default function HomeDashboardClient() {
   const load = useCallback(
     async (token: string, fromUrl: boolean) => {
       setStatus("loading")
-      const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token), { cache: "no-store" })
-      if (!res.ok) {
-        if (!fromUrl) {
-          clearPersistedToken()
+      try {
+        const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token), { cache: "no-store" })
+        if (!res.ok) {
+          if (!fromUrl) {
+            clearPersistedToken()
+          }
+          setPayload(null)
+          setSessionToken(null)
+          setStatus("denied")
+          return
         }
+        const data = (await res.json()) as DashboardPayload
+        try {
+          setPersistedToken(token)
+          if (fromUrl) {
+            router.replace("/")
+          }
+        } catch {
+          /* ignore */
+        }
+        setSessionToken(token)
+        setPayload(data)
+        setStatus("ready")
+      } catch {
         setPayload(null)
         setSessionToken(null)
         setStatus("denied")
-        return
       }
-      const data = (await res.json()) as DashboardPayload
-      try {
-        setPersistedToken(token)
-        if (fromUrl) {
-          router.replace("/")
-        }
-      } catch {
-        /* ignore */
-      }
-      setSessionToken(token)
-      setPayload(data)
-      setStatus("ready")
     },
     [router]
   )
@@ -114,11 +120,15 @@ export default function HomeDashboardClient() {
   const refreshDashboard = useCallback(async (): Promise<boolean> => {
     const token = sessionToken
     if (!token) return false
-    const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token), { cache: "no-store" })
-    if (!res.ok) return false
-    const data = (await res.json()) as DashboardPayload
-    setPayload(data)
-    return true
+    try {
+      const res = await fetch("/api/dashboard?token=" + encodeURIComponent(token), { cache: "no-store" })
+      if (!res.ok) return false
+      const data = (await res.json()) as DashboardPayload
+      setPayload(data)
+      return true
+    } catch {
+      return false
+    }
   }, [sessionToken])
 
   useEffect(() => {

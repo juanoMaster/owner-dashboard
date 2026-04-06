@@ -38,13 +38,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Las fechas no son validas" }, { status: 400 })
     }
 
-    // Verificar que no exista reserva confirmada para esas fechas
+    // Verificar que no exista reserva confirmada (y no cancelada) para esas fechas
     const { data: existingConfirmed } = await supabase
       .from("bookings")
       .select("id, check_in, check_out")
       .eq("cabin_id", cabin_id)
       .eq("tenant_id", tenant_id)
       .eq("status", "confirmed")
+      .is("deleted_at", null)
       .lt("check_in", check_out)
       .gt("check_out", check_in)
 

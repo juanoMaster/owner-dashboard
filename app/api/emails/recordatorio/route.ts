@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { resend, emailRecordatorio48h } from "@/lib/resend"
@@ -29,6 +30,7 @@ export async function GET(req: Request) {
     `)
     .eq("check_in", targetStr)
     .eq("status", "confirmed")
+    .is("deleted_at", null)
 
   if (!bookings || bookings.length === 0) {
     return NextResponse.json({ sent: 0 })
