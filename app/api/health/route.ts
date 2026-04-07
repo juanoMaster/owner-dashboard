@@ -8,6 +8,10 @@ function isAuthorized(req: Request): boolean {
   if (process.env.HEALTH_CHECK_KEY && healthKey === process.env.HEALTH_CHECK_KEY) {
     return true
   }
+  const queryKey = new URL(req.url).searchParams.get("key")
+  if (process.env.HEALTH_CHECK_KEY && queryKey === process.env.HEALTH_CHECK_KEY) {
+    return true
+  }
   const authHeader = req.headers.get("authorization")
   if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) {
     return true
