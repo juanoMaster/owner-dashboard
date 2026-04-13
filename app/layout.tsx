@@ -1,5 +1,7 @@
 import { Analytics } from "@vercel/analytics/react"
 import type { Metadata, Viewport } from "next"
+import "./globals.css"
+import ConditionalFooter from "./components/ConditionalFooter"
 
 export const metadata: Metadata = {
   title: "Takai",
@@ -24,12 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body style={{ margin: 0, fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial", background: "#0d1a12" }}>
         {children}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "16px", borderTop: "1px solid #1a2e1a" }}>
-          <a href="https://takai.cl" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", opacity: 0.5 }}>
-            <img src="/takai-hawk-nobg.png" alt="Takai" style={{ height: "32px", width: "auto" }} />
-            <span style={{ fontSize: "10px", color: "#4a6a48", letterSpacing: "1px" }}>Creado por <strong style={{ color: "#5a7a58" }}>Takai.cl</strong></span>
-          </a>
-        </div>
+        <ConditionalFooter />
         <Analytics />
       </body>
     </html>

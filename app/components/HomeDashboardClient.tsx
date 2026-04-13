@@ -4,11 +4,13 @@ import { useEffect, useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import BookingsList from "./BookingsList"
 import ManualBookingForm from "./ManualBookingForm"
+import EmbedIframeSnippet from "./EmbedIframeSnippet"
 import { getPersistedToken, setPersistedToken, clearPersistedToken } from "@/lib/takai-token"
 
 type TenantRow = {
   owner_name: string | null
   business_name: string | null
+  slug: string | null
 }
 
 type DashboardPayload = {
@@ -233,6 +235,10 @@ export default function HomeDashboardClient() {
           <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
             Desde aquí gestionas tus cabañas, confirmas pagos y bloqueas fechas en el calendario.
           </p>
+        </div>
+
+        <div style={{ marginBottom: "24px" }}>
+          <EmbedIframeSnippet slug={tenant?.slug} />
         </div>
 
         <ManualBookingForm
