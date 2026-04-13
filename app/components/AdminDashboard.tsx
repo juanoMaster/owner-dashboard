@@ -1,6 +1,7 @@
 "use client"
 import { useState, useMemo } from "react"
 import AuditClient from "./AuditClient"
+import NewClientOnboarding from "./NewClientOnboarding"
 
 // ── helpers ──────────────────────────────
 function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL") }
@@ -194,7 +195,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
         {tab === 1 && (
           <div>
             <SectionHeader title="Clientes" action={
-              <button onClick={() => setModal({ type: "tenant", data: {} })} style={{ ...BTN("#c8b878"), background: "#1a1428" }}>
+              <button onClick={() => setModal({ type: "tenant-new" })} style={{ ...BTN("#c8b878"), background: "#1a1428" }}>
                 + Nuevo cliente
               </button>
             } />
@@ -356,8 +357,21 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
 
       </main>
 
-      {/* ══ MODAL TENANT ══ */}
-      {modal?.type === "tenant" && (
+      {/* ══ ONBOARDING NUEVO CLIENTE ══ */}
+      {modal?.type === "tenant-new" && (
+        <NewClientOnboarding
+          adminToken={adminToken}
+          onClose={() => setModal(null)}
+          onCreated={(data) => {
+            setTenants((p) => [...p, data.tenant as any])
+            setCabins((p) => [...p, ...((data.cabins || []) as any[])])
+            setTokens((p) => [...p, data.dashboard_link as any])
+          }}
+        />
+      )}
+
+      {/* ══ MODAL TENANT (editar) ══ */}
+      {modal?.type === "tenant" && modal.data?.id && (
         <TenantModal data={modal.data} saving={saving} onSave={saveTenant} onClose={() => setModal(null)} tenants={tenants} />
       )}
 
