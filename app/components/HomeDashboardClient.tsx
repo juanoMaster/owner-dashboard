@@ -205,7 +205,7 @@ export default function HomeDashboardClient() {
             )
           })}
         </div>
-        <div />
+        <EmbedIframeSnippet slug={tenant?.slug} />
       </nav>
 
       <main style={{ padding: "28px 20px", maxWidth: "680px", margin: "0 auto" }}>
@@ -235,10 +235,6 @@ export default function HomeDashboardClient() {
           <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
             Desde aquí gestionas tus cabañas, confirmas pagos y bloqueas fechas en el calendario.
           </p>
-        </div>
-
-        <div style={{ marginBottom: "24px" }}>
-          <EmbedIframeSnippet slug={tenant?.slug} />
         </div>
 
         <ManualBookingForm
