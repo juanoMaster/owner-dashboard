@@ -15,7 +15,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { toke
   const [
     { data: tenants }, { data: cabins }, { data: tokens }, { data: bookings }, { data: auditRows },
   ] = await Promise.all([
-    supabase.from("tenants").select("id, business_name, owner_name, owner_whatsapp, deposit_percent, active, created_at, slug, dashboard_token").order("created_at"),
+    supabase.from("tenants").select("id, business_name, owner_name, owner_whatsapp, deposit_percent, active, verified, created_at, slug, dashboard_token").order("created_at"),
     supabase.from("cabins").select("id, tenant_id, name, capacity, base_price_night, cleaning_fee, active, created_at").order("tenant_id"),
     supabase.from("dashboard_links").select("id, tenant_id, token_hash, active, created_at, last_used_at").order("created_at", { ascending: false }),
     supabase.from("bookings").select("id, tenant_id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, commission_amount, commission_status, status, notes, created_at, deleted_at").order("created_at", { ascending: false }).limit(2000),

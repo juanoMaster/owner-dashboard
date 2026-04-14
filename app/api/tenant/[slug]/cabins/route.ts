@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url")
+    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified")
     .eq("slug", params.slug)
     .eq("active", true)
     .maybeSingle()
@@ -36,6 +36,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       owner_whatsapp: tenant.owner_whatsapp,
       facebook_url: tenant.facebook_url || null,
       instagram_url: tenant.instagram_url || null,
+      verified: tenant.verified || false,
     },
     cabins: cabins || [],
   })

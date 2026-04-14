@@ -54,6 +54,11 @@ export async function POST(req: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })
     }
+    if (action === "verify") {
+      const { data, error } = await supabase.from("tenants").update({ verified: body.verified }).eq("id", id).select().single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ success: true, tenant: data })
+    }
     return NextResponse.json({ error: "Accion desconocida" }, { status: 400 })
   } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
 }

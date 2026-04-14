@@ -7,6 +7,7 @@ interface TenantData {
   business_name: string
   facebook_url?: string | null
   instagram_url?: string | null
+  verified?: boolean
 }
 
 function SelloGrande() {
@@ -170,14 +171,16 @@ function SlugInner() {
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #04080c 0%, transparent 22%, transparent 52%, #0a0f0a 100%)", pointerEvents: "none" }}/>
 
         {/* Sello — desktop: flotante derecha */}
-        <div className="sello-fl-slug" style={{ position: "absolute", right: "16%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column", alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
-          <SelloGrande />
-          <div style={{ background: "#0d1a12cc", border: "1px solid #e8d5a322", borderRadius: "8px", padding: "6px 12px", textAlign: "center" }}>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>Alojamiento verificado</div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>personalmente por</div>
-            <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#7ab87a", letterSpacing: "1.5px", fontWeight: 700, marginTop: "2px" }}>TAKAI.CL</div>
+        {tenant.verified && (
+          <div className="sello-fl-slug" style={{ position: "absolute", right: "16%", top: "50%", transform: "translateY(-50%)", zIndex: 10, display: "none", flexDirection: "column", alignItems: "center", gap: "6px", filter: "drop-shadow(0 0 24px #e8d5a333)" }}>
+            <SelloGrande />
+            <div style={{ background: "#0d1a12cc", border: "1px solid #e8d5a322", borderRadius: "8px", padding: "6px 12px", textAlign: "center" }}>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>Alojamiento verificado</div>
+              <div style={{ fontFamily: "Georgia, serif", fontSize: "8px", color: "#e8d5a3", letterSpacing: "1px", lineHeight: 1.5 }}>personalmente por</div>
+              <div style={{ fontFamily: "sans-serif", fontSize: "9px", color: "#7ab87a", letterSpacing: "1.5px", fontWeight: 700, marginTop: "2px" }}>TAKAI.CL</div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Header top-left: nombre del negocio */}
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 28px", zIndex: 10 }}>
@@ -203,20 +206,22 @@ function SlugInner() {
               {"Licanray \u00b7 Lago Calafqu\u00e9n \u00b7 Regi\u00f3n de La Araucan\u00eda"}
             </div>
             {/* Sello — mobile: inline */}
-            <div className="sello-pc-slug" style={{ display: "none", flexDirection: "row", alignItems: "center", gap: "10px", marginTop: "10px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
-              <svg width="50" height="60" viewBox="0 0 150 180" fill="none">
-                <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
-                <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
-                <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
-                <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="13" fill="#e8d5a3" fontWeight="700" letterSpacing="1.5">VERIFICADO</text>
-                <text x="75" y="137" textAnchor="middle" fontFamily="sans-serif" fontSize="11" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
-              </svg>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: "10px", color: "#e8d5a3", letterSpacing: "0.5px", textAlign: "left" as const, lineHeight: 1.4 }}>
-                Alojamiento verificado<br/>personalmente por<br/>
-                <span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "11px", letterSpacing: "1.5px" }}>TAKAI.CL</span>
+            {tenant.verified && (
+              <div className="sello-pc-slug" style={{ display: "none", flexDirection: "row", alignItems: "center", gap: "10px", marginTop: "10px", filter: "drop-shadow(0 0 20px #e8d5a322)" }}>
+                <svg width="50" height="60" viewBox="0 0 150 180" fill="none">
+                  <path d="M75 6 L138 32 L138 92 C138 128 110 152 75 165 C40 152 12 128 12 92 L12 32 Z" fill="#1a2a18" stroke="#e8d5a3" strokeWidth="4"/>
+                  <path d="M75 16 L128 38 L128 89 C128 120 104 142 75 153 C46 142 22 120 22 89 L22 38 Z" fill="#0d1a12" stroke="#e8d5a366" strokeWidth="1.5"/>
+                  <circle cx="75" cy="65" r="22" fill="#e8d5a315" stroke="#e8d5a3" strokeWidth="2.5"/>
+                  <path d="M60 65 L70 75 L90 55" stroke="#e8d5a3" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                  <text x="75" y="115" textAnchor="middle" fontFamily="Georgia, serif" fontSize="13" fill="#e8d5a3" fontWeight="700" letterSpacing="1.5">VERIFICADO</text>
+                  <text x="75" y="137" textAnchor="middle" fontFamily="sans-serif" fontSize="11" fill="#7ab87a" letterSpacing="1">TAKAI.CL</text>
+                </svg>
+                <div style={{ fontFamily: "Georgia, serif", fontSize: "10px", color: "#e8d5a3", letterSpacing: "0.5px", textAlign: "left" as const, lineHeight: 1.4 }}>
+                  Alojamiento verificado<br/>personalmente por<br/>
+                  <span style={{ color: "#7ab87a", fontFamily: "sans-serif", fontWeight: 700, fontSize: "11px", letterSpacing: "1.5px" }}>TAKAI.CL</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

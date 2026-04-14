@@ -56,9 +56,23 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
   const [modal, setModal] = useState<any>(null)
   const [saving, setSaving] = useState(false)
   const [newTokenValue, setNewTokenValue] = useState<string | null>(null)
+  const [tenantSort, setTenantSort] = useState<{ key: "business_name" | "created_at"; dir: "asc" | "desc" }>({ key: "created_at", dir: "desc" })
+  const [cabinSort, setCabinSort] = useState<{ key: "tenant_name" | "created_at"; dir: "asc" | "desc" }>({ key: "tenant_name", dir: "asc" })
 
   const tenantMap = useMemo(() => { const m: Record<string,string> = {}; tenants.forEach((t: any) => { m[t.id] = t.business_name }); return m }, [tenants])
   const cabinMap = useMemo(() => { const m: Record<string,string> = {}; cabins.forEach((c: any) => { m[c.id] = c.name }); return m }, [cabins])
+
+  const sortedTenants = useMemo(() => [...tenants].sort((a, b) => {
+    if (tenantSort.key === "business_name") { const c = a.business_name.localeCompare(b.business_name, "es"); return tenantSort.dir === "asc" ? c : -c }
+    const c = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return tenantSort.dir === "asc" ? c : -c
+  }), [tenants, tenantSort])
+
+  const sortedCabins = useMemo(() => [...cabins].sort((a, b) => {
+    if (cabinSort.key === "tenant_name") { const an = tenantMap[a.tenant_id] || ""; const bn = tenantMap[b.tenant_id] || ""; const c = an.localeCompare(bn, "es"); return cabinSort.dir === "asc" ? c : -c }
+    const c = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return cabinSort.dir === "asc" ? c : -c
+  }), [cabins, cabinSort, tenantMap])
 
   async function apiCall(path: string, body: any) {
     const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": adminToken }, body: JSON.stringify(body) })
@@ -73,6 +87,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
       if (data.action === "create") setTenants(p => [...p, r.tenant])
       if (data.action === "update") setTenants(p => p.map((t: any) => t.id === r.tenant.id ? r.tenant : t))
       if (data.action === "toggle") setTenants(p => p.map((t: any) => t.id === r.tenant.id ? r.tenant : t))
+      if (data.action === "verify") setTenants(p => p.map((t: any) => t.id === r.tenant.id ? r.tenant : t))
       setModal(null)
     } else alert(r.error || "Error")
   }
@@ -203,11 +218,18 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
                   <tr>
-                    {["Negocio", "Propietaria", "WhatsApp", "Depósito %", "Estado", "Acciones"].map(h => <th key={h} style={TH}>{h}</th>)}
+                    <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setTenantSort(s => ({ key: "business_name", dir: s.key === "business_name" ? (s.dir === "asc" ? "desc" : "asc") : "asc" }))}>
+                      Negocio{tenantSort.key === "business_name" ? (tenantSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
+                    </th>
+                    {["Propietaria", "WhatsApp", "Depósito %", "Estado", "Verificado"].map(h => <th key={h} style={TH}>{h}</th>)}
+                    <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setTenantSort(s => ({ key: "created_at", dir: s.key === "created_at" ? (s.dir === "asc" ? "desc" : "asc") : "desc" }))}>
+                      Fecha de ingreso{tenantSort.key === "created_at" ? (tenantSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
+                    </th>
+                    <th style={TH}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tenants.map((t: any) => (
+                  {sortedTenants.map((t: any) => (
                     <tr key={t.id}>
                       <td style={{ ...TD, color: "#e8d5f8", fontWeight: 600 }}>{t.business_name}</td>
                       <td style={TD}>{t.owner_name}</td>
@@ -218,6 +240,12 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                           {t.active ? "Activo" : "Inactivo"}
                         </span>
                       </td>
+                      <td style={TD}>
+                        <button onClick={() => saveTenant({ action: "verify", id: t.id, verified: !t.verified })} style={BTN(t.verified ? "#c8b878" : "#3a2e50")}>
+                          {t.verified ? "✓ Verificado" : "Verificar"}
+                        </button>
+                      </td>
+                      <td style={{ ...TD, fontSize: "11px", color: "#5a4870" }}>{fmtDate(t.created_at)}</td>
                       <td style={TD}>
                         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" as const }}>
                           <button onClick={() => setModal({ type: "tenant", data: { ...t } })} style={BTN("#9a78c8")}>Editar</button>
@@ -256,11 +284,18 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
                   <tr>
-                    {["Cliente", "Nombre", "Capacidad", "Precio/noche", "Limpieza", "Estado", "Acciones"].map(h => <th key={h} style={TH}>{h}</th>)}
+                    <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setCabinSort(s => ({ key: "tenant_name", dir: s.key === "tenant_name" ? (s.dir === "asc" ? "desc" : "asc") : "asc" }))}>
+                      Cliente{cabinSort.key === "tenant_name" ? (cabinSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
+                    </th>
+                    {["Nombre", "Capacidad", "Precio/noche", "Limpieza", "Estado"].map(h => <th key={h} style={TH}>{h}</th>)}
+                    <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setCabinSort(s => ({ key: "created_at", dir: s.key === "created_at" ? (s.dir === "asc" ? "desc" : "asc") : "asc" }))}>
+                      Fecha de ingreso{cabinSort.key === "created_at" ? (cabinSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
+                    </th>
+                    <th style={TH}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {cabins.map((c: any) => (
+                  {sortedCabins.map((c: any) => (
                     <tr key={c.id}>
                       <td style={{ ...TD, color: "#9a78c8", fontSize: "11px" }}>{tenantMap[c.tenant_id] || c.tenant_id}</td>
                       <td style={{ ...TD, color: "#e8d5f8", fontWeight: 600 }}>{c.name}</td>
@@ -272,6 +307,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                           {c.active ? "Activa" : "Inactiva"}
                         </span>
                       </td>
+                      <td style={{ ...TD, fontSize: "11px", color: "#5a4870" }}>{fmtDate(c.created_at)}</td>
                       <td style={TD}>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button onClick={() => setModal({ type: "cabin", data: { ...c } })} style={BTN("#9a78c8")}>Editar</button>
