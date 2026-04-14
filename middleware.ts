@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 const SPECIAL_SUBDOMAINS = new Set(["www", "admin", "panel", "reservas", "api"])
-const PASSTHROUGH_HOSTS = new Set(["owner-dashboard-navy.vercel.app", "panel.takai.cl", "reservas.takai.cl"])
+const PASSTHROUGH_HOSTS = new Set(["panel.takai.cl", "reservas.takai.cl"])
 
 function getHostname(req: NextRequest): string {
   const h = req.headers.get("host") || ""

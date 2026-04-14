@@ -31,7 +31,7 @@ Para agregar un nuevo cliente: insertar registros en `tenants`, `cabins`, y `das
 |----------|------|-----|
 | `NEXT_PUBLIC_SUPABASE_URL` | Pública | URL del proyecto Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Pública | Clave anónima Supabase (cliente) |
-| `NEXT_PUBLIC_APP_URL` | Pública | URL base de la app (fallback: `https://owner-dashboard-navy.vercel.app`) |
+| `NEXT_PUBLIC_APP_URL` | Pública | URL base de la app (fallback: `https://panel.takai.cl`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Secreta | Acceso total a BD (solo server) |
 | `RESEND_API_KEY` | Secreta | Envío de emails |
 | `ADMIN_TOKEN` | Secreta | Protege rutas `/api/admin/*` y `/admin` |

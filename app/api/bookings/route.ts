@@ -123,7 +123,7 @@ export async function POST(req: Request) {
     // Email automático via nuevo sistema
     if (guest_email) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app"}/api/emails/nueva-reserva`, {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl"}/api/emails/nueva-reserva`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ booking_id: booking.id })

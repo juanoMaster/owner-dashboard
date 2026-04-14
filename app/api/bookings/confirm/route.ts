@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
     // Email reserva confirmada
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app"}/api/emails/reserva-confirmada`, {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl"}/api/emails/reserva-confirmada`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_id })
