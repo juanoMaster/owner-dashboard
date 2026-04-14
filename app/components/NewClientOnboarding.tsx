@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react"
 
-const PUBLIC_BASE = "https://owner-dashboard-navy.vercel.app"
+const PANEL_BASE = "https://owner-dashboard-navy.vercel.app"
+const CLIENT_DOMAIN_SUFFIX = ".takai.cl"
 
 const BANKS = [
   "BancoEstado",
@@ -216,9 +217,9 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const slug = result?.slug ?? ""
   const token = result?.token ?? ""
   const biz = result?.business_name ?? ""
-  const panelUrl = `${PUBLIC_BASE}/?token=${encodeURIComponent(token)}`
-  const publicUrl = `${PUBLIC_BASE}/${encodeURIComponent(slug)}`
-  const embedUrl = `${PUBLIC_BASE}/embed/${encodeURIComponent(slug)}/calendario`
+  const panelUrl = `${PANEL_BASE}/?token=${encodeURIComponent(token)}`
+  const publicUrl = slug ? `https://${slug}${CLIENT_DOMAIN_SUFFIX}` : ""
+  const embedUrl = slug ? `https://${slug}${CLIENT_DOMAIN_SUFFIX}/embed/calendario` : ""
   const iframeCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" title="Calendario ${slug}"></iframe>`
 
   const copy = async (text: string, feedback: (v: boolean) => void) => {

@@ -22,7 +22,8 @@ export default function EmbedIframeSnippet({ slug }: { slug: string | null | und
     setOrigin(typeof window !== "undefined" ? window.location.origin : "")
   }, [])
 
-  const calendarUrl = origin && slug ? `${origin}/embed/${slug}/calendario` : ""
+  const calendarUrl = slug ? `https://${slug}.takai.cl/embed/calendario` : ""
+  const legacyCalendarUrl = origin && slug ? `${origin}/embed/${slug}/calendario` : ""
   const iframeCode =
     calendarUrl ? `<iframe src="${calendarUrl}" width="100%" height="500" frameborder="0" title="Calendario ${slug}"></iframe>` : ""
 
@@ -179,6 +180,13 @@ export default function EmbedIframeSnippet({ slug }: { slug: string | null | und
                             >
                               {copiedCode ? "¡Copiado!" : "Copiar código"}
                             </button>
+
+                            {legacyCalendarUrl ? (
+                              <div className="mt-3 rounded-lg border border-[#1a2e1a] bg-[#0a1510]/60 px-3 py-2 text-[11px] text-[#5a7058]">
+                                Fallback (URL antigua):{" "}
+                                <span className="font-mono text-[#c8d8c0]">{legacyCalendarUrl}</span>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                       </>
