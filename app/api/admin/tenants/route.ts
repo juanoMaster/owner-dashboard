@@ -59,6 +59,15 @@ export async function POST(req: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })
     }
+    if (action === "delete") {
+      await supabase.from("dashboard_links").delete().eq("tenant_id", id)
+      await supabase.from("calendar_blocks").delete().eq("tenant_id", id)
+      await supabase.from("bookings").delete().eq("tenant_id", id)
+      await supabase.from("cabins").delete().eq("tenant_id", id)
+      const { error } = await supabase.from("tenants").delete().eq("id", id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ success: true })
+    }
     return NextResponse.json({ error: "Accion desconocida" }, { status: 400 })
   } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
 }

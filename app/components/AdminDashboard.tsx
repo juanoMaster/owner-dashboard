@@ -123,6 +123,27 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     else alert(r.error || "Error")
   }
 
+  async function deleteTenant(id: string) {
+    setSaving(true)
+    const r = await apiCall("/api/admin/tenants", { action: "delete", id })
+    setSaving(false)
+    if (r.success) {
+      setTenants(p => p.filter((t: any) => t.id !== id))
+      setCabins(p => p.filter((c: any) => c.tenant_id !== id))
+      setModal(null)
+    } else alert(r.error || "Error al eliminar")
+  }
+
+  async function deleteCabin(id: string) {
+    setSaving(true)
+    const r = await apiCall("/api/admin/cabins", { action: "delete", id })
+    setSaving(false)
+    if (r.success) {
+      setCabins(p => p.filter((c: any) => c.id !== id))
+      setModal(null)
+    } else alert(r.error || "Error al eliminar")
+  }
+
   const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría"]
 
   return (
@@ -262,6 +283,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                               Abrir panel
                             </a>
                           )}
+                          <button onClick={() => setModal({ type: "delete-tenant", data: { id: t.id, business_name: t.business_name } })} style={BTN("#e63946")}>Eliminar</button>
                         </div>
                       </td>
                     </tr>
@@ -314,6 +336,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                           <button onClick={() => saveCabin({ action: "toggle", id: c.id, active: !c.active })} style={BTN(c.active ? "#e63946" : "#27ae60")}>
                             {c.active ? "Desactivar" : "Activar"}
                           </button>
+                          <button onClick={() => setModal({ type: "delete-cabin", data: { id: c.id, name: c.name } })} style={BTN("#e63946")}>Eliminar</button>
                         </div>
                       </td>
                     </tr>
@@ -414,6 +437,48 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
       {/* ══ MODAL CABIN ══ */}
       {modal?.type === "cabin" && (
         <CabinModal data={modal.data} saving={saving} onSave={saveCabin} onClose={() => setModal(null)} tenants={tenants} />
+      )}
+
+      {/* ══ MODAL ELIMINAR TENANT ══ */}
+      {modal?.type === "delete-tenant" && (
+        <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
+          <div style={MODAL_BOX}>
+            <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", color: "#e8d5a3", marginBottom: "16px" }}>Eliminar cliente</div>
+            <p style={{ fontSize: "14px", color: "#c8b8e0", lineHeight: 1.7, marginBottom: "8px" }}>
+              {"¿Estás seguro de eliminar "}<strong style={{ color: "#e8d5f8" }}>{modal.data.business_name}</strong>{"? Se eliminarán todas sus cabañas, reservas y links de acceso. Esta acción no se puede deshacer."}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+              <button onClick={() => deleteTenant(modal.data.id)} disabled={saving}
+                style={{ flex: 1, padding: "12px", background: "#e63946", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
+                {saving ? "Eliminando..." : "Eliminar definitivamente"}
+              </button>
+              <button onClick={() => setModal(null)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid #2a1e38", borderRadius: "10px", color: "#5a4870", fontSize: "13px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL ELIMINAR CABAÑA ══ */}
+      {modal?.type === "delete-cabin" && (
+        <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) setModal(null) }}>
+          <div style={MODAL_BOX}>
+            <div style={{ fontFamily: "Georgia,serif", fontSize: "18px", color: "#e8d5a3", marginBottom: "16px" }}>{"Eliminar caba\u00f1a"}</div>
+            <p style={{ fontSize: "14px", color: "#c8b8e0", lineHeight: 1.7, marginBottom: "8px" }}>
+              {"¿Estás seguro de eliminar la cabaña "}<strong style={{ color: "#e8d5f8" }}>{modal.data.name}</strong>{"? Se eliminarán todos sus bloques de calendario y reservas. Esta acción no se puede deshacer."}
+            </p>
+            <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+              <button onClick={() => deleteCabin(modal.data.id)} disabled={saving}
+                style={{ flex: 1, padding: "12px", background: "#e63946", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
+                {saving ? "Eliminando..." : "Eliminar definitivamente"}
+              </button>
+              <button onClick={() => setModal(null)} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid #2a1e38", borderRadius: "10px", color: "#5a4870", fontSize: "13px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
