@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
+    return NextResponse.json({ success: true, booking_id: booking.id, booking_code: bookingCode, total, deposit, nights })
   } catch (err: any) {
     await sendErrorAlert({ route: "POST /api/bookings", error: err.message, details: { cabin_id, check_in, check_out } })
     return NextResponse.json({ success: false, message: err.message || "Error interno" }, { status: 500 })

@@ -54,6 +54,9 @@ function ReservarInner() {
   const [autoAssignId, setAutoAssignId] = useState("")
   const [suggest, setSuggest] = useState<any>(null)
   const [redTakai, setRedTakai] = useState(false)
+  const [bookingId, setBookingId] = useState("")
+  const [mpEnabled, setMpEnabled] = useState<boolean | null>(null)
+  const [mpLoading, setMpLoading] = useState(false)
 
   useEffect(() => {
     if (!cabin_id) return
@@ -145,9 +148,40 @@ function ReservarInner() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || data.error || "Error al confirmar")
-      setCodigo(data.booking_code); setPaso(4)
+      setCodigo(data.booking_code)
+      if (data.booking_id) {
+        setBookingId(data.booking_id)
+        try {
+          const mpRes = await fetch("/api/mp/status?booking_id=" + data.booking_id)
+          const mpData = await mpRes.json()
+          setMpEnabled(mpData.mp_enabled === true)
+        } catch {
+          setMpEnabled(false)
+        }
+      } else {
+        setMpEnabled(false)
+      }
+      setPaso(4)
     } catch (e: any) { setSubmitError(e.message) }
     finally { setLoading(false) }
+  }
+
+  async function pagarConMp() {
+    setMpLoading(true)
+    setSubmitError("")
+    try {
+      const res = await fetch("/api/mp/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: bookingId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Error al iniciar el pago")
+      window.location.href = data.init_point
+    } catch (e: any) {
+      setSubmitError(e.message)
+      setMpLoading(false)
+    }
   }
 
   const newVisited = [...visitedCabins, cabin_id].join(",")
@@ -457,26 +491,51 @@ function ReservarInner() {
             <div style={s.successTitle}>Solicitud enviada</div>
             <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "8px", letterSpacing: "1px", textTransform: "uppercase" as const }}>{"Tu código de reserva"}</div>
             <div style={s.successCode}>{codigo}</div>
-            <div style={s.successDesc}>
-              Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
-              {"Una vez que " + (ownerName || businessName) + " verifique tu transferencia de "}
-              <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>
-              {", recibirás la confirmación en tu WhatsApp" + (whatsapp ? " (" + whatsapp + ")" : "") + (email ? " y en " + email : "") + "."}
-            </div>
-            <div style={s.bank}>
-              <div style={s.bankTitle}>Datos para la transferencia</div>
-              {bankRowsFinal.map(([k, v], idx, arr) => (
-                <div key={k} style={{ ...s.bankRow, borderBottom: idx === arr.length - 1 ? "none" : "1px solid #ffffff07" }}>
-                  <span style={s.bankKey}>{k}</span><span style={s.bankVal}>{v}</span>
+
+            {mpEnabled === true ? (
+              <>
+                <div style={s.successDesc}>
+                  Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
+                  {"Para confirmar tu reserva, completa el pago del adelanto de "}
+                  <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>
+                  {" con Mercado Pago."}
                 </div>
-              ))}
-            </div>
-            <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
-              {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que " + (ownerName || businessName) + " identifique tu pago. Tienes un máximo de 24 horas para realizar la transferencia. Pasado ese plazo, la reserva será cancelada y las fechas quedarán disponibles nuevamente."}
-            </div>
-            <a href={backHref} style={{ display: "block", marginTop: "24px", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
-              Volver al inicio
-            </a>
+                {submitError && <div style={s.err}>{submitError}</div>}
+                <button
+                  onClick={pagarConMp}
+                  disabled={mpLoading}
+                  style={{ width: "100%", background: "#009ee3", color: "#ffffff", border: "none", borderRadius: "10px", padding: "14px", fontSize: "15px", fontWeight: 700, cursor: mpLoading ? "not-allowed" as const : "pointer", fontFamily: "sans-serif", opacity: mpLoading ? 0.8 : 1 }}
+                >
+                  {mpLoading ? "Redirigiendo..." : "Pagar con Mercado Pago →"}
+                </button>
+                <a href={backHref} style={{ display: "block", marginTop: "12px", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                  Volver al inicio
+                </a>
+              </>
+            ) : (
+              <>
+                <div style={s.successDesc}>
+                  Hola <strong style={{ color: "#c8d8c0" }}>{nombre}</strong>, tu solicitud fue recibida.<br /><br />
+                  {"Una vez que " + (ownerName || businessName) + " verifique tu transferencia de "}
+                  <strong style={{ color: "#7ab87a" }}>{fmt(deposito)}</strong>
+                  {", recibirás la confirmación en tu WhatsApp" + (whatsapp ? " (" + whatsapp + ")" : "") + (email ? " y en " + email : "") + "."}
+                </div>
+                <div style={s.bank}>
+                  <div style={s.bankTitle}>Datos para la transferencia</div>
+                  {bankRowsFinal.map(([k, v], idx, arr) => (
+                    <div key={k} style={{ ...s.bankRow, borderBottom: idx === arr.length - 1 ? "none" : "1px solid #ffffff07" }}>
+                      <span style={s.bankKey}>{k}</span><span style={s.bankVal}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
+                  {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que " + (ownerName || businessName) + " identifique tu pago. Tienes un máximo de 24 horas para realizar la transferencia. Pasado ese plazo, la reserva será cancelada y las fechas quedarán disponibles nuevamente."}
+                </div>
+                <a href={backHref} style={{ display: "block", marginTop: "24px", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
+                  Volver al inicio
+                </a>
+              </>
+            )}
           </div>
         )}
 
