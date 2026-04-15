@@ -56,6 +56,7 @@ function ReservarInner() {
   const [redTakai, setRedTakai] = useState(false)
   const [bookingId, setBookingId] = useState("")
   const [mpEnabled, setMpEnabled] = useState<boolean | null>(null)
+  const [tenantMpEnabled, setTenantMpEnabled] = useState(false)
   const [mpLoading, setMpLoading] = useState(false)
 
   useEffect(() => {
@@ -73,6 +74,7 @@ function ReservarInner() {
         if (data.bank_account_number) setBankAccountNumber(data.bank_account_number)
         if (data.bank_account_holder) setBankAccountHolder(data.bank_account_holder)
         if (data.bank_rut) setBankRut(data.bank_rut)
+        if (data.mp_enabled) setTenantMpEnabled(true)
       })
       .catch(() => {})
   }, [cabin_id])
@@ -154,8 +156,15 @@ function ReservarInner() {
         try {
           const mpRes = await fetch("/api/mp/status?booking_id=" + data.booking_id)
           const mpData = await mpRes.json()
-          setMpEnabled(mpData.mp_enabled === true)
-        } catch {
+          console.log("[MP status]", mpRes.status, mpData)
+          if (!mpRes.ok) {
+            console.warn("[MP status] respuesta no OK:", mpData.error)
+            setMpEnabled(false)
+          } else {
+            setMpEnabled(mpData.mp_enabled === true)
+          }
+        } catch (e) {
+          console.error("[MP status] error de red:", e)
           setMpEnabled(false)
         }
       } else {
@@ -434,7 +443,10 @@ function ReservarInner() {
             <div style={metodoPago === "tarjeta" ? s.payOptSel : s.payOpt} onClick={() => setMetodoPago("tarjeta")}>
               <div style={s.payHead}>
                 <div style={metodoPago === "tarjeta" ? s.radioSel : s.radio}>{metodoPago === "tarjeta" && <div style={s.radioDot} />}</div>
-                <div><div style={s.payTitle}>{"Tarjeta de crédito o débito"}</div><div style={s.paySub}>{"Próximamente disponible"}</div></div>
+                <div>
+                  <div style={s.payTitle}>{tenantMpEnabled ? "Mercado Pago" : "Tarjeta de crédito o débito"}</div>
+                  <div style={s.paySub}>{tenantMpEnabled ? "Tarjeta, Redcompra · Pago seguro" : "Próximamente disponible"}</div>
+                </div>
               </div>
               <div style={s.payLogos}>
                 <span style={{ ...s.payLogo, color: "#1a1f71", background: "#e8eaf6" }}>VISA</span>
@@ -446,12 +458,15 @@ function ReservarInner() {
                   </span>
                 </span>
                 <span style={{ ...s.payLogo, color: "#00529b", background: "#e3f2fd" }}>Redcompra</span>
-                <span style={{ ...s.payLogo, color: "#1b3a6b", background: "#e8eaf6" }}>Transbank</span>
+                <span style={{ ...s.payLogo, color: "#009ee3", background: "#e3f6fd" }}>Mercado Pago</span>
               </div>
               {metodoPago === "tarjeta" && (
                 <div style={s.payBody}>
-                  {"Tu reserva se "}<strong>{"confirma automáticamente"}</strong>{" al pagar."}<br /><br />
-                  <em style={{ color: "#e8a21a", fontSize: "11px" }}>{"Esta opción estará disponible muy pronto."}</em>
+                  {tenantMpEnabled ? (
+                    <>{"Tu reserva se "}<strong>{"confirma automáticamente"}</strong>{" al pagar con Mercado Pago."}</>
+                  ) : (
+                    <em style={{ color: "#e8a21a", fontSize: "11px" }}>{"Esta opción estará disponible muy pronto."}</em>
+                  )}
                 </div>
               )}
             </div>
@@ -477,9 +492,14 @@ function ReservarInner() {
             <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: 1.6 }}>
               {"Al confirmar quedará registrada tu solicitud con un código único. Úsalo como glosa en tu transferencia. La transferencia debe realizarse dentro de las próximas 24 horas. Si no se recibe el pago en ese plazo, la reserva será cancelada automáticamente y las fechas quedarán disponibles nuevamente."}
             </div>
-            <button style={loading || metodoPago === "tarjeta" ? s.btnDisabled : s.btn}
-              disabled={loading || metodoPago === "tarjeta"} onClick={confirmar}>
-              {loading ? "Registrando..." : metodoPago === "tarjeta" ? "Próximamente disponible" : "Reservar ahora con 20% de anticipo"}
+            <button
+              style={loading || (metodoPago === "tarjeta" && !tenantMpEnabled) ? s.btnDisabled : s.btn}
+              disabled={loading || (metodoPago === "tarjeta" && !tenantMpEnabled)}
+              onClick={confirmar}>
+              {loading ? "Registrando..."
+                : metodoPago === "tarjeta" && !tenantMpEnabled ? "Próximamente disponible"
+                : metodoPago === "tarjeta" ? "Reservar y pagar con Mercado Pago →"
+                : "Reservar ahora con 20% de anticipo"}
             </button>
             <button style={s.btnBack} onClick={() => setPaso(2)}>Volver al resumen</button>
           </>
