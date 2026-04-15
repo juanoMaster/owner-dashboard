@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle(),
       supabaseAdmin
         .from("cabins")
-        .select("id, name, capacity, base_price_night")
+        .select("id, name, capacity, base_price_night, photos")
         .eq("tenant_id", tenantId)
         .eq("active", true),
       supabaseAdmin

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import BookingsList from "./BookingsList"
 import ManualBookingForm from "./ManualBookingForm"
 import EmbedIframeSnippet from "./EmbedIframeSnippet"
+import CabinPhotos from "./CabinPhotos"
 import { getPersistedToken, setPersistedToken, clearPersistedToken } from "@/lib/takai-token"
 
 type TenantRow = {
@@ -21,6 +22,7 @@ type DashboardPayload = {
     name: string
     capacity: number
     base_price_night: number
+    photos: string[] | null
   }>
   bookings: Array<{
     id: string
@@ -290,34 +292,38 @@ export default function HomeDashboardClient() {
               background: "#162618",
               border: "1px solid #2a3e28",
               borderRadius: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
             }}
           >
-            <div>
-              <div style={{ fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "3px" }}>
-                {cabin.name}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "3px" }}>
+                  {cabin.name}
+                </div>
+                <div style={{ color: "#5a7058", fontSize: "12px" }}>
+                  {cabin.capacity} personas · ${Math.round(Number(cabin.base_price_night)).toLocaleString("es-CL", { maximumFractionDigits: 0 })}/noche
+                </div>
               </div>
-              <div style={{ color: "#5a7058", fontSize: "12px" }}>
-                {cabin.capacity} personas · ${Math.round(Number(cabin.base_price_night)).toLocaleString("es-CL", { maximumFractionDigits: 0 })}/noche
-              </div>
+              <a
+                href={"/calendar?cabin_id=" + encodeURIComponent(cabin.id)}
+                style={{
+                  background: "#7ab87a",
+                  color: "#0d1a12",
+                  padding: "9px 18px",
+                  borderRadius: "10px",
+                  textDecoration: "none",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Ver Calendario
+              </a>
             </div>
-            <a
-              href={"/calendar?cabin_id=" + encodeURIComponent(cabin.id)}
-              style={{
-                background: "#7ab87a",
-                color: "#0d1a12",
-                padding: "9px 18px",
-                borderRadius: "10px",
-                textDecoration: "none",
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "0.5px",
-              }}
-            >
-              Ver Calendario
-            </a>
+            <CabinPhotos
+              cabinId={cabin.id}
+              cabinName={cabin.name}
+              initialPhotos={cabin.photos ?? []}
+            />
           </div>
         ))}
 
