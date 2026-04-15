@@ -1,5 +1,25 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+
+export async function PATCH(req: Request) {
+  const adminToken = process.env.ADMIN_TOKEN
+  const h = req.headers.get("x-admin-token")
+  if (!adminToken || h !== adminToken) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } })
+  try {
+    const body = await req.json()
+    const { id, mp_access_token, mp_enabled } = body
+    if (!id) return NextResponse.json({ error: "Falta el id" }, { status: 400 })
+    const update: Record<string, any> = {}
+    if (mp_access_token !== undefined) update.mp_access_token = mp_access_token
+    if (mp_enabled !== undefined) update.mp_enabled = mp_enabled
+    if (Object.keys(update).length === 0) return NextResponse.json({ error: "Sin campos para actualizar" }, { status: 400 })
+    const { data, error } = await supabase.from("tenants").update(update).eq("id", id).select().single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, tenant: data })
+  } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }) }
+}
+
 export async function POST(req: Request) {
   const adminToken = process.env.ADMIN_TOKEN
   const h = req.headers.get("x-admin-token")

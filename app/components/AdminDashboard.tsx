@@ -104,6 +104,20 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error")
   }
 
+  async function saveMp(data: { id: string; mp_access_token?: string; mp_enabled?: boolean }) {
+    setSaving(true)
+    const res = await fetch("/api/admin/tenants", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+      body: JSON.stringify(data),
+    })
+    const r = await res.json()
+    setSaving(false)
+    if (r.success) {
+      setTenants(p => p.map((t: any) => t.id === data.id ? { ...t, ...data } : t))
+    } else alert(r.error || "Error al guardar configuración MP")
+  }
+
   async function generateToken(tenant_id: string) {
     setSaving(true)
     const r = await apiCall("/api/admin/tokens", { action: "create", tenant_id })
@@ -431,7 +445,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
 
       {/* ══ MODAL TENANT (editar) ══ */}
       {modal?.type === "tenant" && modal.data?.id && (
-        <TenantModal data={modal.data} saving={saving} onSave={saveTenant} onClose={() => setModal(null)} tenants={tenants} />
+        <TenantModal data={modal.data} saving={saving} onSave={saveTenant} onSaveMp={saveMp} onClose={() => setModal(null)} tenants={tenants} />
       )}
 
       {/* ══ MODAL CABIN ══ */}
@@ -572,7 +586,7 @@ function ReservasTab({ bookings, tenantMap, cabinMap }: any) {
 }
 
 // ══ TENANT MODAL ══════════════════════════
-function TenantModal({ data, saving, onSave, onClose }: any) {
+function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
   const isNew = !data.id
   const [form, setForm] = useState({
     business_name: data.business_name || "",
@@ -586,6 +600,8 @@ function TenantModal({ data, saving, onSave, onClose }: any) {
     bank_account_holder: data.bank_account_holder || "",
     bank_rut: data.bank_rut || "",
     has_tinaja: data.has_tinaja ?? true,
+    mp_access_token: data.mp_access_token || "",
+    mp_enabled: data.mp_enabled ?? false,
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   return (
@@ -631,7 +647,38 @@ function TenantModal({ data, saving, onSave, onClose }: any) {
           <input type="checkbox" id="has-tinaja" checked={form.has_tinaja} onChange={e => setForm(p => ({ ...p, has_tinaja: e.target.checked }))} style={{ width: "16px", height: "16px", cursor: "pointer" }} />
           <label htmlFor="has-tinaja" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>¿Tiene tinaja de madera?</label>
         </div>
-        <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+        {!isNew && (
+          <>
+            <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
+              <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Mercado Pago</div>
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={LABEL}>Access Token</label>
+              <input type="text" value={form.mp_access_token} onChange={e => setForm(p => ({ ...p, mp_access_token: e.target.value }))} placeholder="APP_USR-..." style={INPUT} />
+            </div>
+            <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+              <input
+                type="checkbox"
+                id="mp-enabled"
+                checked={form.mp_enabled}
+                disabled={!form.mp_access_token.trim()}
+                onChange={e => setForm(p => ({ ...p, mp_enabled: e.target.checked }))}
+                style={{ width: "16px", height: "16px", cursor: form.mp_access_token.trim() ? "pointer" : "not-allowed" }}
+              />
+              <label htmlFor="mp-enabled" style={{ ...LABEL, marginBottom: 0, cursor: form.mp_access_token.trim() ? "pointer" : "not-allowed", opacity: form.mp_access_token.trim() ? 1 : 0.5 }}>
+                Activar pago con Mercado Pago
+              </label>
+            </div>
+            <button
+              onClick={() => onSaveMp({ id: data.id, mp_access_token: form.mp_access_token, mp_enabled: form.mp_enabled })}
+              disabled={saving}
+              style={{ width: "100%", padding: "10px", background: "#009ee3", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif", marginBottom: "16px", opacity: saving ? 0.8 : 1 }}
+            >
+              {saving ? "Guardando..." : "Guardar configuración MP"}
+            </button>
+          </>
+        )}
+        <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
           <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}
             style={{ flex: 1, padding: "12px", background: "#7a5a98", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
             {saving ? "Guardando..." : "Guardar"}
