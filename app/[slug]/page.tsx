@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 
-interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
+interface Cabin { id: string; name: string; capacity: number; base_price_night: number; photos?: string[] }
 interface TenantData {
   business_name: string
   facebook_url?: string | null
@@ -26,6 +26,44 @@ function SelloGrande() {
       <circle cx="32" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/>
       <circle cx="118" cy="32" r="3.5" fill="#e8d5a3" opacity="0.18"/>
     </svg>
+  )
+}
+
+function CabinGallery({ photos }: { photos?: string[] }) {
+  const [main, setMain] = useState<string>((photos && photos.length > 0) ? photos[0] : "")
+  if (!photos || photos.length === 0) return null
+  return (
+    <div style={{ width: "100%", marginBottom: "12px" }}>
+      <img
+        src={main}
+        alt=""
+        style={{ width: "100%", height: "180px", objectFit: "cover" as const, borderRadius: "8px", marginBottom: "8px", display: "block" }}
+      />
+      {photos.length > 1 && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" as const, justifyContent: "center" }}>
+          {photos.map(function(url) {
+            return (
+              <img
+                key={url}
+                src={url}
+                alt=""
+                onClick={function() { setMain(url) }}
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  objectFit: "cover" as const,
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  opacity: url === main ? 1 : 0.55,
+                  border: url === main ? "2px solid #7ab87a" : "2px solid transparent",
+                  boxSizing: "border-box" as const,
+                }}
+              />
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -250,6 +288,7 @@ function SlugInner() {
                 <div style={{ fontSize: "11px", color: "#8a9e88", marginBottom: "12px" }}>{"Hasta " + c.capacity + " personas"}</div>
                 <div style={{ fontFamily: "Georgia, serif", fontSize: "28px", color: "#c8d8c0", marginBottom: "2px" }}>{fmt(c.base_price_night)}</div>
                 <div style={{ fontSize: "10px", color: "#6a8a68", marginBottom: "14px" }}>por noche</div>
+                <CabinGallery photos={c.photos} />
                 <a href={"/reservar?cabin_id=" + c.id + "&cabin_name=" + encodeURIComponent(c.name) + "&price=" + c.base_price_night + "&capacity=" + c.capacity}
                   style={{ display: "block", boxSizing: "border-box", width: "100%", background: "#7ab87a", color: "#0a0f0a", borderRadius: "10px", padding: "11px", fontSize: "13px", fontWeight: 700, textAlign: "center", textDecoration: "none", fontFamily: "sans-serif" }}>
                   {"Reservar \u2192"}
