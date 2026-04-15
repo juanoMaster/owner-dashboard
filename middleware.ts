@@ -60,15 +60,9 @@ export function middleware(req: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // Cualquier otra ruta bajo el subdominio:
-  // - Si ya incluye el slug como prefijo, no tocar.
-  // - Si no, prefijar con /{slug}
-  if (pathname === `/${slug}` || pathname.startsWith(`/${slug}/`)) {
-    return NextResponse.next()
-  }
-
-  url.pathname = `/${slug}${pathname}`
-  return NextResponse.rewrite(url)
+  // Solo reescribir la raíz. Cualquier otra ruta (/reservar, /historial,
+  // /calendar, etc.) se deja pasar tal cual — son rutas globales del sistema.
+  return NextResponse.next()
 }
 
 export const config = {
