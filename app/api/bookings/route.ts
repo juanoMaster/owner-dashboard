@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity, tenant_id")
+      .select("base_price_night, name, capacity, tenant_id, extra_person_price")
       .eq("id", cabin_id)
       .single()
 
@@ -50,15 +50,20 @@ export async function POST(req: Request) {
       (new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000
     )
 
+    const todayStr = new Date().toISOString().split("T")[0]
+    if (check_in < todayStr) {
+      return NextResponse.json({ success: false, message: "No se pueden hacer reservas en fechas pasadas" }, { status: 400 })
+    }
     if (nights < 1) {
       return NextResponse.json({ success: false, message: "Las fechas no son válidas" }, { status: 400 })
     }
 
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
-    const extraGuests = Math.max(0, guestCount - (cabin.capacity - 2))
+    const extraGuests = Math.max(0, guestCount - cabin.capacity)
+    const extraPersonPrice = Number(cabin.extra_person_price) || 0
     const subtotal = cabin.base_price_night * nights
-    const extras = extraGuests * 5000 * nights
+    const extras = extraGuests * extraPersonPrice * nights
     const tinajaTotal = tinajaCount * 30000
     const total = subtotal + extras + tinajaTotal
     const deposit = Math.round(total * 0.2)

@@ -46,6 +46,8 @@ export async function POST(req: Request) {
         bank_account_holder: body.bank_account_holder || null,
         bank_rut: body.bank_rut || null,
         has_tinaja: body.has_tinaja ?? true,
+        country: body.country || "CL",
+        currency: body.currency || "CLP",
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -65,6 +67,8 @@ export async function POST(req: Request) {
         bank_account_holder: body.bank_account_holder || null,
         bank_rut: body.bank_rut || null,
         has_tinaja: body.has_tinaja ?? true,
+        country: body.country || "CL",
+        currency: body.currency || "CLP",
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })

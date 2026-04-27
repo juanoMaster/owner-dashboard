@@ -15,6 +15,10 @@ export async function POST(req: Request) {
         capacity: Number(body.capacity) || 4,
         base_price_night: Number(body.base_price_night) || 0,
         cleaning_fee: Number(body.cleaning_fee) || 0,
+        extra_person_price: Number(body.extra_person_price) || 0,
+        extras: body.extras || [],
+        amenities: body.amenities || null,
+        description: body.description || null,
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -26,6 +30,10 @@ export async function POST(req: Request) {
         capacity: Number(body.capacity) || 4,
         base_price_night: Number(body.base_price_night) || 0,
         cleaning_fee: Number(body.cleaning_fee) || 0,
+        extra_person_price: Number(body.extra_person_price) || 0,
+        extras: body.extras || [],
+        amenities: body.amenities || null,
+        description: body.description || null,
       }).eq("id", id)
       if (body.tenant_id) q.eq("tenant_id", body.tenant_id)
       const { data, error } = await q.select().single()
