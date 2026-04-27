@@ -58,6 +58,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
   const [newTokenValue, setNewTokenValue] = useState<string | null>(null)
   const [tenantSort, setTenantSort] = useState<{ key: "business_name" | "created_at"; dir: "asc" | "desc" }>({ key: "created_at", dir: "desc" })
   const [cabinSort, setCabinSort] = useState<{ key: "tenant_name" | "created_at"; dir: "asc" | "desc" }>({ key: "tenant_name", dir: "asc" })
+  const [cabinFilters, setCabinFilters] = useState({ tenant: "", estado: "", capacidad: "" })
 
   const tenantMap = useMemo(() => { const m: Record<string,string> = {}; tenants.forEach((t: any) => { m[t.id] = t.business_name }); return m }, [tenants])
   const cabinMap = useMemo(() => { const m: Record<string,string> = {}; cabins.forEach((c: any) => { m[c.id] = c.name }); return m }, [cabins])
@@ -73,6 +74,16 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     const c = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     return cabinSort.dir === "asc" ? c : -c
   }), [cabins, cabinSort, tenantMap])
+
+  const filteredCabins = useMemo(() => {
+    return sortedCabins.filter((c: any) => {
+      if (cabinFilters.tenant && (tenantMap[c.tenant_id] || "") !== cabinFilters.tenant) return false
+      if (cabinFilters.estado === "activa" && !c.active) return false
+      if (cabinFilters.estado === "inactiva" && c.active) return false
+      if (cabinFilters.capacidad && String(c.capacity) !== cabinFilters.capacidad) return false
+      return true
+    })
+  }, [sortedCabins, cabinFilters, tenantMap])
 
   async function apiCall(path: string, body: any) {
     const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": adminToken }, body: JSON.stringify(body) })
@@ -316,6 +327,53 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                 + Nueva cabaña
               </button>
             } />
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "10px", marginBottom: "16px", alignItems: "center" }}>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: "4px" }}>
+                <div style={{ fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#4a3868" }}>Cliente</div>
+                <select
+                  value={cabinFilters.tenant}
+                  onChange={e => setCabinFilters(f => ({ ...f, tenant: e.target.value }))}
+                  style={{ background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "7px 12px", outline: "none", fontFamily: "sans-serif", minWidth: "160px" }}>
+                  <option value="">Todos los clientes</option>
+                  {Array.from(new Set(cabins.map((c: any) => tenantMap[c.tenant_id] || ""))).filter(Boolean).sort().map((t: any) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: "4px" }}>
+                <div style={{ fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#4a3868" }}>Estado</div>
+                <select
+                  value={cabinFilters.estado}
+                  onChange={e => setCabinFilters(f => ({ ...f, estado: e.target.value }))}
+                  style={{ background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "7px 12px", outline: "none", fontFamily: "sans-serif", minWidth: "130px" }}>
+                  <option value="">Todos los estados</option>
+                  <option value="activa">Activa</option>
+                  <option value="inactiva">Inactiva</option>
+                </select>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: "4px" }}>
+                <div style={{ fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#4a3868" }}>Capacidad</div>
+                <select
+                  value={cabinFilters.capacidad}
+                  onChange={e => setCabinFilters(f => ({ ...f, capacidad: e.target.value }))}
+                  style={{ background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "7px 12px", outline: "none", fontFamily: "sans-serif", minWidth: "130px" }}>
+                  <option value="">Todas las capacidades</option>
+                  {Array.from(new Set(cabins.map((c: any) => c.capacity))).sort((a: any, b: any) => a - b).map((cap: any) => (
+                    <option key={cap} value={String(cap)}>{cap} personas</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "flex-end", gap: "12px" }}>
+                <span style={{ fontSize: "11px", color: "#3a2e50" }}>{filteredCabins.length} cabaña{filteredCabins.length !== 1 ? "s" : ""}</span>
+                {(cabinFilters.tenant || cabinFilters.estado || cabinFilters.capacidad) && (
+                  <button
+                    onClick={() => setCabinFilters({ tenant: "", estado: "", capacidad: "" })}
+                    style={{ background: "transparent", border: "1px solid #2a1e38", borderRadius: "7px", color: "#5a4870", fontSize: "11px", padding: "5px 12px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+            </div>
             <div style={{ overflowX: "auto" as const, borderRadius: "14px", border: "1px solid #1e1428" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
@@ -331,7 +389,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedCabins.map((c: any) => (
+                  {filteredCabins.map((c: any) => (
                     <tr key={c.id}>
                       <td style={{ ...TD, color: "#9a78c8", fontSize: "11px" }}>{tenantMap[c.tenant_id] || c.tenant_id}</td>
                       <td style={{ ...TD, color: "#e8d5f8", fontWeight: 600 }}>{c.name}</td>
@@ -355,6 +413,13 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                       </td>
                     </tr>
                   ))}
+                  {filteredCabins.length === 0 && (
+                    <tr>
+                      <td colSpan={8} style={{ ...TD, textAlign: "center" as const, padding: "40px", color: "#3a2e50" }}>
+                        Sin cabañas con esos filtros
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
