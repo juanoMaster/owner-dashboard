@@ -6,6 +6,7 @@ interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
   extra_person_price: number; photos?: string[]; description?: string
   amenities?: string; extras?: Array<{ name: string; price: number }>
+  pricing_tiers?: Array<{ min_guests: number; max_guests: number; price_per_night: number }>
 }
 interface TenantData {
   business_name: string; facebook_url?: string | null; instagram_url?: string | null
@@ -24,6 +25,16 @@ function fmtPrice(n: number, currency: string) {
   if (currency === "USD") return "$" + Number(n).toFixed(0)
   if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
   return "$" + Math.round(n).toLocaleString("es-CL")
+}
+
+function getPriceForGuests(
+  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
+  guests: number,
+  basePriceNight: number
+): number {
+  if (!tiers || tiers.length === 0) return basePriceNight
+  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
+  return tier ? tier.price_per_night : basePriceNight
 }
 
 function GoldLine() {
@@ -331,12 +342,19 @@ function SlugInner() {
 
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", paddingTop: "4px" }}>
                         <div>
-                          <div style={{ fontFamily: SERIF, fontSize: "32px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                          {cabin.pricing_tiers && cabin.pricing_tiers.length > 0 ? (
+                            <>
+                              <div style={{ fontSize: "11px", color: MUTED, letterSpacing: "0.5px", marginBottom: "2px" }}>desde</div>
+                              <div style={{ fontFamily: SERIF, fontSize: "32px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(Math.min(...cabin.pricing_tiers.map(t => t.price_per_night)))}</div>
+                            </>
+                          ) : (
+                            <div style={{ fontFamily: SERIF, fontSize: "32px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                          )}
                           <div style={{ fontSize: "12px", color: MUTED, letterSpacing: "0.5px", marginTop: "2px" }}>por noche</div>
                         </div>
                       </div>
 
-                      <a href={"/reservar?cabin_id=" + cabin.id + "&cabin_name=" + encodeURIComponent(cabin.name) + "&price=" + cabin.base_price_night + "&capacity=" + cabin.capacity}
+                      <a href={"/reservar?cabin_id=" + cabin.id + "&cabin_name=" + encodeURIComponent(cabin.name) + "&price=" + cabin.base_price_night + "&capacity=" + cabin.capacity + (cabin.pricing_tiers && cabin.pricing_tiers.length > 0 ? "&tiers=" + encodeURIComponent(JSON.stringify(cabin.pricing_tiers)) : "")}
                         className="tk-btn"
                         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: GOLD, color: "#0a0700", borderRadius: "8px", padding: "14px 20px", fontSize: "12px", fontWeight: 600, textDecoration: "none", fontFamily: SANS, letterSpacing: "1.5px", textTransform: "uppercase" as const }}>
                         <span>Reservar</span>

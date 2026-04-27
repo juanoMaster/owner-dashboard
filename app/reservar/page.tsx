@@ -3,6 +3,16 @@ import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
 
+function getPriceForGuests(
+  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
+  guests: number,
+  basePriceNight: number
+): number {
+  if (!tiers || tiers.length === 0) return basePriceNight
+  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
+  return tier ? tier.price_per_night : basePriceNight
+}
+
 function fmtCurrency(n: number, currency: string) {
   if (currency === "USD") return "$" + n.toFixed(2)
   if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
@@ -25,7 +35,8 @@ function ReservarInner() {
   const visitedParam = params.get("visited") || ""
   const visitedCabins = visitedParam ? visitedParam.split(",").filter(Boolean) : []
 
-  const precio_noche = Number(params.get("price")) || 30000
+  const basePriceNight = Number(params.get("price")) || 30000
+  const tiersParam = params.get("tiers")
   const capacidad = Number(params.get("capacity")) || 4
   const today = new Date().toISOString().split("T")[0]
 
@@ -62,6 +73,10 @@ function ReservarInner() {
   const [mpEnabled, setMpEnabled] = useState<boolean | null>(null)
   const [tenantMpEnabled, setTenantMpEnabled] = useState(false)
   const [mpLoading, setMpLoading] = useState(false)
+  const [pricingTiers, setPricingTiers] = useState<Array<{ min_guests: number; max_guests: number; price_per_night: number }>>(() => {
+    if (!tiersParam) return []
+    try { return JSON.parse(decodeURIComponent(tiersParam)) } catch { return [] }
+  })
 
   useEffect(() => {
     if (!cabin_id) return
@@ -81,11 +96,14 @@ function ReservarInner() {
         if (data.mp_enabled) setTenantMpEnabled(true)
         if (data.currency) setCurrency(data.currency)
         if (typeof data.extra_person_price === "number") setExtraPersonPrice(data.extra_person_price)
+        if (Array.isArray(data.pricing_tiers) && data.pricing_tiers.length > 0) setPricingTiers(data.pricing_tiers)
       })
       .catch(() => {})
   }, [cabin_id])
 
   function fmt(n: number) { return fmtCurrency(n, currency) }
+
+  const precio_noche = getPriceForGuests(pricingTiers, guests, basePriceNight)
 
   const noches = checkIn && checkOut
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
@@ -356,7 +374,7 @@ function ReservarInner() {
                 <select style={s.sel} value={guests} onChange={e => setGuests(Number(e.target.value))}>
                   {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
                     <option key={n} value={n}>
-                      {n}{n === 1 ? " persona" : " personas"}{n > capacidad && extraPersonPrice > 0 ? " (+" + fmt(extraPersonPrice) + "/noche)" : ""}
+                      {n}{n === 1 ? " persona" : " personas"}{pricingTiers.length > 0 ? " — " + fmt(getPriceForGuests(pricingTiers, n, basePriceNight)) + "/noche" : n > capacidad && extraPersonPrice > 0 ? " (+" + fmt(extraPersonPrice) + "/noche)" : ""}
                     </option>
                   ))}
                 </select>

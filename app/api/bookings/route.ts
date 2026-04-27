@@ -3,6 +3,16 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 
+function getPriceForGuests(
+  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
+  guests: number,
+  basePriceNight: number
+): number {
+  if (!tiers || tiers.length === 0) return basePriceNight
+  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
+  return tier ? tier.price_per_night : basePriceNight
+}
+
 function generateBookingCode(): string {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
   const part1 = Array.from({ length: 3 }, () =>
@@ -36,7 +46,7 @@ export async function POST(req: Request) {
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity, tenant_id, extra_person_price")
+      .select("base_price_night, name, capacity, tenant_id, extra_person_price, pricing_tiers")
       .eq("id", cabin_id)
       .single()
 
@@ -62,7 +72,8 @@ export async function POST(req: Request) {
     const tinajaCount = parseInt(tinaja_days) || 0
     const extraGuests = Math.max(0, guestCount - cabin.capacity)
     const extraPersonPrice = Number(cabin.extra_person_price) || 0
-    const subtotal = cabin.base_price_night * nights
+    const resolvedPricePerNight = getPriceForGuests(cabin.pricing_tiers, guestCount, cabin.base_price_night)
+    const subtotal = resolvedPricePerNight * nights
     const extras = extraGuests * extraPersonPrice * nights
     const tinajaTotal = tinajaCount * 30000
     const total = subtotal + extras + tinajaTotal
@@ -76,7 +87,8 @@ export async function POST(req: Request) {
       codigo: bookingCode,
       notas: notes || "",
       origen: "web",
-      tinaja: String(tinajaCount)
+      tinaja: String(tinajaCount),
+      price_per_night: resolvedPricePerNight
     })
 
     const { data: booking, error: bookingError } = await supabase

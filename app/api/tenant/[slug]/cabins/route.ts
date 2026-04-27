@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: cabins } = await supabase
     .from("cabins")
-    .select("id, name, capacity, base_price_night, extra_person_price, photos, description, amenities, extras, active")
+    .select("id, name, capacity, base_price_night, extra_person_price, photos, description, amenities, extras, active, pricing_tiers")
     .eq("tenant_id", tenant.id)
     .eq("active", true)
     .order("name")

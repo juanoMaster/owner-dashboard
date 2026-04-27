@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const { data: cabin } = await supabase
     .from("cabins")
-    .select("tenant_id, name")
+    .select("tenant_id, name, pricing_tiers")
     .eq("id", cabin_id)
     .single()
 
@@ -56,5 +56,6 @@ export async function GET(req: Request) {
     tagline: tenant.tagline || null,
     activities: tenant.activities || [],
     page_rules: tenant.page_rules || [],
+    pricing_tiers: cabin.pricing_tiers ?? [],
   })
 }
