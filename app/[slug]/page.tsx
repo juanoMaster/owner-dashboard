@@ -84,6 +84,7 @@ function SlugInner() {
   const [cabins, setCabins] = useState<Cabin[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [heroIdx, setHeroIdx] = useState(0)
 
   useEffect(function () {
     if (!slug) return
@@ -100,6 +101,15 @@ function SlugInner() {
       })
       .catch(function () { setNotFound(true); setLoading(false) })
   }, [slug])
+
+  const allPhotos = cabins.flatMap(c => c.photos || []).filter(Boolean)
+  useEffect(function() {
+    if (allPhotos.length <= 1) return
+    const interval = setInterval(function() {
+      setHeroIdx(function(prev) { return (prev + 1) % allPhotos.length })
+    }, 4000)
+    return function() { clearInterval(interval) }
+  }, [allPhotos.length])
 
   if (loading) return (
     <div style={{ background: BG, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -146,7 +156,7 @@ function SlugInner() {
               <path d="M20 4L32 12V24C32 31 26 36 20 38C14 36 8 31 8 24V12Z" fill="rgba(201,168,76,0.08)" stroke="rgba(201,168,76,0.35)" strokeWidth="1.2"/>
               <path d="M14 20L18 24L26 16" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
             </svg>
-            <span style={{ fontFamily: SERIF, fontSize: "15px", letterSpacing: "4px", color: TEXT, textTransform: "uppercase" as const }}>{tenant.business_name}</span>
+            <span style={{ fontFamily: SERIF, fontSize: "13px", letterSpacing: "3px", color: TEXT, textTransform: "uppercase" as const, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const, maxWidth: "200px" }}>{tenant.business_name}</span>
           </div>
           <div style={{ fontSize: "8px", letterSpacing: "2px", color: "rgba(201,168,76,0.4)", textTransform: "uppercase" as const, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.14)", borderRadius: "6px", padding: "2px 7px" }}>{currencyLabel}</div>
         </div>
@@ -154,10 +164,17 @@ function SlugInner() {
 
       {/* HERO */}
       <div style={{ position: "relative", height: "100vw", maxHeight: "380px", minHeight: "280px", overflow: "hidden", marginTop: "58px" }}>
-        {firstPhoto ? (
-          <img src={firstPhoto} alt={tenant.business_name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.72)" }} />
+        {allPhotos.length > 0 ? (
+          <>
+            {allPhotos.map(function(photo, i) {
+              return (
+                <img key={i} src={photo} alt={tenant.business_name}
+                  style={{ position: i === 0 ? "relative" : "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.72)", opacity: i === heroIdx ? 1 : 0, transition: "opacity 1.2s ease" }} />
+              )
+            })}
+          </>
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "linear-gradient(160deg,#0a0f08 0%,#111a0d 50%,#080d07 100%)" }}>
+          <div style={{ width: "100%", height: "100%", background: "linear-gradient(160deg,#0a0f08 0%,#111a0d 50%,#080d07 100%)", position: "relative" }}>
             <svg style={{ position: "absolute", bottom: 0, left: 0, right: 0, width: "100%", opacity: 0.4 }} viewBox="0 0 400 120" fill="none" preserveAspectRatio="xMidYMax slice">
               <rect width="400" height="120" fill="#0a0f08"/>
               {[30,70,110,150,200,250,290,330,370].map((x, i) => (
@@ -176,7 +193,7 @@ function SlugInner() {
             <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: GOLD }} />
             <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.8)" }}>Reserva directa · {currency}</span>
           </div>
-          <div style={{ fontFamily: SERIF, fontSize: "clamp(26px,7vw,42px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "10px" }}>
+          <div style={{ fontFamily: SERIF, fontSize: "clamp(24px,6vw,38px)", fontWeight: 300, color: TEXT, lineHeight: 1.1, marginBottom: "10px", maxWidth: "100%", wordBreak: "break-word" as const }}>
             {tagline ? (
               <>
                 {tagline.split(",").map((part, i, arr) => (
@@ -187,6 +204,16 @@ function SlugInner() {
               <>{tenant.business_name}</>
             )}
           </div>
+          {allPhotos.length > 1 && (
+            <div style={{ display: "flex", gap: "5px", marginBottom: "10px" }}>
+              {allPhotos.map(function(_, i) {
+                return (
+                  <div key={i} onClick={function() { setHeroIdx(i) }}
+                    style={{ width: i === heroIdx ? "18px" : "5px", height: "5px", borderRadius: "3px", background: i === heroIdx ? GOLD : "rgba(255,255,255,0.25)", cursor: "pointer", transition: "all 0.3s ease" }} />
+                )
+              })}
+            </div>
+          )}
           {tenant.location_text && (
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <svg width="9" height="12" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.3 0 .5 1.8.5 4c0 3 4 8 4 8s4-5 4-8C8.5 1.8 6.7 0 4.5 0zm0 5.5C3.7 5.5 3 4.8 3 4s.7-1.5 1.5-1.5S6 3.2 6 4s-.7 1.5-1.5 1.5z" fill="rgba(201,168,76,0.5)"/></svg>
@@ -240,24 +267,26 @@ function SlugInner() {
                 )}
                 <div className="tk-cabin-card" style={{ position: "relative", background: SURF, border: "1px solid " + BORDER, borderRadius: "18px", overflow: "hidden", marginBottom: "6px" }}>
                   <CabinGallery photos={cabin.photos} name={cabin.name} />
-                  <div style={{ position: "absolute", top: "12px", left: "12px", display: "flex", alignItems: "center", gap: "4px", background: "rgba(6,6,6,0.72)", border: "1px solid rgba(100,200,100,0.25)", borderRadius: "8px", padding: "3px 8px", zIndex: 3 }}>
-                    <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#6abf6a", animation: "tk-avail-pulse 2s infinite" }} />
-                    <span style={{ fontSize: "8px", color: "#6abf6a", letterSpacing: "0.5px" }}>Disponible</span>
+                  <div style={{ position: "absolute", top: "10px", left: "10px", display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(6,6,6,0.7)", border: "1px solid rgba(106,191,106,0.2)", borderRadius: "7px", padding: "3px 7px", zIndex: 3 }}>
+                    <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#6abf6a", animation: "tk-avail-pulse 2s infinite", flexShrink: 0 }} />
+                    <span style={{ fontSize: "8px", color: "#6abf6a", letterSpacing: "0.3px", whiteSpace: "nowrap" as const }}>Disponible</span>
                   </div>
                   <div style={{ position: "absolute", bottom: cabin.photos && cabin.photos.length > 1 ? "54px" : "16px", right: "14px", zIndex: 3 }}>
-                    <div style={{ fontFamily: SERIF, fontSize: "24px", fontWeight: 300, color: TEXT, lineHeight: 1, textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>{fmt(cabin.base_price_night)}</div>
-                    <div style={{ fontSize: "9px", color: MUTED, textAlign: "right" as const, marginTop: "-2px", letterSpacing: "0.5px", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>{currency} / noche</div>
+                    <div style={{ background: "rgba(6,6,6,0.75)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", padding: "6px 10px", textAlign: "right" as const }}>
+                      <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                      <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.4)", marginTop: "-1px", letterSpacing: "0.5px" }}>{currency} / noche</div>
+                    </div>
                   </div>
 
                   <div style={{ padding: "14px 16px 16px" }}>
-                    <div style={{ fontFamily: SERIF, fontSize: "20px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", marginBottom: "2px" }}>{cabin.name}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: "20px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", marginBottom: "2px", wordBreak: "break-word" as const }}>{cabin.name}</div>
                     <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "10px" }}>
                       Hasta {cabin.capacity} personas
                       {cabin.extra_person_price > 0 && <span style={{ color: "rgba(201,168,76,0.5)", marginLeft: "6px" }}>· persona extra {fmt(cabin.extra_person_price)}</span>}
                     </div>
 
                     {cabin.description && (
-                      <div style={{ fontSize: "12px", color: "#888", lineHeight: 1.75, marginBottom: "12px", fontWeight: 300 }}>{cabin.description}</div>
+                      <div style={{ fontSize: "12px", color: "#888", lineHeight: 1.75, marginBottom: "12px", fontWeight: 300, wordBreak: "break-word" as const, overflowWrap: "break-word" as const }}>{cabin.description}</div>
                     )}
 
                     {amenitiesList.length > 0 && (
@@ -287,8 +316,9 @@ function SlugInner() {
                     )}
 
                     <a href={"/reservar?cabin_id=" + cabin.id + "&cabin_name=" + encodeURIComponent(cabin.name) + "&price=" + cabin.base_price_night + "&capacity=" + cabin.capacity}
-                      style={{ display: "block", width: "100%", background: GOLD, color: "#0a0700", border: "none", borderRadius: "9px", padding: "12px", fontSize: "12px", fontWeight: 600, textAlign: "center" as const, textDecoration: "none", fontFamily: SANS, letterSpacing: "1px", textTransform: "uppercase" as const }}>
-                      Reservar ahora →
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: GOLD, color: "#0a0700", border: "none", borderRadius: "9px", padding: "12px 16px", fontSize: "11px", fontWeight: 600, textDecoration: "none", fontFamily: SANS, letterSpacing: "1.5px", textTransform: "uppercase" as const, boxSizing: "border-box" as const }}>
+                      <span>Reservar ahora</span>
+                      <span style={{ fontFamily: SERIF, fontSize: "16px", fontWeight: 400 }}>→</span>
                     </a>
                   </div>
                 </div>
