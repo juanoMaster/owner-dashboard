@@ -3,8 +3,10 @@ import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
 
-function fmt(n: number) {
-  return "$" + n.toLocaleString("es-CL")
+function fmtCurrency(n: number, currency: string) {
+  if (currency === "USD") return "$" + n.toFixed(2)
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
+  return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
 function LogoNegocio({ businessName }: { businessName: string }) {
@@ -32,6 +34,8 @@ function ReservarInner() {
   const [ownerName, setOwnerName] = useState("")
   const [slug, setSlug] = useState("")
   const [hasTinaja, setHasTinaja] = useState(true)
+  const [currency, setCurrency] = useState("CLP")
+  const [extraPersonPrice, setExtraPersonPrice] = useState(0)
   const [bankName, setBankName] = useState("")
   const [bankAccountType, setBankAccountType] = useState("")
   const [bankAccountNumber, setBankAccountNumber] = useState("")
@@ -75,14 +79,18 @@ function ReservarInner() {
         if (data.bank_account_holder) setBankAccountHolder(data.bank_account_holder)
         if (data.bank_rut) setBankRut(data.bank_rut)
         if (data.mp_enabled) setTenantMpEnabled(true)
+        if (data.currency) setCurrency(data.currency)
+        if (typeof data.extra_person_price === "number") setExtraPersonPrice(data.extra_person_price)
       })
       .catch(() => {})
   }, [cabin_id])
 
+  function fmt(n: number) { return fmtCurrency(n, currency) }
+
   const noches = checkIn && checkOut
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
-  const extrasPersonas = Math.max(0, guests - capacidad) * 5000 * noches
+  const extrasPersonas = Math.max(0, guests - capacidad) * extraPersonPrice * noches
   const subtotal = precio_noche * noches + extrasPersonas
   const tinaja = tinajaDias * 30000
   const total = subtotal + tinaja
@@ -348,7 +356,7 @@ function ReservarInner() {
                 <select style={s.sel} value={guests} onChange={e => setGuests(Number(e.target.value))}>
                   {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
                     <option key={n} value={n}>
-                      {n}{n === 1 ? " persona" : " personas"}{n > capacidad ? " (+" + fmt(5000) + "/noche)" : ""}
+                      {n}{n === 1 ? " persona" : " personas"}{n > capacidad && extraPersonPrice > 0 ? " (+" + fmt(extraPersonPrice) + "/noche)" : ""}
                     </option>
                   ))}
                 </select>

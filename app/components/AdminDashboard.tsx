@@ -602,6 +602,8 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     has_tinaja: data.has_tinaja ?? true,
     mp_access_token: data.mp_access_token || "",
     mp_enabled: data.mp_enabled ?? false,
+    country: data.country || "CL",
+    currency: data.currency || "CLP",
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   return (
@@ -627,6 +629,23 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
             <option value="female">Mujer — Bienvenida</option>
             <option value="male">Hombre — Bienvenido</option>
           </select>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>País (define la moneda)</label>
+          <select value={form.country} onChange={e => {
+            const countryToCurrency: Record<string, string> = { CL: "CLP", EC: "USD", CO: "COP", PE: "PEN", AR: "ARS", MX: "MXN", US: "USD" }
+            setForm(p => ({ ...p, country: e.target.value, currency: countryToCurrency[e.target.value] || "CLP" }))
+          }} style={{ ...INPUT }}>
+            <option value="CL">Chile — CLP ($)</option>
+            <option value="EC">Ecuador — USD ($)</option>
+            <option value="CO">Colombia — COP ($)</option>
+            <option value="PE">Perú — PEN (S/)</option>
+            <option value="AR">Argentina — ARS ($)</option>
+            <option value="MX">México — MXN ($)</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: "16px", background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", color: "#5a4870" }}>
+          Moneda configurada: <strong style={{ color: "#c8b878" }}>{form.currency}</strong>
         </div>
         <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
           <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Datos bancarios</div>
@@ -701,8 +720,14 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
     capacity: data.capacity || 4,
     base_price_night: data.base_price_night || 0,
     cleaning_fee: data.cleaning_fee || 0,
+    extra_person_price: data.extra_person_price || 0,
+    amenities: data.amenities || "",
+    description: data.description || "",
+    extras: (data.extras || []) as Array<{name: string; price: number}>,
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
+  const [newExtraName, setNewExtraName] = useState("")
+  const [newExtraPrice, setNewExtraPrice] = useState("")
   return (
     <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={MODAL_BOX}>
@@ -722,12 +747,51 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
           { key: "capacity", label: "Capacidad (personas)", type: "number" },
           { key: "base_price_night", label: "Precio base por noche ($)", type: "number" },
           { key: "cleaning_fee", label: "Fee de limpieza ($)", type: "number" },
+          { key: "extra_person_price", label: "Precio por persona extra ($)", type: "number" },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: "16px" }}>
             <label style={LABEL}>{f.label}</label>
             <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
           </div>
         ))}
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Descripción de la cabaña</label>
+          <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+            placeholder="Describe la cabaña, sus características, vistas, etc."
+            style={{ ...INPUT, minHeight: "80px", resize: "vertical" as const }} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Amenidades (una por línea)</label>
+          <textarea value={form.amenities} onChange={e => setForm(p => ({ ...p, amenities: e.target.value }))}
+            placeholder={"Agua caliente\nVista al lago\nCama king\nEstacionamiento"}
+            style={{ ...INPUT, minHeight: "80px", resize: "vertical" as const }} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Extras con precio</label>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "10px" }}>
+            {form.extras.map((ex: any, i: number) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "7px 10px" }}>
+                <span style={{ flex: 1, fontSize: "13px", color: "#c8b8e0" }}>{ex.name}</span>
+                <span style={{ fontSize: "13px", color: "#c8b878" }}>${ex.price}</span>
+                <button onClick={() => setForm(p => ({ ...p, extras: p.extras.filter((_: any, j: number) => j !== i) }))}
+                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <input placeholder="Nombre del extra" value={newExtraName} onChange={e => setNewExtraName(e.target.value)}
+              style={{ ...INPUT, flex: 2 }} />
+            <input placeholder="Precio" type="number" value={newExtraPrice} onChange={e => setNewExtraPrice(e.target.value)}
+              style={{ ...INPUT, flex: 1 }} />
+            <button onClick={() => {
+              if (!newExtraName.trim() || !newExtraPrice) return
+              setForm(p => ({ ...p, extras: [...p.extras, { name: newExtraName.trim(), price: Number(newExtraPrice) }] }))
+              setNewExtraName(""); setNewExtraPrice("")
+            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "13px", padding: "0 14px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
+              + Agregar
+            </button>
+          </div>
+        </div>
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
           <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}
             style={{ flex: 1, padding: "12px", background: "#7a5a98", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
