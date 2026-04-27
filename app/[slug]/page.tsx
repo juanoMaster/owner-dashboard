@@ -137,31 +137,49 @@ function SlugInner() {
         </div>
       </nav>
 
-      {/* HERO — carousel de fondo, texto encima */}
-      <div className="tk-hero" style={{ position: "relative", minHeight: "100vw", maxHeight: "480px", overflow: "hidden", marginTop: "56px" }}>
-        {/* Fotos rotando en fondo */}
-        {allPhotos.length > 0 ? allPhotos.map((photo, i) => (
-          <img key={i} src={photo} alt="" style={{ position: i === 0 ? "relative" : "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.55)", opacity: i === heroIdx ? 1 : 0, transition: "opacity 1.4s ease" }} />
-        )) : (
-          <div style={{ width: "100%", height: "100%", minHeight: "320px", background: "linear-gradient(160deg,#0a0f08,#111a0d,#080d07)" }} />
-        )}
-        {/* Overlay degradado */}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(6,6,6,0.25) 0%,rgba(6,6,6,0.05) 25%,rgba(6,6,6,0.6) 70%,rgba(6,6,6,1) 100%)" }} />
+      {/* HERO — fotos difuminadas rotando + texto bienvenida */}
+      <div className="tk-hero" style={{ position: "relative", minHeight: "320px", height: "100vw", maxHeight: "500px", overflow: "hidden", marginTop: "56px" }}>
 
-        {/* Texto hero */}
-        <div className="tk-hero-text" style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 20px 24px", maxWidth: "1200px", margin: "0 auto" }}>
+        {/* Fotos rotando difuminadas */}
+        {allPhotos.length > 0 ? allPhotos.map((photo, i) => (
+          <img key={i} src={photo} alt=""
+            style={{
+              position: "absolute", top: 0, left: 0,
+              width: "100%", height: "100%",
+              objectFit: "cover", display: "block",
+              filter: "blur(12px) brightness(0.38)",
+              transform: "scale(1.08)",
+              opacity: i === heroIdx ? 1 : 0,
+              transition: "opacity 1.6s ease"
+            }} />
+        )) : (
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg,#0a0f08,#111a0d,#080d07)" }} />
+        )}
+
+        {/* Overlay degradado */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(6,6,6,0.45) 0%, rgba(6,6,6,0.15) 30%, rgba(6,6,6,0.6) 70%, rgba(6,6,6,1) 100%)" }} />
+
+        {/* Contenido centrado */}
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "0 24px", zIndex: 2 }}>
+
+          {/* Indicadores dots */}
           {allPhotos.length > 1 && (
-            <div style={{ display: "flex", gap: "5px", marginBottom: "14px" }}>
+            <div style={{ display: "flex", gap: "5px", marginBottom: "20px" }}>
               {allPhotos.map((_, i) => (
-                <div key={i} onClick={() => setHeroIdx(i)} style={{ width: i === heroIdx ? "20px" : "5px", height: "5px", borderRadius: "3px", background: i === heroIdx ? GOLD : "rgba(255,255,255,0.2)", cursor: "pointer", transition: "all 0.35s ease" }} />
+                <div key={i} onClick={() => setHeroIdx(i)}
+                  style={{ width: i === heroIdx ? "20px" : "5px", height: "5px", borderRadius: "3px", background: i === heroIdx ? GOLD : "rgba(255,255,255,0.18)", cursor: "pointer", transition: "all 0.35s ease" }} />
               ))}
             </div>
           )}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
-            <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: GOLD }} />
-            <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.75)" }}>Reserva directa</span>
+
+          {/* Pill */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "16px" }}>
+            <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: GOLD }} />
+            <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.8)" }}>Reserva directa</span>
           </div>
-          <div className="tk-hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(28px,7vw,44px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "10px", wordBreak: "break-word" as const }}>
+
+          {/* Título principal */}
+          <div className="tk-hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(28px,7vw,52px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "14px", maxWidth: "600px" }}>
             {tagline.includes(",") ? (
               tagline.split(",").map((part, i, arr) => (
                 <span key={i}>
@@ -172,13 +190,31 @@ function SlugInner() {
               ))
             ) : <>{tagline}</>}
           </div>
+
+          {/* Subtítulo de bienvenida */}
+          <div style={{ fontFamily: SERIF, fontSize: "clamp(13px,2vw,18px)", fontWeight: 300, color: "rgba(240,237,232,0.55)", lineHeight: 1.6, maxWidth: "480px", marginBottom: "18px", fontStyle: "italic" }}>
+            {"Un refugio íntimo en medio de la naturaleza. Descansa, desconéctate y disfruta."}
+          </div>
+
+          {/* Ubicación */}
           {tenant.location_text && (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" as const }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" as const, justifyContent: "center" }}>
               <svg width="8" height="11" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.3 0 .5 1.8.5 4c0 3 4 8 4 8s4-5 4-8C8.5 1.8 6.7 0 4.5 0zm0 5.5C3.7 5.5 3 4.8 3 4s.7-1.5 1.5-1.5S6 3.2 6 4s-.7 1.5-1.5 1.5z" fill="rgba(201,168,76,0.5)"/></svg>
-              <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.55)" }}>{tenant.location_text}</span>
-              {tenant.location_maps_url && <a href={tenant.location_maps_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "10px", color: "rgba(201,168,76,0.7)", textDecoration: "none", borderBottom: "1px solid rgba(201,168,76,0.25)" }}>Ver en Maps</a>}
+              <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.5)" }}>{tenant.location_text}</span>
+              {tenant.location_maps_url && (
+                <a href={tenant.location_maps_url} target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: "10px", color: "rgba(201,168,76,0.65)", textDecoration: "none", borderBottom: "1px solid rgba(201,168,76,0.22)" }}>
+                  Ver en Maps
+                </a>
+              )}
             </div>
           )}
+        </div>
+
+        {/* Flecha scroll down */}
+        <div style={{ position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)", zIndex: 2, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "4px" }}>
+          <span style={{ fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.2)", textTransform: "uppercase" as const }}>Ver cabañas</span>
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
       </div>
 
