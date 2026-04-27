@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified")
+    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified, currency, location_text, location_maps_url, tagline, activities, page_rules")
     .eq("slug", params.slug)
     .eq("active", true)
     .maybeSingle()
@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: cabins } = await supabase
     .from("cabins")
-    .select("id, name, capacity, base_price_night, photos")
+    .select("id, name, capacity, base_price_night, extra_person_price, photos, description, amenities, extras, active")
     .eq("tenant_id", tenant.id)
     .eq("active", true)
     .order("name")
@@ -37,6 +37,12 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       facebook_url: tenant.facebook_url || null,
       instagram_url: tenant.instagram_url || null,
       verified: tenant.verified || false,
+      currency: tenant.currency || "CLP",
+      location_text: tenant.location_text || null,
+      location_maps_url: tenant.location_maps_url || null,
+      tagline: tenant.tagline || null,
+      activities: tenant.activities || [],
+      page_rules: tenant.page_rules || [],
     },
     cabins: cabins || [],
   })
