@@ -43,7 +43,7 @@ const TH: React.CSSProperties = { padding: "10px 14px", fontSize: "10px", letter
 const TD: React.CSSProperties = { padding: "11px 14px", fontSize: "12px", color: "#c8b8e0", borderBottom: "1px solid #ffffff05", verticalAlign: "middle" }
 const BTN = (color = "#7a5a98"): React.CSSProperties => ({ background: "transparent", border: "1px solid " + color + "60", borderRadius: "7px", color, fontSize: "11px", padding: "5px 12px", cursor: "pointer", fontFamily: "sans-serif", fontWeight: 600 })
 const MODAL_BG: React.CSSProperties = { position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "20px" }
-const MODAL_BOX: React.CSSProperties = { background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "480px", maxHeight: "90vh", overflowY: "auto" }
+const MODAL_BOX: React.CSSProperties = { background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "480px", maxHeight: "80vh", overflowY: "auto" }
 const INPUT: React.CSSProperties = { width: "100%", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "13px", padding: "10px 12px", outline: "none", fontFamily: "sans-serif", boxSizing: "border-box" }
 const LABEL: React.CSSProperties = { fontSize: "11px", color: "#5a4870", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: "6px" }
 
