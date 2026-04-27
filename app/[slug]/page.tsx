@@ -158,54 +158,36 @@ function SlugInner() {
             </svg>
             <span style={{ fontFamily: SERIF, fontSize: "13px", letterSpacing: "3px", color: TEXT, textTransform: "uppercase" as const, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const, maxWidth: "200px" }}>{tenant.business_name}</span>
           </div>
-          <div style={{ fontSize: "8px", letterSpacing: "2px", color: "rgba(201,168,76,0.4)", textTransform: "uppercase" as const, background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.14)", borderRadius: "6px", padding: "2px 7px" }}>{currencyLabel}</div>
         </div>
       </nav>
 
       {/* HERO */}
-      <div style={{ position: "relative", height: "100vw", maxHeight: "380px", minHeight: "280px", overflow: "hidden", marginTop: "58px" }}>
+      <div style={{ position: "relative", height: "100vw", maxHeight: "420px", minHeight: "300px", overflow: "hidden", marginTop: "58px" }}>
         {allPhotos.length > 0 ? (
-          <>
-            {allPhotos.map(function(photo, i) {
-              return (
-                <img key={i} src={photo} alt={tenant.business_name}
-                  style={{ position: i === 0 ? "relative" : "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "brightness(0.72)", opacity: i === heroIdx ? 1 : 0, transition: "opacity 1.2s ease" }} />
-              )
-            })}
-          </>
+          allPhotos.map(function(photo, i) {
+            return (
+              <img key={i} src={photo} alt=""
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", opacity: i === heroIdx ? 0.45 : 0, filter: "brightness(0.6) saturate(0.8)", transition: "opacity 1.2s ease" }} />
+            )
+          })
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "linear-gradient(160deg,#0a0f08 0%,#111a0d 50%,#080d07 100%)", position: "relative" }}>
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg,#0a0f08 0%,#111a0d 50%,#080d07 100%)" }}>
             <svg style={{ position: "absolute", bottom: 0, left: 0, right: 0, width: "100%", opacity: 0.4 }} viewBox="0 0 400 120" fill="none" preserveAspectRatio="xMidYMax slice">
               <rect width="400" height="120" fill="#0a0f08"/>
               {[30,70,110,150,200,250,290,330,370].map((x, i) => (
                 <g key={i}>
                   <line x1={x} y1="120" x2={x} y2={60 + (i % 3) * 12} stroke="#111e0d" strokeWidth={i % 2 === 0 ? "3" : "2"}/>
-                  <polygon points={`${x},${60 + (i%3)*12} ${x-12},${80+(i%3)*12} ${x+12},${80+(i%3)*12}`} fill="#111e0d" opacity="0.9"/>
-                  <polygon points={`${x},${74+(i%3)*12} ${x-14},${98+(i%3)*12} ${x+14},${98+(i%3)*12}`} fill="#131f10" opacity="0.85"/>
+                  <polygon points={x + "," + (60+(i%3)*12) + " " + (x-12) + "," + (80+(i%3)*12) + " " + (x+12) + "," + (80+(i%3)*12)} fill="#111e0d" opacity="0.9"/>
+                  <polygon points={x + "," + (74+(i%3)*12) + " " + (x-14) + "," + (98+(i%3)*12) + " " + (x+14) + "," + (98+(i%3)*12)} fill="#131f10" opacity="0.85"/>
                 </g>
               ))}
             </svg>
           </div>
         )}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(6,6,6,0.15) 0%, rgba(6,6,6,0) 30%, rgba(6,6,6,0.75) 75%, rgba(6,6,6,1) 100%)" }} />
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 20px 22px", maxWidth: "720px", margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
-            <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: GOLD }} />
-            <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.8)" }}>Reserva directa · {currency}</span>
-          </div>
-          <div style={{ fontFamily: SERIF, fontSize: "clamp(24px,6vw,38px)", fontWeight: 300, color: TEXT, lineHeight: 1.1, marginBottom: "10px", maxWidth: "100%", wordBreak: "break-word" as const }}>
-            {tagline ? (
-              <>
-                {tagline.split(",").map((part, i, arr) => (
-                  <span key={i}>{i === arr.length - 1 ? <em style={{ color: GOLD_L, fontStyle: "italic" }}>{part}</em> : part + ","}<br /></span>
-                ))}
-              </>
-            ) : (
-              <>{tenant.business_name}</>
-            )}
-          </div>
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(6,6,6,0.3) 0%, rgba(6,6,6,0.1) 40%, rgba(6,6,6,0.65) 80%, rgba(6,6,6,1) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", padding: "20px", textAlign: "center" as const }}>
           {allPhotos.length > 1 && (
-            <div style={{ display: "flex", gap: "5px", marginBottom: "10px" }}>
+            <div style={{ display: "flex", gap: "5px", marginBottom: "20px" }}>
               {allPhotos.map(function(_, i) {
                 return (
                   <div key={i} onClick={function() { setHeroIdx(i) }}
@@ -214,8 +196,21 @@ function SlugInner() {
               })}
             </div>
           )}
+          <div style={{ fontFamily: SERIF, fontSize: "clamp(24px,6vw,38px)", fontWeight: 300, color: TEXT, lineHeight: 1.15, marginBottom: "12px", maxWidth: "90%", wordBreak: "break-word" as const }}>
+            {tagline ? (
+              tagline.split(",").map(function(part, i, arr) {
+                return (
+                  <span key={i} style={{ display: "block" }}>
+                    {i === arr.length - 1 ? <em style={{ color: GOLD_L, fontStyle: "italic" }}>{part.trim()}</em> : part.trim()}
+                  </span>
+                )
+              })
+            ) : (
+              <span>{tenant.business_name}</span>
+            )}
+          </div>
           {tenant.location_text && (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", flexWrap: "wrap" as const }}>
               <svg width="9" height="12" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.3 0 .5 1.8.5 4c0 3 4 8 4 8s4-5 4-8C8.5 1.8 6.7 0 4.5 0zm0 5.5C3.7 5.5 3 4.8 3 4s.7-1.5 1.5-1.5S6 3.2 6 4s-.7 1.5-1.5 1.5z" fill="rgba(201,168,76,0.5)"/></svg>
               <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.55)" }}>{tenant.location_text}</span>
               {tenant.location_maps_url && (
@@ -252,7 +247,6 @@ function SlugInner() {
 
           {cabins.map(function (cabin, idx) {
             const amenitiesList = cabin.amenities ? cabin.amenities.split("\n").filter(Boolean) : []
-            const extras = cabin.extras && cabin.extras.length > 0 ? cabin.extras : null
             const bgImg = cabin.photos && cabin.photos.length > 0
               ? "url('" + (cabin.photos[1] || cabin.photos[0]) + "')"
               : null
@@ -271,18 +265,17 @@ function SlugInner() {
                     <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#6abf6a", animation: "tk-avail-pulse 2s infinite", flexShrink: 0 }} />
                     <span style={{ fontSize: "8px", color: "#6abf6a", letterSpacing: "0.3px", whiteSpace: "nowrap" as const }}>Disponible</span>
                   </div>
-                  <div style={{ position: "absolute", bottom: cabin.photos && cabin.photos.length > 1 ? "54px" : "16px", right: "14px", zIndex: 3 }}>
-                    <div style={{ background: "rgba(6,6,6,0.75)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", padding: "6px 10px", textAlign: "right" as const }}>
-                      <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
-                      <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.4)", marginTop: "-1px", letterSpacing: "0.5px" }}>{currency} / noche</div>
-                    </div>
-                  </div>
-
                   <div style={{ padding: "14px 16px 16px" }}>
                     <div style={{ fontFamily: SERIF, fontSize: "20px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", marginBottom: "2px", wordBreak: "break-word" as const }}>{cabin.name}</div>
-                    <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "10px" }}>
-                      Hasta {cabin.capacity} personas
-                      {cabin.extra_person_price > 0 && <span style={{ color: "rgba(201,168,76,0.5)", marginLeft: "6px" }}>· persona extra {fmt(cabin.extra_person_price)}</span>}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "1.5px", textTransform: "uppercase" as const }}>
+                        Hasta {cabin.capacity} personas
+                        {cabin.extra_person_price > 0 && <span style={{ color: "rgba(201,168,76,0.5)", marginLeft: "6px" }}>· extra {fmt(cabin.extra_person_price)}</span>}
+                      </div>
+                      <div style={{ textAlign: "right" as const }}>
+                        <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                        <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.5px" }}>{currency} / noche</div>
+                      </div>
                     </div>
 
                     {cabin.description && (
@@ -296,20 +289,6 @@ function SlugInner() {
                             <span key={i} style={{ padding: "3px 9px", background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.18)", borderRadius: "5px", fontSize: "9px", color: "rgba(201,168,76,0.75)", fontFamily: SANS }}>
                               {am.trim()}
                             </span>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                    {extras && (
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "11px", marginBottom: "13px" }}>
-                        <div style={{ fontSize: "8px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.35)", marginBottom: "8px" }}>Extras disponibles</div>
-                        {extras.map(function (ex, i) {
-                          return (
-                            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderTop: i > 0 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                              <span style={{ fontSize: "11px", color: "#666", fontWeight: 300 }}>{ex.name}</span>
-                              <span style={{ fontFamily: SERIF, fontSize: "13px", color: "rgba(201,168,76,0.7)" }}>{fmt(ex.price)}</span>
-                            </div>
                           )
                         })}
                       </div>
@@ -434,13 +413,6 @@ function SlugInner() {
         </div>
       </div>
 
-      {/* WA BUTTON */}
-      {waLink && (
-        <a href={waLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
-          style={{ position: "fixed", bottom: "22px", right: "22px", zIndex: 50, background: "#25D366", borderRadius: "50%", width: "54px", height: "54px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", animation: "tk-wa-pulse 2.5s infinite" }}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        </a>
-      )}
 
     </div>
   )
