@@ -37,7 +37,7 @@ function GoldLine() {
 function CabinGallery({ photos, name }: { photos?: string[]; name: string }) {
   const [main, setMain] = useState(0)
   if (!photos || photos.length === 0) return (
-    <div style={{ height: "240px", background: "linear-gradient(135deg,#0d120a,#111a0d)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ height: "260px", background: "linear-gradient(135deg,#0d120a,#111a0d)", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <svg width="48" height="40" viewBox="0 0 48 40" fill="none">
         <path d="M24 4L44 20L44 38L4 38L4 20Z" fill="#162012" stroke="#2a3a28" strokeWidth="1.5" strokeLinejoin="round"/>
         <path d="M24 4L44 20L4 20Z" fill="#1a2818" stroke="#2a3a28" strokeWidth="1.5" strokeLinejoin="round"/>
@@ -47,7 +47,7 @@ function CabinGallery({ photos, name }: { photos?: string[]; name: string }) {
   )
   return (
     <div>
-      <div style={{ position: "relative", height: "240px", overflow: "hidden" }}>
+      <div style={{ position: "relative", height: "260px", overflow: "hidden" }}>
         <img src={photos[main]} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,transparent 55%,rgba(13,13,13,0.95) 100%)" }} />
       </div>
@@ -97,6 +97,7 @@ function SlugInner() {
   const activities = tenant.activities && tenant.activities.length > 0 ? tenant.activities : null
   const rules = tenant.page_rules && tenant.page_rules.length > 0 ? tenant.page_rules : null
   const tagline = tenant.tagline || tenant.business_name
+  const sortedCabins = [...cabins].sort((a, b) => a.base_price_night - b.base_price_night)
 
   return (
     <div style={{ fontFamily: SANS, background: BG, minHeight: "100vh", color: TEXT }}>
@@ -123,6 +124,7 @@ function SlugInner() {
           .tk-container{max-width:1400px!important;}
           .tk-card{transition:transform 0.2s ease,box-shadow 0.2s ease;}
           .tk-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+          .tk-card .tk-card-body{padding:24px 28px 28px!important;}
         }
         @media(min-width:1024px){
           .tk-cabins-grid{grid-template-columns:1fr 1fr 1fr;gap:28px;}
@@ -187,78 +189,84 @@ function SlugInner() {
             </div>
           )}
 
-          {/* Pill */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "20px" }}>
-            <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: GOLD }} />
-            <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.8)" }}>Reserva directa</span>
-          </div>
+          <div style={{
+            background: "rgba(0,0,0,0.52)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            borderRadius: "24px",
+            padding: "36px 48px",
+            display: "flex",
+            flexDirection: "column" as const,
+            alignItems: "center",
+            maxWidth: "760px",
+            width: "90%",
+          }}>
 
-          {/* Headline principal impactante */}
-          <div style={{ fontFamily: SANS, fontSize: "clamp(11px,2.2vw,15px)", fontWeight: 500, letterSpacing: "5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: "14px" }}>
-            {tenant.business_name}
-          </div>
-
-          <div className="tk-hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(32px,6vw,68px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "18px", maxWidth: "700px" }}>
-            {tagline && tagline !== tenant.business_name
-              ? tagline
-              : "Desconéctate en medio de la naturaleza"}
-          </div>
-
-          {/* Subtítulo motivador */}
-          <div style={{ fontFamily: SERIF, fontSize: "clamp(14px,1.8vw,20px)", fontWeight: 300, color: "rgba(240,237,232,0.6)", lineHeight: 1.65, maxWidth: "520px", marginBottom: "24px", fontStyle: "italic" }}>
-            Relájate, desconéctate y vive una experiencia única.<br/>
-            Reserva directo, sin intermediarios.
-          </div>
-
-          {/* Botón CTA scroll */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: GOLD, color: "#0a0700", borderRadius: "30px", padding: "12px 28px", cursor: "pointer", fontSize: "11px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase" as const }}
-            onClick={() => document.querySelector('.tk-section')?.scrollIntoView({ behavior: 'smooth' })}>
-            Ver cabañas
-            <span style={{ fontSize: "16px", fontWeight: 300 }}>↓</span>
-          </div>
-
-          {/* Ubicación */}
-          {tenant.location_text && (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "20px", flexWrap: "wrap" as const, justifyContent: "center" }}>
-              <svg width="8" height="11" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.3 0 .5 1.8.5 4c0 3 4 8 4 8s4-5 4-8C8.5 1.8 6.7 0 4.5 0zm0 5.5C3.7 5.5 3 4.8 3 4s.7-1.5 1.5-1.5S6 3.2 6 4s-.7 1.5-1.5 1.5z" fill="rgba(201,168,76,0.5)"/></svg>
-              <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.5)" }}>{tenant.location_text}</span>
-              {tenant.location_maps_url && (
-                <a href={tenant.location_maps_url} target="_blank" rel="noopener noreferrer"
-                  style={{ fontSize: "10px", color: "rgba(201,168,76,0.65)", textDecoration: "none", borderBottom: "1px solid rgba(201,168,76,0.22)" }}>
-                  Ver en Maps
-                </a>
-              )}
+            {/* Pill */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "20px" }}>
+              <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: GOLD }} />
+              <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.8)" }}>Reserva directa</span>
             </div>
-          )}
+
+            {/* Headline principal impactante */}
+            <div style={{ fontFamily: SANS, fontSize: "clamp(11px,2.2vw,15px)", fontWeight: 500, letterSpacing: "5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: "14px" }}>
+              {tenant.business_name}
+            </div>
+
+            <div className="tk-hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(32px,6vw,68px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "18px", maxWidth: "700px" }}>
+              {tagline && tagline !== tenant.business_name
+                ? tagline
+                : "Desconéctate en medio de la naturaleza"}
+            </div>
+
+            {/* Subtítulo motivador */}
+            <div style={{ fontFamily: SERIF, fontSize: "clamp(14px,1.8vw,20px)", fontWeight: 300, color: "rgba(240,237,232,0.6)", lineHeight: 1.65, maxWidth: "520px", marginBottom: "24px", fontStyle: "italic" }}>
+              Relájate, desconéctate y vive una experiencia única.<br/>
+              Reserva directo, sin intermediarios.
+            </div>
+
+            {/* Botón CTA scroll */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: GOLD, color: "#0a0700", borderRadius: "30px", padding: "12px 28px", cursor: "pointer", fontSize: "11px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase" as const }}
+              onClick={() => document.querySelector('.tk-section')?.scrollIntoView({ behavior: 'smooth' })}>
+              Ver cabañas
+              <span style={{ fontSize: "16px", fontWeight: 300 }}>↓</span>
+            </div>
+
+            {/* Ubicación */}
+            {tenant.location_text && (
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "20px", flexWrap: "wrap" as const, justifyContent: "center" }}>
+                <svg width="8" height="11" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.3 0 .5 1.8.5 4c0 3 4 8 4 8s4-5 4-8C8.5 1.8 6.7 0 4.5 0zm0 5.5C3.7 5.5 3 4.8 3 4s.7-1.5 1.5-1.5S6 3.2 6 4s-.7 1.5-1.5 1.5z" fill="rgba(201,168,76,0.5)"/></svg>
+                <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.5)" }}>{tenant.location_text}</span>
+                {tenant.location_maps_url && (
+                  <a href={tenant.location_maps_url} target="_blank" rel="noopener noreferrer"
+                    style={{ fontSize: "10px", color: "rgba(201,168,76,0.65)", textDecoration: "none", borderBottom: "1px solid rgba(201,168,76,0.22)" }}>
+                    Ver en Maps
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Badge verificado flotante */}
-        {tenant.verified && (
-          <div style={{
-            position: "absolute",
-            bottom: "20px",
-            right: "24px",
-            zIndex: 4,
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            background: "rgba(6,6,6,0.75)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(201,168,76,0.35)",
-            borderRadius: "14px",
-            padding: "10px 16px",
-          }}>
-            <svg width="28" height="33" viewBox="0 0 28 33" fill="none">
-              <path d="M14 1L26 6V16C26 23.5 20.5 29.5 14 31.5C7.5 29.5 2 23.5 2 16V6Z" fill="rgba(201,168,76,0.12)" stroke={GOLD} strokeWidth="1.2"/>
-              <path d="M9 16.5L12.5 20L19 13" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <div>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: GOLD, letterSpacing: "0.5px" }}>Verificado</div>
-              <div style={{ fontSize: "9px", color: "rgba(201,168,76,0.6)", letterSpacing: "0.3px" }}>por Takai.cl</div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Franja verificado centrada */}
+      {tenant.verified && (
+        <div style={{ background: "linear-gradient(90deg,rgba(6,6,6,0) 0%,rgba(201,168,76,0.06) 30%,rgba(201,168,76,0.10) 50%,rgba(201,168,76,0.06) 70%,rgba(6,6,6,0) 100%)", borderTop: "1px solid rgba(201,168,76,0.12)", borderBottom: "1px solid rgba(201,168,76,0.12)", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: "16px" }}>
+          <svg width="18" height="21" viewBox="0 0 28 33" fill="none">
+            <path d="M14 1L26 6V16C26 23.5 20.5 29.5 14 31.5C7.5 29.5 2 23.5 2 16V6Z" fill="rgba(201,168,76,0.08)" stroke={GOLD} strokeWidth="1.2"/>
+            <path d="M9 16.5L12.5 20L19 13" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <div style={{ textAlign: "center" as const }}>
+            <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "2.5px", textTransform: "uppercase" as const, color: GOLD }}>Verificado</span>
+            <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.5)", letterSpacing: "1px" }}> · por Takai.cl</span>
+          </div>
+          <svg width="18" height="21" viewBox="0 0 28 33" fill="none">
+            <path d="M14 1L26 6V16C26 23.5 20.5 29.5 14 31.5C7.5 29.5 2 23.5 2 16V6Z" fill="rgba(201,168,76,0.08)" stroke={GOLD} strokeWidth="1.2"/>
+            <path d="M9 16.5L12.5 20L19 13" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      )}
 
       <div className="tk-container" style={{ maxWidth: "1400px", margin: "0 auto" }}>
 
@@ -271,7 +279,7 @@ function SlugInner() {
             <div style={{ flex: 1, height: "1px", background: "rgba(201,168,76,0.12)" }} />
           </div>
           <div className="tk-cabins-grid">
-            {cabins.map(function(cabin, idx) {
+            {sortedCabins.map(function(cabin, idx) {
               const amenitiesList = cabin.amenities ? cabin.amenities.split("\n").filter(Boolean) : []
               const extras = cabin.extras && cabin.extras.length > 0 ? cabin.extras : null
               const bgImg = cabin.photos && cabin.photos.length > 1 ? cabin.photos[1] : cabin.photos?.[0]
@@ -293,19 +301,19 @@ function SlugInner() {
                       <span style={{ fontSize: "8px", color: "#6abf6a", whiteSpace: "nowrap" as const }}>Disponible</span>
                     </div>
 
-                    <div style={{ padding: "18px 20px 20px" }}>
-                      <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.15, marginBottom: "8px", wordBreak: "break-word" as const }}>{cabin.name}</div>
+                    <div className="tk-card-body" style={{ padding: "20px 24px 24px" }}>
+                      <div style={{ fontFamily: SERIF, fontSize: "26px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.15, marginBottom: "12px", wordBreak: "break-word" as const }}>{cabin.name}</div>
 
-                      <div style={{ fontSize: "11px", color: "#aaa", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "12px" }}>Hasta {cabin.capacity} personas</div>
+                      <div style={{ fontSize: "13px", color: "#bbb", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "14px" }}>Hasta {cabin.capacity} personas</div>
 
                       {cabin.description && (
-                        <div style={{ fontSize: "13px", color: "#999", lineHeight: 1.8, marginBottom: "16px", fontWeight: 300, wordBreak: "break-word" as const }}>{cabin.description}</div>
+                        <div style={{ fontSize: "14px", color: "#aaa", lineHeight: 1.8, marginBottom: "16px", fontWeight: 300, wordBreak: "break-word" as const }}>{cabin.description}</div>
                       )}
 
                       {amenitiesList.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "4px", marginBottom: "14px" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px", marginBottom: "18px" }}>
                           {amenitiesList.map((am, i) => (
-                            <span key={i} style={{ padding: "5px 10px", background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: "5px", fontSize: "11px", color: "rgba(201,168,76,0.7)" }}>{am.trim()}</span>
+                            <span key={i} style={{ padding: "6px 12px", background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: "5px", fontSize: "12px", color: "rgba(201,168,76,0.7)" }}>{am.trim()}</span>
                           ))}
                         </div>
                       )}
@@ -323,14 +331,14 @@ function SlugInner() {
 
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", paddingTop: "4px" }}>
                         <div>
-                          <div style={{ fontFamily: SERIF, fontSize: "26px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
-                          <div style={{ fontSize: "11px", color: MUTED, letterSpacing: "0.5px", marginTop: "2px" }}>por noche</div>
+                          <div style={{ fontFamily: SERIF, fontSize: "32px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                          <div style={{ fontSize: "12px", color: MUTED, letterSpacing: "0.5px", marginTop: "2px" }}>por noche</div>
                         </div>
                       </div>
 
                       <a href={"/reservar?cabin_id=" + cabin.id + "&cabin_name=" + encodeURIComponent(cabin.name) + "&price=" + cabin.base_price_night + "&capacity=" + cabin.capacity}
                         className="tk-btn"
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: GOLD, color: "#0a0700", borderRadius: "8px", padding: "11px 16px", fontSize: "10px", fontWeight: 600, textDecoration: "none", fontFamily: SANS, letterSpacing: "2px", textTransform: "uppercase" as const }}>
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: GOLD, color: "#0a0700", borderRadius: "8px", padding: "14px 20px", fontSize: "12px", fontWeight: 600, textDecoration: "none", fontFamily: SANS, letterSpacing: "1.5px", textTransform: "uppercase" as const }}>
                         <span>Reservar</span>
                         <span style={{ fontFamily: SERIF, fontSize: "15px", fontWeight: 300 }}>→</span>
                       </a>
