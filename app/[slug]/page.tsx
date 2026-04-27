@@ -27,13 +27,17 @@ function fmtPrice(n: number, currency: string) {
 }
 
 function GoldLine() {
-  return <div style={{ height: "1px", background: "linear-gradient(90deg,transparent," + GOLD + ",transparent)", opacity: 0.22 }} />
+  return (
+    <div style={{ position: "relative", height: "1px", margin: "0" }}>
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,transparent 0%," + GOLD + " 30%," + GOLD + " 70%,transparent 100%)", opacity: 0.18 }} />
+    </div>
+  )
 }
 
 function CabinGallery({ photos, name }: { photos?: string[]; name: string }) {
   const [main, setMain] = useState(0)
   if (!photos || photos.length === 0) return (
-    <div style={{ height: "220px", background: "linear-gradient(135deg,#0d120a,#111a0d)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ height: "240px", background: "linear-gradient(135deg,#0d120a,#111a0d)", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <svg width="48" height="40" viewBox="0 0 48 40" fill="none">
         <path d="M24 4L44 20L44 38L4 38L4 20Z" fill="#162012" stroke="#2a3a28" strokeWidth="1.5" strokeLinejoin="round"/>
         <path d="M24 4L44 20L4 20Z" fill="#1a2818" stroke="#2a3a28" strokeWidth="1.5" strokeLinejoin="round"/>
@@ -43,7 +47,7 @@ function CabinGallery({ photos, name }: { photos?: string[]; name: string }) {
   )
   return (
     <div>
-      <div style={{ position: "relative", height: "220px", overflow: "hidden" }}>
+      <div style={{ position: "relative", height: "240px", overflow: "hidden" }}>
         <img src={photos[main]} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,transparent 55%,rgba(13,13,13,0.95) 100%)" }} />
       </div>
@@ -117,6 +121,8 @@ function SlugInner() {
           .tk-between{display:none;}
           .tk-nav-inner{padding:0 80px!important;}
           .tk-container{max-width:1400px!important;}
+          .tk-card{transition:transform 0.2s ease,box-shadow 0.2s ease;}
+          .tk-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.5);}
         }
         @media(min-width:1024px){
           .tk-cabins-grid{grid-template-columns:1fr 1fr 1fr;gap:28px;}
@@ -165,8 +171,11 @@ function SlugInner() {
         {/* Overlay degradado */}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(6,6,6,0.45) 0%, rgba(6,6,6,0.15) 30%, rgba(6,6,6,0.6) 70%, rgba(6,6,6,1) 100%)" }} />
 
+        {/* Vignette centrado detrás del texto */}
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 60% at 50% 60%, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)", zIndex: 1 }} />
+
         {/* Contenido centrado */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "0 24px", zIndex: 2 }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", textAlign: "center" as const, padding: "0 24px", zIndex: 3 }}>
 
           {/* Indicadores dots */}
           {allPhotos.length > 1 && (
@@ -222,28 +231,42 @@ function SlugInner() {
             </div>
           )}
         </div>
+
+        {/* Badge verificado flotante */}
+        {tenant.verified && (
+          <div style={{
+            position: "absolute",
+            bottom: "20px",
+            right: "24px",
+            zIndex: 4,
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            background: "rgba(6,6,6,0.75)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(201,168,76,0.35)",
+            borderRadius: "14px",
+            padding: "10px 16px",
+          }}>
+            <svg width="28" height="33" viewBox="0 0 28 33" fill="none">
+              <path d="M14 1L26 6V16C26 23.5 20.5 29.5 14 31.5C7.5 29.5 2 23.5 2 16V6Z" fill="rgba(201,168,76,0.12)" stroke={GOLD} strokeWidth="1.2"/>
+              <path d="M9 16.5L12.5 20L19 13" stroke={GOLD} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: GOLD, letterSpacing: "0.5px" }}>Verificado</div>
+              <div style={{ fontSize: "9px", color: "rgba(201,168,76,0.6)", letterSpacing: "0.3px" }}>por Takai.cl</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="tk-container" style={{ maxWidth: "1400px", margin: "0 auto" }}>
-
-        {/* VERIFIED */}
-        {tenant.verified && (
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", margin: "14px 20px 4px", background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: "10px" }}>
-            <svg width="20" height="24" viewBox="0 0 22 26" fill="none">
-              <path d="M11 1L20 5V13C20 18.5 16 22.5 11 24C6 22.5 2 18.5 2 13V5Z" fill="rgba(201,168,76,0.08)" stroke="rgba(201,168,76,0.38)" strokeWidth="1.2"/>
-              <path d="M7 13L9.5 15.5L15 10" stroke={GOLD} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.6)", lineHeight: 1.4 }}>
-              Alojamiento verificado por <strong style={{ color: GOLD }}>Takai.cl</strong> · Calidad y seguridad garantizadas
-            </span>
-          </div>
-        )}
 
         <div style={{ margin: "14px 0 0" }}><GoldLine /></div>
 
         {/* CABINS */}
         <div className="tk-section" style={{ padding: "20px 20px 0" }}>
-          <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: GOLD, marginBottom: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "4px", fontWeight: 600, textTransform: "uppercase" as const, color: GOLD, marginBottom: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
             Elige tu cabaña
             <div style={{ flex: 1, height: "1px", background: "rgba(201,168,76,0.12)" }} />
           </div>
@@ -270,19 +293,19 @@ function SlugInner() {
                       <span style={{ fontSize: "8px", color: "#6abf6a", whiteSpace: "nowrap" as const }}>Disponible</span>
                     </div>
 
-                    <div style={{ padding: "14px 16px 16px" }}>
-                      <div style={{ fontFamily: SERIF, fontSize: "19px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.1, marginBottom: "4px", wordBreak: "break-word" as const }}>{cabin.name}</div>
+                    <div style={{ padding: "18px 20px 20px" }}>
+                      <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.15, marginBottom: "8px", wordBreak: "break-word" as const }}>{cabin.name}</div>
 
-                      <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "10px" }}>Hasta {cabin.capacity} personas</div>
+                      <div style={{ fontSize: "11px", color: "#aaa", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "12px" }}>Hasta {cabin.capacity} personas</div>
 
                       {cabin.description && (
-                        <div style={{ fontSize: "11px", color: "#888", lineHeight: 1.75, marginBottom: "12px", fontWeight: 300, wordBreak: "break-word" as const }}>{cabin.description}</div>
+                        <div style={{ fontSize: "13px", color: "#999", lineHeight: 1.8, marginBottom: "16px", fontWeight: 300, wordBreak: "break-word" as const }}>{cabin.description}</div>
                       )}
 
                       {amenitiesList.length > 0 && (
                         <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "4px", marginBottom: "14px" }}>
                           {amenitiesList.map((am, i) => (
-                            <span key={i} style={{ padding: "3px 8px", background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: "5px", fontSize: "9px", color: "rgba(201,168,76,0.7)" }}>{am.trim()}</span>
+                            <span key={i} style={{ padding: "5px 10px", background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.16)", borderRadius: "5px", fontSize: "11px", color: "rgba(201,168,76,0.7)" }}>{am.trim()}</span>
                           ))}
                         </div>
                       )}
@@ -300,8 +323,8 @@ function SlugInner() {
 
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", paddingTop: "4px" }}>
                         <div>
-                          <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
-                          <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "0.5px", marginTop: "2px" }}>por noche</div>
+                          <div style={{ fontFamily: SERIF, fontSize: "26px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                          <div style={{ fontSize: "11px", color: MUTED, letterSpacing: "0.5px", marginTop: "2px" }}>por noche</div>
                         </div>
                       </div>
 
@@ -411,8 +434,8 @@ function SlugInner() {
         {allPhotos[0] && <img src={allPhotos[0]} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.05, pointerEvents: "none" }} />}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom," + BG + ",rgba(6,6,6,0.85))", pointerEvents: "none" }} />
         <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(201,168,76,0.07)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ fontFamily: SERIF, fontSize: "11px", letterSpacing: "2px", color: "#2a2a2a", textTransform: "uppercase" as const }}>{tenant.business_name}</div>
-          <div style={{ fontSize: "8px", color: "#1e1e1e", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Powered by Takai.cl</div>
+          <div style={{ fontFamily: SERIF, fontSize: "11px", letterSpacing: "2px", color: "rgba(201,168,76,0.25)", textTransform: "uppercase" as const }}>{tenant.business_name}</div>
+          <div style={{ fontSize: "8px", color: "rgba(201,168,76,0.18)", letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Powered by Takai.cl</div>
         </div>
       </div>
 
