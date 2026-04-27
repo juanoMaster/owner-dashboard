@@ -106,25 +106,31 @@ function SlugInner() {
         .tk-btn:hover{opacity:0.88;}
         .tk-soc:hover{border-color:rgba(201,168,76,0.35)!important;color:${TEXT}!important;}
 
-        /* DESKTOP LAYOUT */
         @media(min-width:768px){
-          .tk-cabins-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
-          .tk-hero{min-height:520px!important;max-height:600px!important;}
-          .tk-hero-text{padding:0 48px 48px!important;}
-          .tk-hero-h1{font-size:58px!important;}
-          .tk-section{padding-left:48px!important;padding-right:48px!important;}
+          .tk-cabins-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+          .tk-hero{height:clamp(420px,45vw,620px)!important;}
+          .tk-hero-text{padding:0 80px 64px!important;}
+          .tk-hero-h1{font-size:64px!important;max-width:700px!important;}
+          .tk-section{padding-left:80px!important;padding-right:80px!important;}
           .tk-acts-grid{grid-template-columns:repeat(4,1fr)!important;}
           .tk-rules-grid{grid-template-columns:repeat(3,1fr)!important;}
           .tk-between{display:none;}
+          .tk-nav-inner{padding:0 80px!important;}
+          .tk-container{max-width:1400px!important;}
         }
         @media(min-width:1024px){
-          .tk-cabins-grid{grid-template-columns:1fr 1fr 1fr;}
+          .tk-cabins-grid{grid-template-columns:1fr 1fr 1fr;gap:28px;}
+          .tk-hero-h1{font-size:72px!important;}
+        }
+        @media(min-width:1280px){
+          .tk-section{padding-left:100px!important;padding-right:100px!important;}
+          .tk-nav-inner{padding:0 100px!important;}
         }
       `}</style>
 
       {/* NAV */}
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(6,6,6,0.96)", borderBottom: "1px solid rgba(201,168,76,0.07)" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", height: "56px" }}>
+        <div className="tk-nav-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", height: "56px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
               <path d="M20 4L32 12V24C32 31 26 36 20 38C14 36 8 31 8 24V12Z" fill="rgba(201,168,76,0.08)" stroke="rgba(201,168,76,0.35)" strokeWidth="1.2"/>
@@ -138,7 +144,7 @@ function SlugInner() {
       </nav>
 
       {/* HERO — fotos difuminadas rotando + texto bienvenida */}
-      <div className="tk-hero" style={{ position: "relative", minHeight: "320px", height: "100vw", maxHeight: "500px", overflow: "hidden", marginTop: "56px" }}>
+      <div className="tk-hero" style={{ position: "relative", minHeight: "320px", height: "clamp(380px, 55vw, 620px)", maxHeight: "500px", overflow: "hidden", marginTop: "56px" }}>
 
         {/* Fotos rotando difuminadas */}
         {allPhotos.length > 0 ? allPhotos.map((photo, i) => (
@@ -193,7 +199,7 @@ function SlugInner() {
 
           {/* Subtítulo de bienvenida */}
           <div style={{ fontFamily: SERIF, fontSize: "clamp(13px,2vw,18px)", fontWeight: 300, color: "rgba(240,237,232,0.55)", lineHeight: 1.6, maxWidth: "480px", marginBottom: "18px", fontStyle: "italic" }}>
-            {"Un refugio íntimo en medio de la naturaleza. Descansa, desconéctate y disfruta."}
+            {"Desconéctate del mundo. Una escapada de relajo en medio de la naturaleza."}
           </div>
 
           {/* Ubicación */}
@@ -218,7 +224,7 @@ function SlugInner() {
         </div>
       </div>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <div className="tk-container" style={{ maxWidth: "1400px", margin: "0 auto" }}>
 
         {/* VERIFIED */}
         {tenant.verified && (
@@ -265,14 +271,7 @@ function SlugInner() {
                     </div>
 
                     <div style={{ padding: "14px 16px 16px" }}>
-                      {/* nombre + precio en misma fila */}
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px", marginBottom: "4px" }}>
-                        <div style={{ fontFamily: SERIF, fontSize: "19px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.1, flex: 1, wordBreak: "break-word" as const }}>{cabin.name}</div>
-                        <div style={{ flexShrink: 0, textAlign: "right" as const }}>
-                          <div style={{ fontFamily: SERIF, fontSize: "20px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
-                          <div style={{ fontSize: "8px", color: MUTED, letterSpacing: "0.5px", marginTop: "1px" }}>{currency} / noche</div>
-                        </div>
-                      </div>
+                      <div style={{ fontFamily: SERIF, fontSize: "19px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.1, marginBottom: "4px", wordBreak: "break-word" as const }}>{cabin.name}</div>
 
                       <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "1.5px", textTransform: "uppercase" as const, marginBottom: "10px" }}>Hasta {cabin.capacity} personas</div>
 
@@ -298,6 +297,13 @@ function SlugInner() {
                           ))}
                         </div>
                       )}
+
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", paddingTop: "4px" }}>
+                        <div>
+                          <div style={{ fontFamily: SERIF, fontSize: "22px", fontWeight: 300, color: TEXT, lineHeight: 1 }}>{fmt(cabin.base_price_night)}</div>
+                          <div style={{ fontSize: "9px", color: MUTED, letterSpacing: "0.5px", marginTop: "2px" }}>por noche</div>
+                        </div>
+                      </div>
 
                       <a href={"/reservar?cabin_id=" + cabin.id + "&cabin_name=" + encodeURIComponent(cabin.name) + "&price=" + cabin.base_price_night + "&capacity=" + cabin.capacity}
                         className="tk-btn"
