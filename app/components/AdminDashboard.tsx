@@ -329,42 +329,52 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                 + Nueva cabaña
               </button>
             } />
-            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px", marginBottom: "16px", alignItems: "flex-end" }}>
+
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px", marginBottom: "18px", alignItems: "flex-end" }}>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px" }}>
-                <span style={{ fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase" as const, color: "#5a4870" }}>Filtrar por cliente</span>
-                <select value={filterCabinTenant} onChange={e => setFilterCabinTenant(e.target.value)}
-                  style={{ background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "8px 12px", outline: "none", fontFamily: "sans-serif", cursor: "pointer", minWidth: "180px" }}>
-                  <option value="">Todos los clientes</option>
+                <span style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870" }}>Cliente</span>
+                <select
+                  value={filterCabinTenant}
+                  onChange={e => setFilterCabinTenant(e.target.value)}
+                  style={{ background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "13px", padding: "9px 14px", outline: "none", fontFamily: "sans-serif", cursor: "pointer", minWidth: "190px" }}>
+                  <option value="">— Todos los clientes —</option>
                   {Array.from(new Set(cabins.map((c: any) => tenantMap[c.tenant_id] || ""))).filter(Boolean).sort().map((name: any) => (
                     <option key={name} value={name}>{name}</option>
                   ))}
                 </select>
               </div>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px" }}>
-                <span style={{ fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase" as const, color: "#5a4870" }}>Estado</span>
-                <select value={filterCabinEstado} onChange={e => setFilterCabinEstado(e.target.value)}
-                  style={{ background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "8px 12px", outline: "none", fontFamily: "sans-serif", cursor: "pointer", minWidth: "140px" }}>
-                  <option value="">Todos los estados</option>
-                  <option value="activa">Activa</option>
-                  <option value="inactiva">Inactiva</option>
+                <span style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870" }}>Estado</span>
+                <select
+                  value={filterCabinEstado}
+                  onChange={e => setFilterCabinEstado(e.target.value)}
+                  style={{ background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "13px", padding: "9px 14px", outline: "none", fontFamily: "sans-serif", cursor: "pointer", minWidth: "150px" }}>
+                  <option value="">— Todos —</option>
+                  <option value="activa">{"✓ Activa"}</option>
+                  <option value="inactiva">{"✗ Inactiva"}</option>
                 </select>
               </div>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px" }}>
-                <span style={{ fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase" as const, color: "#5a4870" }}>Capacidad</span>
-                <select value={filterCabinCapacidad} onChange={e => setFilterCabinCapacidad(e.target.value)}
-                  style={{ background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "8px 12px", outline: "none", fontFamily: "sans-serif", cursor: "pointer", minWidth: "140px" }}>
-                  <option value="">Toda capacidad</option>
+                <span style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870" }}>Capacidad</span>
+                <select
+                  value={filterCabinCapacidad}
+                  onChange={e => setFilterCabinCapacidad(e.target.value)}
+                  style={{ background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "13px", padding: "9px 14px", outline: "none", fontFamily: "sans-serif", cursor: "pointer", minWidth: "150px" }}>
+                  <option value="">— Todas —</option>
                   {Array.from(new Set(cabins.map((c: any) => c.capacity))).sort((a: any, b: any) => a - b).map((cap: any) => (
                     <option key={cap} value={String(cap)}>{cap} personas</option>
                   ))}
                 </select>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: "12px", marginLeft: "auto" }}>
-                <span style={{ fontSize: "11px", color: "#3a2e50", paddingBottom: "9px" }}>{filteredCabins.length} resultado{filteredCabins.length !== 1 ? "s" : ""}</span>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", marginLeft: "auto" }}>
+                <span style={{ fontSize: "11px", color: "#4a3868", paddingBottom: "10px" }}>
+                  {filteredCabins.length} de {cabins.length} cabañas
+                </span>
                 {(filterCabinTenant || filterCabinEstado || filterCabinCapacidad) && (
-                  <button onClick={() => { setFilterCabinTenant(""); setFilterCabinEstado(""); setFilterCabinCapacidad("") }}
-                    style={{ background: "transparent", border: "1px solid #e63946", borderRadius: "7px", color: "#e63946", fontSize: "11px", padding: "7px 14px", cursor: "pointer", fontFamily: "sans-serif" }}>
-                    Limpiar filtros ✕
+                  <button
+                    onClick={() => { setFilterCabinTenant(""); setFilterCabinEstado(""); setFilterCabinCapacidad("") }}
+                    style={{ background: "transparent", border: "1px solid #e63946", borderRadius: "8px", color: "#e63946", fontSize: "12px", padding: "8px 16px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                    Limpiar ✕
                   </button>
                 )}
               </div>
