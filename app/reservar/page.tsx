@@ -372,7 +372,7 @@ function ReservarInner() {
                 <div style={s.cardTitle}>{"Huéspedes y extras"}</div>
                 <span style={s.lbl}>{"Número de personas (cap. " + capacidad + ")"}</span>
                 <select style={s.sel} value={guests} onChange={e => setGuests(Number(e.target.value))}>
-                  {Array.from({ length: capacidad + 2 }, (_, i) => i + 1).map(n => (
+                  {Array.from({ length: pricingTiers.length > 0 ? capacidad : capacidad + 2 }, (_, i) => i + 1).map(n => (
                     <option key={n} value={n}>
                       {n}{n === 1 ? " persona" : " personas"}{pricingTiers.length > 0 ? " — " + fmt(getPriceForGuests(pricingTiers, n, basePriceNight)) + "/noche" : n > capacidad && extraPersonPrice > 0 ? " (+" + fmt(extraPersonPrice) + "/noche)" : ""}
                     </option>
