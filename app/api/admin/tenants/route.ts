@@ -48,6 +48,11 @@ export async function POST(req: Request) {
         has_tinaja: body.has_tinaja ?? true,
         country: body.country || "CL",
         currency: body.currency || "CLP",
+        location_text: body.location_text || null,
+        location_maps_url: body.location_maps_url || null,
+        tagline: body.tagline || null,
+        activities: body.activities || [],
+        page_rules: body.page_rules || [],
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -69,6 +74,11 @@ export async function POST(req: Request) {
         has_tinaja: body.has_tinaja ?? true,
         country: body.country || "CL",
         currency: body.currency || "CLP",
+        location_text: body.location_text || null,
+        location_maps_url: body.location_maps_url || null,
+        tagline: body.tagline || null,
+        activities: body.activities || [],
+        page_rules: body.page_rules || [],
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })

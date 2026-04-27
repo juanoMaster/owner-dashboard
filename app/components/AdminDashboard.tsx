@@ -604,8 +604,16 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     mp_enabled: data.mp_enabled ?? false,
     country: data.country || "CL",
     currency: data.currency || "CLP",
+    location_text: data.location_text || "",
+    location_maps_url: data.location_maps_url || "",
+    tagline: data.tagline || "",
+    activities: (data.activities || []) as Array<{icon: string; name: string}>,
+    page_rules: (data.page_rules || []) as string[],
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
+  const [newActIcon, setNewActIcon] = useState("")
+  const [newActName, setNewActName] = useState("")
+  const [newRule, setNewRule] = useState("")
   return (
     <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={MODAL_BOX}>
@@ -646,6 +654,70 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
         </div>
         <div style={{ marginBottom: "16px", background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", color: "#5a4870" }}>
           Moneda configurada: <strong style={{ color: "#c8b878" }}>{form.currency}</strong>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Frase del hero (tagline)</label>
+          <input type="text" value={form.tagline} onChange={set("tagline")}
+            placeholder="Ej: Naturaleza, silencio y tú." style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Ubicación (texto visible)</label>
+          <input type="text" value={form.location_text} onChange={set("location_text")}
+            placeholder="Ej: Cacagual, Pichincha · Ecuador" style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Link Google Maps</label>
+          <input type="text" value={form.location_maps_url} onChange={set("location_maps_url")}
+            placeholder="https://maps.google.com/..." style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Actividades cercanas</label>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px", marginBottom: "8px" }}>
+            {form.activities.map((act: any, i: number) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "6px 10px" }}>
+                <span style={{ fontSize: "16px" }}>{act.icon}</span>
+                <span style={{ flex: 1, fontSize: "12px", color: "#c8b8e0" }}>{act.name}</span>
+                <button onClick={() => setForm(p => ({ ...p, activities: p.activities.filter((_: any, j: number) => j !== i) }))}
+                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <input placeholder="Emoji" value={newActIcon} onChange={e => setNewActIcon(e.target.value)}
+              style={{ ...INPUT, width: "60px", textAlign: "center" as const }} />
+            <input placeholder="Nombre actividad" value={newActName} onChange={e => setNewActName(e.target.value)}
+              style={{ ...INPUT, flex: 1 }} />
+            <button onClick={() => {
+              if (!newActName.trim()) return
+              setForm(p => ({ ...p, activities: [...p.activities, { icon: newActIcon || "📍", name: newActName.trim() }] }))
+              setNewActIcon(""); setNewActName("")
+            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
+              + Agregar
+            </button>
+          </div>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Normas del lugar</label>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px", marginBottom: "8px" }}>
+            {form.page_rules.map((rule: string, i: number) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "6px 10px" }}>
+                <span style={{ flex: 1, fontSize: "12px", color: "#c8b8e0" }}>{rule}</span>
+                <button onClick={() => setForm(p => ({ ...p, page_rules: p.page_rules.filter((_: any, j: number) => j !== i) }))}
+                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <input placeholder="Ej: No fumar adentro" value={newRule} onChange={e => setNewRule(e.target.value)}
+              style={{ ...INPUT, flex: 1 }} />
+            <button onClick={() => {
+              if (!newRule.trim()) return
+              setForm(p => ({ ...p, page_rules: [...p.page_rules, newRule.trim()] }))
+              setNewRule("")
+            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
+              + Agregar
+            </button>
+          </div>
         </div>
         <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
           <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Datos bancarios</div>
