@@ -862,7 +862,7 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
     amenities: data.amenities || "",
     description: data.description || "",
     extras: (data.extras || []) as Array<{name: string; price: number}>,
-    pricing_tiers: (data.pricing_tiers || []) as Array<{min_guests: number; max_guests: number; price_per_night: number}>,
+    pricing_tiers: (data?.pricing_tiers || []) as Array<{min_guests: number; max_guests: number; price_per_night: number}>,
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   const [newExtraName, setNewExtraName] = useState("")
@@ -934,7 +934,7 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
         <div style={{ marginBottom: "20px", borderTop: "1px solid #1a0e2a", paddingTop: "20px" }}>
           <label style={LABEL}>PRECIOS POR OCUPACIÓN (OPCIONAL)</label>
           <div style={{ fontSize: "11px", color: "#5a4870", marginBottom: "10px" }}>Si el precio varía según cuántas personas van, configúralo aquí.</div>
-          {form.pricing_tiers.map((tier: any, i: number) => (
+          {(form.pricing_tiers || []).map((tier: any, i: number) => (
             <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-end", marginBottom: "8px" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Desde</div>
