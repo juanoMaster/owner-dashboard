@@ -867,9 +867,6 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   const [newExtraName, setNewExtraName] = useState("")
   const [newExtraPrice, setNewExtraPrice] = useState("")
-  const [newTierMin, setNewTierMin] = useState("")
-  const [newTierMax, setNewTierMax] = useState("")
-  const [newTierPrice, setNewTierPrice] = useState("")
   return (
     <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={MODAL_BOX}>
@@ -888,39 +885,6 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
           { key: "name", label: "Nombre de la cabaña", type: "text" },
           { key: "capacity", label: "Capacidad (personas)", type: "number" },
           { key: "base_price_night", label: "Precio base por noche ($)", type: "number" },
-        ].map(f => (
-          <div key={f.key} style={{ marginBottom: "16px" }}>
-            <label style={LABEL}>{f.label}</label>
-            <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
-          </div>
-        ))}
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Precios por ocupación (opcional)</label>
-          <div style={{ fontSize: "11px", color: "#5a4870", marginBottom: "8px" }}>Si se configura, el precio varía según personas. El precio base se usa si no hay tramo aplicable.</div>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "10px" }}>
-            {form.pricing_tiers.map((tier: any, i: number) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "7px 10px" }}>
-                <span style={{ flex: 1, fontSize: "13px", color: "#c8b8e0" }}>{tier.min_guests}–{tier.max_guests} personas</span>
-                <span style={{ fontSize: "13px", color: "#c8b878" }}>${tier.price_per_night}/noche</span>
-                <button onClick={() => setForm(p => ({ ...p, pricing_tiers: p.pricing_tiers.filter((_: any, j: number) => j !== i) }))}
-                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>x</button>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <input placeholder="Min" type="number" value={newTierMin} onChange={e => setNewTierMin(e.target.value)} style={{ ...INPUT, flex: 1 }} />
-            <input placeholder="Max" type="number" value={newTierMax} onChange={e => setNewTierMax(e.target.value)} style={{ ...INPUT, flex: 1 }} />
-            <input placeholder="$/noche" type="number" value={newTierPrice} onChange={e => setNewTierPrice(e.target.value)} style={{ ...INPUT, flex: 2 }} />
-            <button onClick={() => {
-              if (!newTierMin || !newTierMax || !newTierPrice) return
-              setForm(p => ({ ...p, pricing_tiers: [...p.pricing_tiers, { min_guests: Number(newTierMin), max_guests: Number(newTierMax), price_per_night: Number(newTierPrice) }] }))
-              setNewTierMin(""); setNewTierMax(""); setNewTierPrice("")
-            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "13px", padding: "0 14px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
-              + Agregar
-            </button>
-          </div>
-        </div>
-        {[
           { key: "cleaning_fee", label: "Fee de limpieza ($)", type: "number" },
           { key: "extra_person_price", label: "Precio por persona extra ($)", type: "number" },
         ].map(f => (
@@ -966,6 +930,40 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
               + Agregar
             </button>
           </div>
+        </div>
+        <div style={{ marginBottom: "20px", borderTop: "1px solid #1a0e2a", paddingTop: "20px" }}>
+          <label style={LABEL}>PRECIOS POR OCUPACIÓN (OPCIONAL)</label>
+          <div style={{ fontSize: "11px", color: "#5a4870", marginBottom: "10px" }}>Si el precio varía según cuántas personas van, configúralo aquí.</div>
+          {form.pricing_tiers.map((tier: any, i: number) => (
+            <div key={i} style={{ display: "flex", gap: "8px", alignItems: "flex-end", marginBottom: "8px" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Desde</div>
+                <input type="number" value={tier.min_guests}
+                  onChange={e => { const v = Number(e.target.value); setForm(p => ({ ...p, pricing_tiers: p.pricing_tiers.map((t: any, j: number) => j === i ? { ...t, min_guests: v } : t) })) }}
+                  style={INPUT} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Hasta</div>
+                <input type="number" value={tier.max_guests}
+                  onChange={e => { const v = Number(e.target.value); setForm(p => ({ ...p, pricing_tiers: p.pricing_tiers.map((t: any, j: number) => j === i ? { ...t, max_guests: v } : t) })) }}
+                  style={INPUT} />
+              </div>
+              <div style={{ flex: 2 }}>
+                <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Precio/noche</div>
+                <input type="number" value={tier.price_per_night}
+                  onChange={e => { const v = Number(e.target.value); setForm(p => ({ ...p, pricing_tiers: p.pricing_tiers.map((t: any, j: number) => j === i ? { ...t, price_per_night: v } : t) })) }}
+                  style={INPUT} />
+              </div>
+              <button onClick={() => setForm(p => ({ ...p, pricing_tiers: p.pricing_tiers.filter((_: any, j: number) => j !== i) }))}
+                style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "18px", padding: "8px 4px", flexShrink: 0 }}>
+                ×
+              </button>
+            </div>
+          ))}
+          <button onClick={() => setForm(p => ({ ...p, pricing_tiers: [...p.pricing_tiers, { min_guests: 1, max_guests: 2, price_per_night: 0 }] }))}
+            style={{ background: "transparent", border: "1px solid #2a1e38", borderRadius: "8px", color: "#7a5a98", fontSize: "12px", padding: "8px 16px", cursor: "pointer", fontFamily: "sans-serif" }}>
+            + Agregar tramo
+          </button>
         </div>
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
           <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}
