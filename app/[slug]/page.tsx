@@ -153,8 +153,8 @@ function SlugInner() {
               position: "absolute", top: 0, left: 0,
               width: "100%", height: "100%",
               objectFit: "cover", display: "block",
-              filter: "blur(12px) brightness(0.38)",
-              transform: "scale(1.08)",
+              filter: "brightness(0.32)",
+              transform: "scale(1.0)",
               opacity: i === heroIdx ? 1 : 0,
               transition: "opacity 1.6s ease"
             }} />
@@ -179,32 +179,38 @@ function SlugInner() {
           )}
 
           {/* Pill */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "16px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "4px 14px", marginBottom: "20px" }}>
             <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: GOLD }} />
             <span style={{ fontSize: "9px", letterSpacing: "2.5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.8)" }}>Reserva directa</span>
           </div>
 
-          {/* Título principal */}
-          <div className="tk-hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(28px,7vw,52px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "14px", maxWidth: "600px" }}>
-            {tagline.includes(",") ? (
-              tagline.split(",").map((part, i, arr) => (
-                <span key={i}>
-                  {i === arr.length - 1
-                    ? <em style={{ color: GOLD_L, fontStyle: "italic" }}>{part.trim()}</em>
-                    : part.trim() + ","}<br />
-                </span>
-              ))
-            ) : <>{tagline}</>}
+          {/* Headline principal impactante */}
+          <div style={{ fontFamily: SANS, fontSize: "clamp(11px,2.2vw,15px)", fontWeight: 500, letterSpacing: "5px", textTransform: "uppercase" as const, color: "rgba(201,168,76,0.7)", marginBottom: "14px" }}>
+            {tenant.business_name}
           </div>
 
-          {/* Subtítulo de bienvenida */}
-          <div style={{ fontFamily: SERIF, fontSize: "clamp(13px,2vw,18px)", fontWeight: 300, color: "rgba(240,237,232,0.55)", lineHeight: 1.6, maxWidth: "480px", marginBottom: "18px", fontStyle: "italic" }}>
-            {"Desconéctate del mundo. Una escapada de relajo en medio de la naturaleza."}
+          <div className="tk-hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(32px,6vw,68px)", fontWeight: 300, color: TEXT, lineHeight: 1.05, marginBottom: "18px", maxWidth: "700px" }}>
+            {tagline && tagline !== tenant.business_name
+              ? tagline
+              : "Desconéctate en medio de la naturaleza"}
+          </div>
+
+          {/* Subtítulo motivador */}
+          <div style={{ fontFamily: SERIF, fontSize: "clamp(14px,1.8vw,20px)", fontWeight: 300, color: "rgba(240,237,232,0.6)", lineHeight: 1.65, maxWidth: "520px", marginBottom: "24px", fontStyle: "italic" }}>
+            Relájate, desconéctate y vive una experiencia única.<br/>
+            Reserva directo, sin intermediarios.
+          </div>
+
+          {/* Botón CTA scroll */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", background: GOLD, color: "#0a0700", borderRadius: "30px", padding: "12px 28px", cursor: "pointer", fontSize: "11px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase" as const }}
+            onClick={() => document.querySelector('.tk-section')?.scrollIntoView({ behavior: 'smooth' })}>
+            Ver cabañas
+            <span style={{ fontSize: "16px", fontWeight: 300 }}>↓</span>
           </div>
 
           {/* Ubicación */}
           {tenant.location_text && (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" as const, justifyContent: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "20px", flexWrap: "wrap" as const, justifyContent: "center" }}>
               <svg width="8" height="11" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.3 0 .5 1.8.5 4c0 3 4 8 4 8s4-5 4-8C8.5 1.8 6.7 0 4.5 0zm0 5.5C3.7 5.5 3 4.8 3 4s.7-1.5 1.5-1.5S6 3.2 6 4s-.7 1.5-1.5 1.5z" fill="rgba(201,168,76,0.5)"/></svg>
               <span style={{ fontSize: "10px", color: "rgba(201,168,76,0.5)" }}>{tenant.location_text}</span>
               {tenant.location_maps_url && (
@@ -215,12 +221,6 @@ function SlugInner() {
               )}
             </div>
           )}
-        </div>
-
-        {/* Flecha scroll down */}
-        <div style={{ position: "absolute", bottom: "16px", left: "50%", transform: "translateX(-50%)", zIndex: 2, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "4px" }}>
-          <span style={{ fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.2)", textTransform: "uppercase" as const }}>Ver cabañas</span>
-          <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
       </div>
 
