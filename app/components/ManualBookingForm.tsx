@@ -3,7 +3,7 @@ import { useState, useEffect, CSSProperties } from "react"
 
 type PricingTier = { min_guests: number; max_guests: number; price_per_night: number }
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null }
-interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number }
+interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number; hasTinaja?: boolean }
 
 function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
 
@@ -13,7 +13,7 @@ function getPriceForGuests(tiers: PricingTier[] | null | undefined, guests: numb
   return tier ? tier.price_per_night : base
 }
 
-export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20 }: Props) {
+export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20, hasTinaja = true }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -161,11 +161,13 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
                   <div><label style={lbl}>{"WhatsApp *"}</label><input type="tel" style={inp} placeholder={"+56 9 XXXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} /></div>
                   <div><label style={lbl}>{"N\u00famero de hu\u00e9spedes"}</label><select style={sel} value={guestCount} onChange={e => setGuestCount(e.target.value)}>{Array.from({ length: selectedCabin?.capacity || 4 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}</option>)}</select></div>
                 </div>
-                <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
-                  <input type="checkbox" id="tinaja-m" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
-                  <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera (" + fmt(tenantTinajaPrice) + "/d\u00eda)"}</label>
-                  {tinajaUse && <select style={{ ...sel, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>{Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"}</option>)}</select>}
-                </div>
+                {hasTinaja && (
+                  <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
+                    <input type="checkbox" id="tinaja-m" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
+                    <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera (" + fmt(tenantTinajaPrice) + "/d\u00eda)"}</label>
+                    {tinajaUse && <select style={{ ...sel, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>{Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"}</option>)}</select>}
+                  </div>
+                )}
                 <div style={fg}>
                   <label style={lbl}>{"Notas (opcional)"}</label>
                   <input type="text" style={inp} placeholder={"Pago efectivo, llegada tarde, etc."} value={notes} onChange={e => setNotes(e.target.value)} />
