@@ -14,13 +14,50 @@ export default function CabinPhotos({ cabinId, cabinName, initialPhotos }: Cabin
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  function compressImage(file: File): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const MAX_SIDE = 1200
+      const QUALITY = 0.82
+      const url = URL.createObjectURL(file)
+      const img = new Image()
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        const { naturalWidth: w, naturalHeight: h } = img
+        const scale = Math.min(1, MAX_SIDE / Math.max(w, h))
+        const canvas = document.createElement("canvas")
+        canvas.width = Math.round(w * scale)
+        canvas.height = Math.round(h * scale)
+        const ctx = canvas.getContext("2d")
+        if (!ctx) { reject(new Error("Canvas no disponible")); return }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error("Error al comprimir imagen")); return }
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }))
+          },
+          "image/jpeg",
+          QUALITY
+        )
+      }
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Error al leer imagen")) }
+      img.src = url
+    })
+  }
+
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const raw = e.target.files?.[0]
+    if (!raw) return
     e.target.value = ""
 
     setUploading(true)
     setError(null)
+
+    let file: File
+    try {
+      file = await compressImage(raw)
+    } catch {
+      file = raw
+    }
 
     const formData = new FormData()
     formData.append("file", file)
