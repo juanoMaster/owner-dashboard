@@ -159,7 +159,17 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
                 </div>
                 <div style={r2}>
                   <div><label style={lbl}>{"WhatsApp *"}</label><input type="tel" style={inp} placeholder={"+56 9 XXXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} /></div>
-                  <div><label style={lbl}>{"N\u00famero de hu\u00e9spedes"}</label><select style={sel} value={guestCount} onChange={e => setGuestCount(e.target.value)}>{Array.from({ length: selectedCabin?.capacity || 4 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}</option>)}</select></div>
+                  <div>
+                    <label style={lbl}>{"N\u00famero de hu\u00e9spedes"}</label>
+                    <select style={sel} value={guestCount} onChange={e => setGuestCount(e.target.value)}>
+                      {Array.from({ length: selectedCabin?.capacity || 4 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "persona" : "personas"}</option>)}
+                    </select>
+                    {selectedCabin && selectedCabin.pricing_tiers && selectedCabin.pricing_tiers.length > 0 && (
+                      <div style={{ fontSize: "12px", color: "#7ab87a", marginTop: "6px" }}>
+                        {fmt(getPriceForGuests(selectedCabin.pricing_tiers, parseInt(guestCount), selectedCabin.base_price_night)) + "/noche"}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {hasTinaja && (
                   <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
