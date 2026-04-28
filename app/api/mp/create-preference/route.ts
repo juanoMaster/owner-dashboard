@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
           pending: appUrl + "/reservar/pago-pendiente?booking_id=" + booking_id,
         },
         auto_return: "approved",
-        notification_url: appUrl + "/api/mp/webhook",
+        notification_url: appUrl + "/api/mp/webhook?tenant_id=" + booking.tenant_id,
       },
     })
 

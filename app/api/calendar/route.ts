@@ -11,7 +11,21 @@ export async function GET(req: Request) {
   )
   const { searchParams } = new URL(req.url)
   const cabinId = searchParams.get("cabin_id")
+  const token = searchParams.get("token")
   if (!cabinId) return NextResponse.json({ error: "cabin_id es requerido" }, { status: 400 })
+
+  // Verificar token del propietario (sin él, solo se devuelven fechas bloqueadas, sin datos de huéspedes)
+  let authenticatedTenantId: string | null = null
+  if (token) {
+    const tokenHash = createHash("sha256").update(token).digest("hex")
+    const { data: link } = await supabase
+      .from("dashboard_links")
+      .select("tenant_id")
+      .eq("token_hash", tokenHash)
+      .eq("active", true)
+      .maybeSingle()
+    if (link) authenticatedTenantId = link.tenant_id
+  }
 
   const { data: cabin } = await supabase
     .from("cabins")
@@ -19,7 +33,9 @@ export async function GET(req: Request) {
     .eq("id", cabinId)
     .maybeSingle()
 
-  const { data: tenant } = cabin?.tenant_id
+  const isOwner = authenticatedTenantId !== null && authenticatedTenantId === cabin?.tenant_id
+
+  const { data: tenant } = (isOwner && cabin?.tenant_id)
     ? await supabase.from("tenants").select("business_name").eq("id", cabin.tenant_id).maybeSingle()
     : { data: null }
 
@@ -30,19 +46,22 @@ export async function GET(req: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const bookingIds = Array.from(new Set((blocks || []).filter(b => b.booking_id).map(b => b.booking_id)))
   let confirmedSet = new Set<string>()
   let bookingDetailsMap: Record<string, any> = {}
-  if (bookingIds.length > 0) {
-    const { data: bookingRows } = await supabase
-      .from("bookings")
-      .select("id, status, total_amount, deposit_amount, balance_amount, nights, guests, notes")
-      .in("id", bookingIds)
-      .is("deleted_at", null)
-    ;(bookingRows || []).forEach((b: any) => {
-      bookingDetailsMap[b.id] = b
-      if (b.status === "confirmed") confirmedSet.add(b.id)
-    })
+
+  if (isOwner) {
+    const bookingIds = Array.from(new Set((blocks || []).filter(b => b.booking_id).map(b => b.booking_id)))
+    if (bookingIds.length > 0) {
+      const { data: bookingRows } = await supabase
+        .from("bookings")
+        .select("id, status, total_amount, deposit_amount, balance_amount, nights, guests, notes")
+        .in("id", bookingIds)
+        .is("deleted_at", null)
+      ;(bookingRows || []).forEach((b: any) => {
+        bookingDetailsMap[b.id] = b
+        if (b.status === "confirmed") confirmedSet.add(b.id)
+      })
+    }
   }
 
   const events = (blocks || []).map(b => ({
@@ -51,18 +70,18 @@ export async function GET(req: Request) {
     end: b.end_date,
     reason: b.reason,
     has_booking: !!b.booking_id,
-    booking_id: b.booking_id || null,
+    booking_id: isOwner ? (b.booking_id || null) : null,
     is_confirmed: b.booking_id ? confirmedSet.has(b.booking_id) : false,
-    booking: b.booking_id ? bookingDetailsMap[b.booking_id] || null : null,
+    booking: isOwner && b.booking_id ? (bookingDetailsMap[b.booking_id] || null) : null,
   }))
 
   return NextResponse.json({
     events,
-    cabin_name: cabin?.name || "Cabana",
-    business_name: tenant?.business_name || "",
-    tenant_id: cabin?.tenant_id || "",
-    cabin_price: Number(cabin?.base_price_night) || 0,
-    cabin_capacity: cabin?.capacity || 4,
+    cabin_name: isOwner ? (cabin?.name || "Cabana") : "Cabana",
+    business_name: isOwner ? (tenant?.business_name || "") : "",
+    tenant_id: isOwner ? (cabin?.tenant_id || "") : "",
+    cabin_price: isOwner ? (Number(cabin?.base_price_night) || 0) : 0,
+    cabin_capacity: isOwner ? (cabin?.capacity || 4) : 4,
   })
 }
 

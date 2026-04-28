@@ -57,7 +57,8 @@ function CalendarContent() {
 
   async function loadEvents() {
     if (!cabinId) return
-    const res = await fetch("/api/calendar?cabin_id=" + cabinId)
+    const tokenQ = token ? "&token=" + encodeURIComponent(token) : ""
+    const res = await fetch("/api/calendar?cabin_id=" + cabinId + tokenQ)
     const data = await res.json()
     if (data.cabin_name) setCabinName(data.cabin_name)
     if (data.business_name) setBusinessName(data.business_name)
@@ -104,9 +105,9 @@ function CalendarContent() {
   }, [searchParams, cabinId, router])
 
   useEffect(() => {
-    if (!cabinId) return
+    if (!cabinId || !authReady) return
     loadEvents()
-  }, [cabinId])
+  }, [cabinId, authReady])
 
   function handleEventClick(info: any) {
     const p = info.event.extendedProps
@@ -126,7 +127,7 @@ function CalendarContent() {
     const res = await fetch("/api/bookings/confirm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ booking_id: modal.bookingId, tenant_id: tenantId }),
+      body: JSON.stringify({ booking_id: modal.bookingId, tenant_id: tenantId, token }),
     })
     const data = await res.json()
     setModalLoading(false)
@@ -144,7 +145,7 @@ function CalendarContent() {
     const res = await fetch("/api/bookings/cancel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ booking_id: modal.bookingId, tenant_id: tenantId }),
+      body: JSON.stringify({ booking_id: modal.bookingId, tenant_id: tenantId, token }),
     })
     setModalLoading(false)
     if (res.ok) { setModal(null); await loadEvents() }

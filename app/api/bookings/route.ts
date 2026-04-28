@@ -127,6 +127,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Las fechas no están disponibles" }, { status: 409 })
     }
 
+    // Detección de race condition: verificar que no haya otro bloque concurrente
+    // para las mismas fechas (otra reserva que pasó el chequeo de disponibilidad
+    // en paralelo). Solución definitiva: ejecutar supabase/migrations/001_create_booking_atomic.sql
+    const { data: concurrent } = await supabase
+      .from("calendar_blocks")
+      .select("id")
+      .eq("cabin_id", cabin_id)
+      .eq("tenant_id", tenant_id)
+      .lt("start_date", check_out)
+      .gt("end_date", check_in)
+      .not("booking_id", "is", null)
+      .neq("booking_id", booking.id)
+
+    if (concurrent && concurrent.length > 0) {
+      await supabase.from("calendar_blocks").delete().eq("booking_id", booking.id)
+      await supabase.from("bookings").delete().eq("id", booking.id)
+      return NextResponse.json({ success: false, message: "Las fechas ya no están disponibles" }, { status: 409 })
+    }
+
     await logAudit({
       tenant_id,
       cabin_id,

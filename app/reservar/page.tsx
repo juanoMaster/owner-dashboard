@@ -88,11 +88,6 @@ function ReservarInner() {
         if (data.owner_name) setOwnerName(data.owner_name)
         if (data.slug) setSlug(data.slug)
         if (typeof data.has_tinaja === "boolean") setHasTinaja(data.has_tinaja)
-        if (data.bank_name) setBankName(data.bank_name)
-        if (data.bank_account_type) setBankAccountType(data.bank_account_type)
-        if (data.bank_account_number) setBankAccountNumber(data.bank_account_number)
-        if (data.bank_account_holder) setBankAccountHolder(data.bank_account_holder)
-        if (data.bank_rut) setBankRut(data.bank_rut)
         if (data.mp_enabled) setTenantMpEnabled(true)
         if (data.currency) setCurrency(data.currency)
         if (typeof data.extra_person_price === "number") setExtraPersonPrice(data.extra_person_price)
@@ -179,6 +174,18 @@ function ReservarInner() {
       setCodigo(data.booking_code)
       if (data.booking_id) {
         setBookingId(data.booking_id)
+        // Cargar datos bancarios solo después de que existe la reserva
+        try {
+          const bankRes = await fetch("/api/bookings/bank-info?booking_id=" + data.booking_id)
+          if (bankRes.ok) {
+            const bankData = await bankRes.json()
+            if (bankData.bank_name) setBankName(bankData.bank_name)
+            if (bankData.bank_account_type) setBankAccountType(bankData.bank_account_type)
+            if (bankData.bank_account_number) setBankAccountNumber(bankData.bank_account_number)
+            if (bankData.bank_account_holder) setBankAccountHolder(bankData.bank_account_holder)
+            if (bankData.bank_rut) setBankRut(bankData.bank_rut)
+          }
+        } catch {}
         try {
           const mpRes = await fetch("/api/mp/status?booking_id=" + data.booking_id)
           const mpData = await mpRes.json()

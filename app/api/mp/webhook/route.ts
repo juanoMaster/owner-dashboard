@@ -3,6 +3,21 @@ export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { MercadoPagoConfig, Payment } from "mercadopago"
+import { createHmac } from "crypto"
+
+function verifyMpSignature(secret: string, xSignature: string, xRequestId: string, dataId: string): boolean {
+  let ts = ""
+  let v1 = ""
+  for (const part of xSignature.split(",")) {
+    const [k, v] = part.trim().split("=", 2)
+    if (k === "ts") ts = v
+    if (k === "v1") v1 = v
+  }
+  if (!ts || !v1) return false
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`
+  const computed = createHmac("sha256", secret).update(manifest).digest("hex")
+  return computed === v1
+}
 
 export async function POST(req: NextRequest) {
   // MP requiere 200 siempre o reintenta — nunca retornar error al final
@@ -16,13 +31,32 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const type = searchParams.get("type")
     const dataId = searchParams.get("data.id")
+    const tenantId = searchParams.get("tenant_id")
 
-    // Solo procesar notificaciones de tipo "payment"
-    if (type !== "payment" || !dataId) {
+    if (type !== "payment" || !dataId || !tenantId) {
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
-    const client = new MercadoPagoConfig({ accessToken: process.env.MP_TEST_ACCESS_TOKEN! })
+    const { data: tenant } = await supabase
+      .from("tenants")
+      .select("mp_access_token, mp_webhook_secret")
+      .eq("id", tenantId)
+      .single()
+
+    if (!tenant?.mp_access_token) {
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
+
+    // Verificar firma HMAC-SHA256 si el tenant tiene webhook secret configurado
+    if (tenant.mp_webhook_secret) {
+      const xSignature = req.headers.get("x-signature") || ""
+      const xRequestId = req.headers.get("x-request-id") || ""
+      if (!verifyMpSignature(tenant.mp_webhook_secret, xSignature, xRequestId, dataId)) {
+        return NextResponse.json({ received: true }, { status: 200 })
+      }
+    }
+
+    const client = new MercadoPagoConfig({ accessToken: tenant.mp_access_token })
     const paymentClient = new Payment(client)
     const paymentData = await paymentClient.get({ id: dataId })
 
@@ -34,19 +68,17 @@ export async function POST(req: NextRequest) {
     }
 
     if (status === "approved") {
-      // Confirmar reserva
       await supabase
         .from("bookings")
         .update({ status: "confirmed" })
         .eq("id", bookingId)
+        .eq("tenant_id", tenantId)
 
-      // Actualizar bloque de calendario
       await supabase
         .from("calendar_blocks")
         .update({ reason: "system_booking" })
         .eq("booking_id", bookingId)
 
-      // Enviar email de confirmación (fallo silencioso)
       try {
         await fetch(
           (process.env.NEXT_PUBLIC_APP_URL ?? "") + "/api/emails/reserva-confirmada",
@@ -63,7 +95,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ received: true }, { status: 200 })
   } catch {
-    // Siempre 200 para que MP no reintente
     return NextResponse.json({ received: true }, { status: 200 })
   }
 }

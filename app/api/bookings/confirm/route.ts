@@ -2,14 +2,32 @@ import { sendErrorAlert } from "@/lib/resend"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
+import { createHash } from "crypto"
 
 export async function POST(req: Request) {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } })
   let booking_id: string | undefined
   let tenant_id: string | undefined
   try {
-    ;({ booking_id, tenant_id } = await req.json())
-    if (!booking_id || !tenant_id) return NextResponse.json({ error: "booking_id y tenant_id son requeridos" }, { status: 400 })
+    const body = await req.json()
+    ;({ booking_id, tenant_id } = body)
+    const token: string | undefined = body.token
+
+    if (!booking_id || !tenant_id || !token) {
+      return NextResponse.json({ error: "booking_id, tenant_id y token son requeridos" }, { status: 400 })
+    }
+
+    const tokenHash = createHash("sha256").update(token).digest("hex")
+    const { data: link } = await supabase
+      .from("dashboard_links")
+      .select("tenant_id")
+      .eq("token_hash", tokenHash)
+      .eq("active", true)
+      .maybeSingle()
+
+    if (!link || link.tenant_id !== tenant_id) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
 
     const { data: booking, error: fetchErr } = await supabase
       .from("bookings")
