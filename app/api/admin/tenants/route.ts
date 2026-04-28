@@ -72,6 +72,7 @@ export async function POST(req: Request) {
         bank_account_holder: body.bank_account_holder || null,
         bank_rut: body.bank_rut || null,
         has_tinaja: body.has_tinaja ?? true,
+        tinaja_price: Number(body.tinaja_price) || 30000,
         country: body.country || "CL",
         currency: body.currency || "CLP",
         location_text: body.location_text || null,
