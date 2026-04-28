@@ -1,10 +1,17 @@
 "use client"
 import { useState, useEffect, CSSProperties } from "react"
 
-interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
+type PricingTier = { min_guests: number; max_guests: number; price_per_night: number }
+interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null }
 interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number }
 
 function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
+
+function getPriceForGuests(tiers: PricingTier[] | null | undefined, guests: number, base: number): number {
+  if (!tiers || tiers.length === 0) return base
+  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
+  return tier ? tier.price_per_night : base
+}
 
 export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20 }: Props) {
   const [open, setOpen] = useState(false)
@@ -47,8 +54,9 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
   function calcTotal() {
     const n = calcNights()
     if (!selectedCabin || n === 0) return { subtotal: 0, extras: 0, tinaja: 0, total: 0, deposit: 0 }
+    const pricePerNight = getPriceForGuests(selectedCabin.pricing_tiers, parseInt(guestCount), selectedCabin.base_price_night)
     const extra = Math.max(0, parseInt(guestCount) - selectedCabin.capacity)
-    const subtotal = selectedCabin.base_price_night * n
+    const subtotal = pricePerNight * n
     const extras = extra * 5000 * n
     const tinaja = tinajaUse ? parseInt(tinajaDays) * tenantTinajaPrice : 0
     const total = subtotal + extras + tinaja
@@ -124,7 +132,12 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
                 <div style={fg}>
                   <label style={lbl}>{"Caba\u00f1a"}</label>
                   <select style={sel} value={cabinId} onChange={e => setCabinId(e.target.value)}>
-                    {cabins.map(c => <option key={c.id} value={c.id}>{c.name} {"\u2014"} {fmt(c.base_price_night)}/noche</option>)}
+                    {cabins.map(c => {
+                      const hasTiers = c.pricing_tiers && c.pricing_tiers.length > 0
+                      const minPrice = hasTiers ? Math.min(...c.pricing_tiers!.map(t => t.price_per_night)) : c.base_price_night
+                      const priceLabel = hasTiers ? ("desde " + fmt(minPrice) + "/noche") : (fmt(c.base_price_night) + "/noche")
+                      return <option key={c.id} value={c.id}>{c.name} {"\u2014"} {priceLabel}</option>
+                    })}
                   </select>
                 </div>
                 <div style={r2}>

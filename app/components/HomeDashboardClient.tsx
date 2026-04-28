@@ -25,6 +25,7 @@ type DashboardPayload = {
     capacity: number
     base_price_night: number
     photos: string[] | null
+    pricing_tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null
   }>
   bookings: Array<{
     id: string
@@ -247,6 +248,7 @@ export default function HomeDashboardClient() {
             name: c.name,
             capacity: c.capacity,
             base_price_night: Number(c.base_price_night),
+            pricing_tiers: c.pricing_tiers ?? null,
           }))}
           tenantId={payload.tenant_id}
           tenantTinajaPrice={tenant?.tinaja_price ?? 30000}
