@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
-      .select("mp_enabled")
+      .select("mp_enabled, mp_access_token")
       .eq("id", booking.tenant_id)
       .single()
 
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       status: booking.status,
-      mp_enabled: tenant.mp_enabled ?? false,
+      mp_enabled: !!(tenant.mp_enabled && tenant.mp_access_token),
     })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Error desconocido"

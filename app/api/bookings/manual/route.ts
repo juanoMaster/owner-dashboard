@@ -3,6 +3,16 @@ import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 import { sendErrorAlert } from "@/lib/resend"
 
+function getPriceForGuests(
+  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
+  guests: number,
+  basePriceNight: number
+): number {
+  if (!tiers || tiers.length === 0) return basePriceNight
+  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
+  return tier ? tier.price_per_night : basePriceNight
+}
+
 function generateBookingCode(): string {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
   const part1 = Array.from({ length: 3 }, () => letters[Math.floor(Math.random() * letters.length)]).join("")
@@ -25,7 +35,7 @@ export async function POST(req: Request) {
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity")
+      .select("base_price_night, name, capacity, extra_person_price, pricing_tiers")
       .eq("id", cabin_id)
       .eq("tenant_id", tenant_id)
       .single()
@@ -58,17 +68,28 @@ export async function POST(req: Request) {
       }, { status: 409 })
     }
 
+    const { data: tenantConfig } = await supabase
+      .from("tenants")
+      .select("tinaja_price, deposit_percent")
+      .eq("id", tenant_id)
+      .single()
+
+    const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
+    const depositPercent = Number(tenantConfig?.deposit_percent) || 20
+
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
-    const extraGuests = Math.max(0, guestCount - (cabin.capacity - 2))
-    const subtotal = cabin.base_price_night * nights
-    const extras = extraGuests * 5000 * nights
-    const tinajaTotal = tinajaCount * 30000
+    const resolvedPricePerNight = getPriceForGuests(cabin.pricing_tiers, guestCount, cabin.base_price_night)
+    const extraGuests = Math.max(0, guestCount - cabin.capacity)
+    const extraPersonPrice = Number(cabin.extra_person_price) || 0
+    const subtotal = resolvedPricePerNight * nights
+    const extras = extraGuests * extraPersonPrice * nights
+    const tinajaTotal = tinajaCount * tinajaPrice
     const total = subtotal + extras + tinajaTotal
-    const deposit = Math.round(total * 0.2)
+    const deposit = Math.round(total * depositPercent / 100)
     const balance = total - deposit
     const bookingCode = generateBookingCode()
-    const notesData = JSON.stringify({ nombre: guest_name, whatsapp: guest_whatsapp, codigo: bookingCode, notas: notes || "", origen: "manual", tinaja: String(tinajaCount) })
+    const notesData = JSON.stringify({ nombre: guest_name, whatsapp: guest_whatsapp, codigo: bookingCode, notas: notes || "", origen: "manual", tinaja: String(tinajaCount), price_per_night: resolvedPricePerNight })
 
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
@@ -76,7 +97,7 @@ export async function POST(req: Request) {
         tenant_id, cabin_id, check_in, check_out,
         guests: guestCount, nights,
         subtotal_amount: subtotal, total_amount: total,
-        deposit_percent: 20, deposit_amount: deposit, balance_amount: balance,
+        deposit_percent: depositPercent, deposit_amount: deposit, balance_amount: balance,
         status: "draft", notes: notesData,
         booking_code: bookingCode,
         guest_name, guest_phone: guest_whatsapp,

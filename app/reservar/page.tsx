@@ -73,6 +73,9 @@ function ReservarInner() {
   const [mpEnabled, setMpEnabled] = useState<boolean | null>(null)
   const [tenantMpEnabled, setTenantMpEnabled] = useState(false)
   const [mpLoading, setMpLoading] = useState(false)
+  const [tinajaPrecio, setTinajaPrecio] = useState(30000)
+  const [depositPercent, setDepositPercent] = useState(20)
+  const [minNights, setMinNights] = useState(2)
   const [pricingTiers, setPricingTiers] = useState<Array<{ min_guests: number; max_guests: number; price_per_night: number }>>(() => {
     if (!tiersParam) return []
     try { return JSON.parse(decodeURIComponent(tiersParam)) } catch { return [] }
@@ -92,6 +95,9 @@ function ReservarInner() {
         if (data.currency) setCurrency(data.currency)
         if (typeof data.extra_person_price === "number") setExtraPersonPrice(data.extra_person_price)
         if (Array.isArray(data.pricing_tiers) && data.pricing_tiers.length > 0) setPricingTiers(data.pricing_tiers)
+        if (data.tinaja_price) setTinajaPrecio(data.tinaja_price)
+        if (data.deposit_percent) setDepositPercent(data.deposit_percent)
+        if (data.min_nights) setMinNights(data.min_nights)
       })
       .catch(() => {})
   }, [cabin_id])
@@ -105,10 +111,10 @@ function ReservarInner() {
     : 0
   const extrasPersonas = Math.max(0, guests - capacidad) * extraPersonPrice * noches
   const subtotal = precio_noche * noches + extrasPersonas
-  const tinaja = tinajaDias * 30000
+  const tinaja = tinajaDias * tinajaPrecio
   const total = subtotal + tinaja
-  const deposito = Math.round(total * 0.2)
-  const noches_ok = noches >= 2
+  const deposito = Math.round(total * depositPercent / 100)
+  const noches_ok = noches >= minNights
   const fechas_ok = noches_ok && dispStatus === "ok"
   const form_ok = fechas_ok && nombre.trim().length > 0 && whatsapp.trim().length > 0
 
@@ -350,7 +356,7 @@ function ReservarInner() {
                       onChange={e => setCheckOut(e.target.value)} />
                   </div>
                 </div>
-                {checkIn && checkOut && !noches_ok && <div style={s.err}>{"La estadía mínima es de 2 noches."}</div>}
+                {checkIn && checkOut && !noches_ok && <div style={s.err}>{"La estadía mínima es de " + minNights + " noches."}</div>}
                 {dispStatus === "checking" && <div style={{ fontSize: "12px", color: "#6a7e68", padding: "8px 0" }}>Verificando disponibilidad...</div>}
                 {dispStatus === "ok" && <div style={s.ok}>Fechas disponibles. Puedes continuar.</div>}
                 {dispStatus === "occupied" && suggest && (
@@ -386,11 +392,11 @@ function ReservarInner() {
                   ))}
                 </select>
                 {showTinaja && (<>
-                  <span style={s.lbl}>{"Tinaja de madera (+$30.000/día)"}</span>
+                  <span style={s.lbl}>{"Tinaja de madera (+" + fmt(tinajaPrecio) + "/día)"}</span>
                   <select style={s.sel} value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
                     <option value={0}>Sin tinaja</option>
                     {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
-                      <option key={n} value={n}>{n}{n === 1 ? " día" : " días"}{" — "}{fmt(n * 30000)}</option>
+                      <option key={n} value={n}>{n}{n === 1 ? " día" : " días"}{" — "}{fmt(n * tinajaPrecio)}</option>
                     ))}
                   </select>
                 </>)}
@@ -412,7 +418,7 @@ function ReservarInner() {
             </div>
 
             <button style={form_ok ? s.btn : s.btnDisabled} disabled={!form_ok} onClick={() => setPaso(2)}>
-              Reservar ahora con 20% de anticipo
+              {"Reservar ahora con " + depositPercent + "% de anticipo"}
             </button>
             <a href={backHref} style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif", marginTop: "10px" }}>
               {"← Volver"}
@@ -427,12 +433,12 @@ function ReservarInner() {
             {tinajaDias === 0 && showTinaja && (
               <div style={{ ...s.warn, padding: "12px", marginBottom: "12px" }}>
                 <div style={s.warnTitle}>{"¿Olvidaste la tinaja?"}</div>
-                <div style={{ ...s.warnDesc, fontSize: "11px" }}>{"Tinaja de madera calentada a leña. Solo $30.000/día."}</div>
+                <div style={{ ...s.warnDesc, fontSize: "11px" }}>{"Tinaja de madera calentada a leña. Solo " + fmt(tinajaPrecio) + "/día."}</div>
                 <select style={{ width: "100%", padding: "8px 10px", background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "12px", color: "#c8d8c0", fontFamily: "sans-serif", marginTop: "8px", outline: "none" }}
                   value={tinajaDias} onChange={e => setTinajaDias(Number(e.target.value))}>
                   <option value={0}>Sin tinaja</option>
                   {Array.from({ length: Math.max(1, noches) }, (_, i) => i + 1).map(n => (
-                    <option key={n} value={n}>{n}{n === 1 ? " día" : " días"}{" — "}{fmt(n * 30000)}</option>
+                    <option key={n} value={n}>{n}{n === 1 ? " día" : " días"}{" — "}{fmt(n * tinajaPrecio)}</option>
                   ))}
                 </select>
               </div>
@@ -461,7 +467,7 @@ function ReservarInner() {
                   <hr style={{ ...s.hr, margin: "6px 0" }} />
                   <div style={s.totalRowCompact}><span style={{ ...s.totalKey, fontSize: "11px" }}>{"Total estadía"}</span><span style={s.totalValCompact}>{fmt(total)}</span></div>
                 </div>
-                <div style={s.depositCompact}><span style={{ ...s.depKey, fontSize: "11px" }}>Adelanto 20%</span><span style={{ ...s.depVal, fontSize: "16px" }}>{fmt(deposito)}</span></div>
+                <div style={s.depositCompact}><span style={{ ...s.depKey, fontSize: "11px" }}>{"Adelanto " + depositPercent + "%"}</span><span style={{ ...s.depVal, fontSize: "16px" }}>{fmt(deposito)}</span></div>
               </div>
             </div>
             <button style={s.btn} onClick={() => setPaso(3)}>Continuar al pago</button>
@@ -532,7 +538,7 @@ function ReservarInner() {
               {loading ? "Registrando..."
                 : metodoPago === "tarjeta" && !tenantMpEnabled ? "Próximamente disponible"
                 : metodoPago === "tarjeta" ? "Reservar y pagar con Mercado Pago →"
-                : "Reservar ahora con 20% de anticipo"}
+                : "Reservar ahora con " + depositPercent + "% de anticipo"}
             </button>
             <button style={s.btnBack} onClick={() => setPaso(2)}>Volver al resumen</button>
           </>

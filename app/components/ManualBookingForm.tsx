@@ -2,11 +2,11 @@
 import { useState, useEffect, CSSProperties } from "react"
 
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number }
-interface Props { cabins: Cabin[]; tenantId: string }
+interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number }
 
 function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
 
-export default function ManualBookingForm({ cabins, tenantId }: Props) {
+export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20 }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -47,12 +47,12 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
   function calcTotal() {
     const n = calcNights()
     if (!selectedCabin || n === 0) return { subtotal: 0, extras: 0, tinaja: 0, total: 0, deposit: 0 }
-    const extra = Math.max(0, parseInt(guestCount) - (selectedCabin.capacity - 2))
+    const extra = Math.max(0, parseInt(guestCount) - selectedCabin.capacity)
     const subtotal = selectedCabin.base_price_night * n
     const extras = extra * 5000 * n
-    const tinaja = tinajaUse ? parseInt(tinajaDays) * 30000 : 0
+    const tinaja = tinajaUse ? parseInt(tinajaDays) * tenantTinajaPrice : 0
     const total = subtotal + extras + tinaja
-    return { subtotal, extras, tinaja, total, deposit: Math.round(total * 0.2) }
+    return { subtotal, extras, tinaja, total, deposit: Math.round(total * tenantDepositPercent / 100) }
   }
 
   function reset() {
@@ -150,7 +150,7 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
                 </div>
                 <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
                   <input type="checkbox" id="tinaja-m" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
-                  <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera ($30.000/d\u00eda)"}</label>
+                  <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera (" + fmt(tenantTinajaPrice) + "/d\u00eda)"}</label>
                   {tinajaUse && <select style={{ ...sel, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>{Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"}</option>)}</select>}
                 </div>
                 <div style={fg}>
@@ -163,7 +163,7 @@ export default function ManualBookingForm({ cabins, tenantId }: Props) {
                     {calc.extras > 0 && <div style={sumRow}><span>{"Personas extra"}</span><span>{fmt(calc.extras)}</span></div>}
                     {calc.tinaja > 0 && <div style={sumRow}><span>{"Tinaja"}</span><span>{fmt(calc.tinaja)}</span></div>}
                     <div style={sumTotal}><span>{"Total"}</span><span>{fmt(calc.total)}</span></div>
-                    <div style={{ ...sumRow, marginTop: "8px", fontSize: "11px", color: "#4a6a48" }}><span>{"Adelanto 20%"}</span><span>{fmt(calc.deposit)}</span></div>
+                    <div style={{ ...sumRow, marginTop: "8px", fontSize: "11px", color: "#4a6a48" }}><span>{"Adelanto " + tenantDepositPercent + "%"}</span><span>{fmt(calc.deposit)}</span></div>
                   </div>
                 )}
                 <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>

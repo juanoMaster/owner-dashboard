@@ -12,6 +12,8 @@ type TenantRow = {
   owner_name: string | null
   business_name: string | null
   slug: string | null
+  tinaja_price: number | null
+  deposit_percent: number | null
 }
 
 type DashboardPayload = {
@@ -247,6 +249,8 @@ export default function HomeDashboardClient() {
             base_price_night: Number(c.base_price_night),
           }))}
           tenantId={payload.tenant_id}
+          tenantTinajaPrice={tenant?.tinaja_price ?? 30000}
+          tenantDepositPercent={tenant?.deposit_percent ?? 20}
         />
 
         <a

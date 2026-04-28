@@ -56,6 +56,15 @@ export async function POST(req: Request) {
 
     const tenant_id = cabin.tenant_id
 
+    const { data: tenantConfig } = await supabase
+      .from("tenants")
+      .select("tinaja_price, deposit_percent")
+      .eq("id", tenant_id)
+      .single()
+
+    const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
+    const depositPercent = Number(tenantConfig?.deposit_percent) || 20
+
     const nights = Math.round(
       (new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000
     )
@@ -75,9 +84,9 @@ export async function POST(req: Request) {
     const resolvedPricePerNight = getPriceForGuests(cabin.pricing_tiers, guestCount, cabin.base_price_night)
     const subtotal = resolvedPricePerNight * nights
     const extras = extraGuests * extraPersonPrice * nights
-    const tinajaTotal = tinajaCount * 30000
+    const tinajaTotal = tinajaCount * tinajaPrice
     const total = subtotal + extras + tinajaTotal
-    const deposit = Math.round(total * 0.2)
+    const deposit = Math.round(total * depositPercent / 100)
     const balance = total - deposit
     const bookingCode = generateBookingCode()
 
@@ -97,7 +106,7 @@ export async function POST(req: Request) {
         tenant_id, cabin_id, check_in, check_out,
         guests: guestCount, nights,
         subtotal_amount: subtotal, total_amount: total,
-        deposit_percent: 20, deposit_amount: deposit, balance_amount: balance,
+        deposit_percent: depositPercent, deposit_amount: deposit, balance_amount: balance,
         status: "draft",
         notes: notesData,
         booking_code: bookingCode,
