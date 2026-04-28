@@ -36,60 +36,201 @@ El `tenant_id` **siempre se obtiene dinámicamente desde la BD**, nunca hardcode
 token (URL) → SHA256 → dashboard_links.token_hash → tenant_id → todos los queries filtran por tenant_id
 ```
 
-`/api/availability` tiene `TENANT_ID` hardcodeado — bug conocido pendiente de corregir.
-
 ### Rutas principales
 
 | URL | Archivo | Tipo | Descripción |
 |-----|---------|------|-------------|
-| `/?token=` | `app/page.tsx` | Server Component | Panel admin |
+| `/?token=` | `app/page.tsx` | Server Component | Panel admin propietario |
 | `/calendar?cabin_id=&token=` | `app/calendar/page.tsx` | Client Component | Calendario (solo elimina bloques) |
 | `/reservar?cabin_id=&...` | `app/reservar/page.tsx` | Client Component | Formulario de reserva para turistas |
-| `/inicio` | `app/inicio/page.tsx` | Client Component | Landing pública |
+| `/[slug]` | `app/[slug]/page.tsx` | Client Component | Landing pública por tenant |
+| `/inicio` | `app/inicio/page.tsx` | Client Component | Landing genérica |
+| `/historial` | `app/historial/page.tsx` | Client Component | Historial de reservas del propietario |
 
 ### APIs
 
-- `GET /api/calendar?cabin_id=` — bloques con `has_booking` e `is_confirmed` (verifica `bookings.status`)
-- `POST /api/calendar/delete` — si el bloque tiene `booking_id`, elimina todos los bloques del mismo booking de una sola vez
-- `POST /api/bookings/confirm` — status → `"confirmed"`, calendar_blocks.reason → `"system_booking"`
-- `POST /api/bookings/cancel` — elimina booking + todos sus calendar_blocks
-- `POST /api/bookings/manual` — crea booking (status `"draft"`) + calendar_block desde el panel del propietario
-- `GET /api/availability` — verifica disponibilidad para el formulario de turistas
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /api/dashboard` | Datos del panel: tenant, cabañas, reservas draft |
+| `GET /api/calendar?cabin_id=` | Bloques con `has_booking` e `is_confirmed` |
+| `POST /api/calendar/delete` | Elimina bloque (y todos del mismo booking si tiene booking_id) |
+| `POST /api/bookings` | Crea reserva desde formulario turista (status `"draft"`) |
+| `POST /api/bookings/manual` | Crea reserva desde panel propietario (status `"draft"`) |
+| `POST /api/bookings/confirm` | status → `"confirmed"`, calendar_blocks.reason → `"system_booking"` |
+| `POST /api/bookings/cancel` | Soft-delete booking + elimina calendar_blocks |
+| `GET /api/availability` | Verifica disponibilidad, sugiere alternativas |
+| `GET /api/tenant-by-cabin?cabin_id=` | Datos del tenant para el formulario turista |
+| `GET /api/tenant/[slug]/cabins` | Cabañas + info del tenant por slug (landing pública) |
+| `GET /api/historial?token=` | Historial completo incluyendo canceladas |
+| `POST /api/mp/create-preference` | Crea preferencia de pago en Mercado Pago |
+| `POST /api/mp/webhook` | Recibe confirmación de pago de Mercado Pago |
+| `GET /api/mp/status?booking_id=` | Verifica si MP está habilitado para la reserva |
+| `POST /api/emails/nueva-reserva` | Envía email al turista y al propietario |
+| `POST /api/emails/reserva-confirmada` | Envía email de confirmación al turista |
+| `POST /api/emails/recordatorio` | Envía recordatorio al turista |
+| `GET /api/bookings/bank-info?booking_id=` | Datos bancarios del tenant (post-booking) |
+| `GET /api/trinidad/cabins` | Legacy — usar `/api/tenant/[slug]/cabins` para nuevos casos |
 
 ## Schema de Supabase
 
 **Verificar columnas aquí antes de escribir cualquier SELECT.** Una columna inexistente hace que Supabase devuelva error, lo que puede romper la autenticación completa del panel.
 
-| Tabla | Columnas |
-|-------|----------|
-| `dashboard_links` | `id`, `tenant_id`, `token_hash`, `pin_hash`, `active`, `created_at`, `last_used_at` |
-| `tenants` | `id`, `business_name`, `owner_name`, `owner_whatsapp`, `twilio_whatsapp`, `deposit_percent`, `active`, `currency`, `payment_provider`, `mp_access_token`, `mp_webhook_secret`, `dashboard_token`, `created_at` |
-| `cabins` | `id`, `tenant_id`, `name`, `capacity`, `base_price_night`, `cleaning_fee`, `active`, `created_at`, `updated_at` |
-| `bookings` | `id`, `tenant_id`, `cabin_id`, `passenger_id`, `check_in`, `check_out`, `guests`, `status`, `nights`, `subtotal_amount`, `total_amount`, `deposit_percent`, `deposit_amount`, `balance_amount`, `notes`, `commission_percent`, `commission_amount`, `commission_status`, `created_at`, `updated_at` |
-| `calendar_blocks` | `id`, `tenant_id`, `cabin_id`, `start_date`, `end_date`, `reason`, `booking_id`, `created_at` |
-| `audit_log` | `id`, `tenant_id`, `cabin_id`, `action`, `entity_type`, `entity_id`, `details`, `performed_by`, `created_at` |
-| `tenant_users` | `tenant_id`, `user_id`, `role`, `created_at` |
+### `dashboard_links`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | uuid | PK |
+| `tenant_id` | uuid | FK a tenants |
+| `token_hash` | text | SHA256 del token de acceso |
+| `pin_hash` | text | Hash del PIN (no usado actualmente) |
+| `active` | boolean | |
+| `created_at` | timestamptz | |
+| `last_used_at` | timestamptz | Se actualiza en cada login |
 
-### Valores de enum
+### `tenants`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | uuid | PK |
+| `business_name` | text | Nombre del negocio |
+| `owner_name` | text | Nombre del propietario |
+| `slug` | text | URL-friendly, único. Ej: "rukatraro" |
+| `owner_whatsapp` | text | Número con código de país |
+| `email_owner` | text | Email del propietario para notificaciones |
+| `twilio_whatsapp` | text | Número Twilio asignado (legacy) |
+| `deposit_percent` | int | % de anticipo. Default 20 |
+| `min_nights` | int | Noches mínimas. Default 2 |
+| `tinaja_price` | int | Precio tinaja por día en moneda local |
+| `has_tinaja` | boolean | Si el tenant ofrece tinaja |
+| `currency` | text | "CLP", "USD", "COP". Default "CLP" |
+| `bank_name` | text | Nombre del banco |
+| `bank_account_type` | text | "Cuenta corriente", "Cuenta vista", etc. |
+| `bank_account_number` | text | Número de cuenta |
+| `bank_account_holder` | text | Titular de la cuenta |
+| `bank_rut` | text | RUT del titular |
+| `mp_enabled` | boolean | Mercado Pago habilitado |
+| `mp_access_token` | text | Token de acceso MP del tenant |
+| `mp_webhook_secret` | text | Secret HMAC para verificar webhooks MP |
+| `payment_provider` | text | "mp", "transfer", etc. |
+| `dashboard_token` | text | Token en texto plano (para link de acceso en emails) |
+| `active` | boolean | |
+| `verified` | boolean | |
+| `location_text` | text | Dirección legible |
+| `location_maps_url` | text | Link a Google Maps |
+| `tagline` | text | Descripción corta para SEO |
+| `activities` | jsonb | Array de actividades |
+| `page_rules` | jsonb | Reglas/normas de la cabaña |
+| `facebook_url` | text | |
+| `instagram_url` | text | |
+| `created_at` | timestamptz | |
 
-- `bookings.status`: solo `"draft"` o `"confirmed"`. Draft = pendiente de pago, confirmed = pagada.
-- `calendar_blocks.reason`: solo `"manual"`, `"system_booking"`, o `"transfer_pending"`.
-- `calendar_blocks`: usa `start_date` y `end_date` (no `date`, no `status`).
-- `calendar_blocks.booking_id`: `null` para bloques manuales sueltos (click en calendario), tiene valor si viene de una reserva.
-- `bookings.notes`: JSON string (columna text) con claves lowercase: `nombre`, `whatsapp`, `codigo`, `notas`, `origen`, `tinaja`.
+### `cabins`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | uuid | PK |
+| `tenant_id` | uuid | FK a tenants |
+| `name` | text | Nombre de la cabaña |
+| `capacity` | int | Capacidad máxima de personas |
+| `base_price_night` | numeric | Precio base por noche |
+| `extra_person_price` | numeric | Precio por persona extra sobre capacity |
+| `cleaning_fee` | numeric | Tarifa de limpieza (no usado en cálculos aún) |
+| `pricing_tiers` | jsonb | Array de `{min_guests, max_guests, price_per_night}` |
+| `photos` | text[] | Array de URLs de fotos |
+| `description` | text | Descripción larga |
+| `amenities` | jsonb | Amenidades |
+| `extras` | jsonb | Extras disponibles |
+| `active` | boolean | |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | |
+
+### `bookings`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | uuid | PK |
+| `tenant_id` | uuid | FK a tenants |
+| `cabin_id` | uuid | FK a cabins |
+| `passenger_id` | uuid | FK a tabla passengers (legacy, puede ser null) |
+| `booking_code` | text | Código legible. Formato: "RUK-ABC-1234" |
+| `guest_name` | text | Nombre del huésped |
+| `guest_email` | text | Email del huésped |
+| `guest_phone` | text | WhatsApp del huésped |
+| `check_in` | date | Fecha de ingreso (YYYY-MM-DD) |
+| `check_out` | date | Fecha de salida (YYYY-MM-DD) |
+| `guests` | int | Número de personas |
+| `nights` | int | Número de noches |
+| `subtotal_amount` | numeric | Solo alojamiento |
+| `total_amount` | numeric | Total incluyendo extras y tinaja |
+| `deposit_percent` | int | % de anticipo aplicado |
+| `deposit_amount` | numeric | Monto del anticipo |
+| `balance_amount` | numeric | Saldo restante |
+| `tinaja_amount` | numeric | Monto cobrado por tinaja |
+| `status` | text | `"draft"` o `"confirmed"` |
+| `notes` | text | JSON string con `{nombre, whatsapp, codigo, notas, origen, tinaja, price_per_night}` |
+| `commission_percent` | numeric | |
+| `commission_amount` | numeric | |
+| `commission_status` | text | `"not_applicable"`, etc. |
+| `deleted_at` | timestamptz | Soft delete — null si activa |
+| `deleted_by` | text | Quién canceló: "owner_panel", "system", etc. |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | |
+
+### `calendar_blocks`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | uuid | PK |
+| `tenant_id` | uuid | FK a tenants |
+| `cabin_id` | uuid | FK a cabins |
+| `start_date` | date | Primer día bloqueado |
+| `end_date` | date | Día de checkout (exclusivo en FullCalendar) |
+| `reason` | text | `"manual"`, `"transfer_pending"`, `"system_booking"` |
+| `booking_id` | uuid | null para bloques manuales sueltos |
+| `created_at` | timestamptz | |
+
+### `audit_log`
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `id` | uuid | PK |
+| `tenant_id` | uuid | |
+| `cabin_id` | uuid | Puede ser null |
+| `action` | text | "booking_created", "booking_confirmed", "booking_cancelled" |
+| `entity_type` | text | "booking", "cabin", etc. |
+| `entity_id` | uuid | ID del objeto afectado |
+| `details` | jsonb | Datos adicionales del evento |
+| `performed_by` | text | "owner_panel", "formulario_turista", "mercadopago_webhook", etc. |
+| `created_at` | timestamptz | |
+
+### `tenant_users`
+| Columna | Tipo |
+|---------|------|
+| `tenant_id` | uuid |
+| `user_id` | uuid |
+| `role` | text |
+| `created_at` | timestamptz |
+
+## Valores de enum
+
+- `bookings.status`: `"draft"` (pendiente de pago) o `"confirmed"` (pagada).
+- `calendar_blocks.reason`: `"manual"` (bloque suelto o reserva manual sin confirmar), `"transfer_pending"` (reserva turista pendiente de transferencia), `"system_booking"` (reserva confirmada).
+- `bookings.notes`: JSON string con claves: `nombre`, `whatsapp`, `codigo`, `notas`, `origen`, `tinaja`, `price_per_night`.
 - `tenants.owner_name`: nombre del propietario. **No está en `dashboard_links`.**
 
 ## Comportamientos no obvios
 
-**FullCalendar end exclusivo:** Con `allDay: true`, FullCalendar trata `end` como fecha exclusiva. El `end_date` de la DB es el último día ocupado, por lo que al construir eventos hay que sumar 1 día: `new Date(e.end + "T12:00:00")` → `setDate(d + 1)`.
+**FullCalendar end exclusivo:** Con `allDay: true`, FullCalendar trata `end` como fecha exclusiva. El `end_date` de la DB es el día de checkout (primer día libre), que coincide con `check_out`. Al construir eventos: `new Date(e.end + "T12:00:00")` → `setDate(d + 1)` para que el bloque visual cubra el último día.
 
-**parseNotes():** Maneja tres formatos según el origen: objeto JS (columna JSONB), JSON string (formulario manual), o pipe-delimited (flujo chatbot). No asumir el formato.
+**parseNotes():** Maneja tres formatos según el origen: objeto JS (columna JSONB), JSON string (formulario manual/turista), o pipe-delimited (flujo chatbot legacy). No asumir el formato.
 
 **Calendario del propietario:** Solo elimina bloques — `dateClick` está removido intencionalmente. Las reservas se crean únicamente desde "Nueva reserva manual" en el panel.
 
-**Eliminación de bloques:** Al eliminar desde el calendario, si el bloque tiene `booking_id`, el endpoint `/api/calendar/delete` elimina todos los bloques con ese `booking_id` (un booking puede tener varios bloques). Si `booking_id` es null, elimina solo ese bloque.
+**Eliminación de bloques:** Al eliminar desde el calendario, si el bloque tiene `booking_id`, el endpoint `/api/calendar/delete` elimina todos los bloques con ese `booking_id`. Si `booking_id` es null, elimina solo ese bloque.
 
 **Doble confirmación:** Si `extendedProps.isConfirmed === true`, el calendario muestra dos confirmaciones antes de eliminar para advertir que la reserva ya está pagada.
+
+**Soft delete en bookings:** Las reservas canceladas no se eliminan físicamente. Usan `deleted_at` timestamp + `deleted_by` texto. Los queries activos siempre deben incluir `.is("deleted_at", null)`.
+
+**Booking codes:** Se generan con `lib/booking-code.ts` usando el slug del tenant como prefijo. Rukatraro → `RUK-ABC-1234`. Siempre derivar el prefijo del slug del tenant, nunca hardcodearlo.
+
+**Webhook MP — idempotencia:** El webhook puede llegar más de una vez. Siempre verificar `booking.status !== "confirmed"` antes de procesar para evitar duplicados.
+
+**`/api/trinidad/cabins`:** Endpoint legacy para compatibilidad con el sitio web de Trinidad. Usar `/api/tenant/[slug]/cabins` para todos los casos nuevos.
 
 ## Paleta de colores
 

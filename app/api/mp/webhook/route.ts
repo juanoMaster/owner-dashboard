@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { MercadoPagoConfig, Payment } from "mercadopago"
 import { createHmac } from "crypto"
+import { logAudit } from "@/lib/audit"
 
 function verifyMpSignature(secret: string, xSignature: string, xRequestId: string, dataId: string): boolean {
   let ts = ""
@@ -14,7 +15,7 @@ function verifyMpSignature(secret: string, xSignature: string, xRequestId: strin
     if (k === "v1") v1 = v
   }
   if (!ts || !v1) return false
-  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`
+  const manifest = "id:" + dataId + ";request-id:" + xRequestId + ";ts:" + ts + ";"
   const computed = createHmac("sha256", secret).update(manifest).digest("hex")
   return computed === v1
 }
@@ -47,7 +48,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
-    // Verificar firma HMAC-SHA256 si el tenant tiene webhook secret configurado
     if (tenant.mp_webhook_secret) {
       const xSignature = req.headers.get("x-signature") || ""
       const xRequestId = req.headers.get("x-request-id") || ""
@@ -68,6 +68,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (status === "approved") {
+      // Fetch booking data before confirming so we have context for audit and email
+      const { data: booking } = await supabase
+        .from("bookings")
+        .select("cabin_id, check_in, check_out, total_amount, deposit_amount, guest_name, status")
+        .eq("id", bookingId)
+        .eq("tenant_id", tenantId)
+        .single()
+
+      // Idempotency: skip if already confirmed
+      if (booking?.status === "confirmed") {
+        return NextResponse.json({ received: true }, { status: 200 })
+      }
+
       await supabase
         .from("bookings")
         .update({ status: "confirmed" })
@@ -78,6 +91,24 @@ export async function POST(req: NextRequest) {
         .from("calendar_blocks")
         .update({ reason: "system_booking" })
         .eq("booking_id", bookingId)
+
+      await logAudit({
+        tenant_id: tenantId,
+        cabin_id: booking?.cabin_id,
+        action: "booking_confirmed",
+        entity_type: "booking",
+        entity_id: bookingId,
+        details: {
+          check_in: booking?.check_in,
+          check_out: booking?.check_out,
+          total_amount: booking?.total_amount,
+          deposit_amount: booking?.deposit_amount,
+          guest_name: booking?.guest_name,
+          payment_method: "mercadopago",
+          mp_payment_id: dataId,
+        },
+        performed_by: "mercadopago_webhook",
+      })
 
       try {
         await fetch(

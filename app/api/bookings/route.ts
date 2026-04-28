@@ -2,6 +2,7 @@ import { sendErrorAlert } from "@/lib/resend"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
+import { generateBookingCode } from "@/lib/booking-code"
 
 function getPriceForGuests(
   tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
@@ -11,15 +12,6 @@ function getPriceForGuests(
   if (!tiers || tiers.length === 0) return basePriceNight
   const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
   return tier ? tier.price_per_night : basePriceNight
-}
-
-function generateBookingCode(): string {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-  const part1 = Array.from({ length: 3 }, () =>
-    letters[Math.floor(Math.random() * letters.length)]
-  ).join("")
-  const part2 = Math.floor(1000 + Math.random() * 9000).toString()
-  return "RKT-" + part1 + "-" + part2
 }
 
 export async function POST(req: Request) {
@@ -58,12 +50,14 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("tinaja_price, deposit_percent")
+      .select("tinaja_price, deposit_percent, min_nights, slug")
       .eq("id", tenant_id)
       .single()
 
     const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
+    const minNights = Number(tenantConfig?.min_nights) || 1
+    const tenantSlug = tenantConfig?.slug || "rsv"
 
     const nights = Math.round(
       (new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000
@@ -75,6 +69,12 @@ export async function POST(req: Request) {
     }
     if (nights < 1) {
       return NextResponse.json({ success: false, message: "Las fechas no son válidas" }, { status: 400 })
+    }
+    if (nights < minNights) {
+      return NextResponse.json({
+        success: false,
+        message: "La estadía mínima es de " + minNights + " noche" + (minNights === 1 ? "" : "s") + "."
+      }, { status: 400 })
     }
 
     const guestCount = parseInt(guests)
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     const total = subtotal + extras + tinajaTotal
     const deposit = Math.round(total * depositPercent / 100)
     const balance = total - deposit
-    const bookingCode = generateBookingCode()
+    const bookingCode = generateBookingCode(tenantSlug)
 
     const notesData = JSON.stringify({
       nombre: guest_name,
@@ -165,15 +165,14 @@ export async function POST(req: Request) {
       performed_by: "formulario_turista",
     })
 
-    // Email automático via nuevo sistema
     if (guest_email) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl"}/api/emails/nueva-reserva`, {
+        await fetch((process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ booking_id: booking.id })
         })
-      } catch (e) {
+      } catch {
         // fallo silencioso — la reserva ya quedó guardada
       }
     }

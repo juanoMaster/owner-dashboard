@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 import { sendErrorAlert } from "@/lib/resend"
+import { generateBookingCode } from "@/lib/booking-code"
 
 function getPriceForGuests(
   tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
@@ -11,13 +12,6 @@ function getPriceForGuests(
   if (!tiers || tiers.length === 0) return basePriceNight
   const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
   return tier ? tier.price_per_night : basePriceNight
-}
-
-function generateBookingCode(): string {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"
-  const part1 = Array.from({ length: 3 }, () => letters[Math.floor(Math.random() * letters.length)]).join("")
-  const part2 = Math.floor(1000 + Math.random() * 9000).toString()
-  return "RKT-" + part1 + "-" + part2
 }
 
 export async function POST(req: Request) {
@@ -41,15 +35,17 @@ export async function POST(req: Request) {
       .single()
 
     if (cabinError || !cabin) {
-      return NextResponse.json({ success: false, message: "Cabana no encontrada" }, { status: 404 })
+      return NextResponse.json({ success: false, message: "Cabaña no encontrada" }, { status: 404 })
     }
 
-    const nights = Math.round((new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000)
+    const nights = Math.round(
+      (new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000
+    )
     if (nights < 1) {
-      return NextResponse.json({ success: false, message: "Las fechas no son validas" }, { status: 400 })
+      return NextResponse.json({ success: false, message: "Las fechas no son válidas" }, { status: 400 })
     }
 
-    // Verificar que no exista reserva confirmada (y no cancelada) para esas fechas
+    // Verificar que no exista reserva confirmada para esas fechas
     const { data: existingConfirmed } = await supabase
       .from("bookings")
       .select("id, check_in, check_out")
@@ -64,18 +60,19 @@ export async function POST(req: Request) {
       const c = existingConfirmed[0]
       return NextResponse.json({
         success: false,
-        message: "Las fechas ya estan confirmadas para otra reserva (" + c.check_in + " al " + c.check_out + ")"
+        message: "Las fechas ya están confirmadas para otra reserva (" + c.check_in + " al " + c.check_out + ")"
       }, { status: 409 })
     }
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("tinaja_price, deposit_percent")
+      .select("tinaja_price, deposit_percent, slug")
       .eq("id", tenant_id)
       .single()
 
     const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
+    const tenantSlug = tenantConfig?.slug || "rsv"
 
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
@@ -88,8 +85,17 @@ export async function POST(req: Request) {
     const total = subtotal + extras + tinajaTotal
     const deposit = Math.round(total * depositPercent / 100)
     const balance = total - deposit
-    const bookingCode = generateBookingCode()
-    const notesData = JSON.stringify({ nombre: guest_name, whatsapp: guest_whatsapp, codigo: bookingCode, notas: notes || "", origen: "manual", tinaja: String(tinajaCount), price_per_night: resolvedPricePerNight })
+    const bookingCode = generateBookingCode(tenantSlug)
+
+    const notesData = JSON.stringify({
+      nombre: guest_name,
+      whatsapp: guest_whatsapp,
+      codigo: bookingCode,
+      notas: notes || "",
+      origen: "manual",
+      tinaja: String(tinajaCount),
+      price_per_night: resolvedPricePerNight
+    })
 
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
@@ -116,7 +122,7 @@ export async function POST(req: Request) {
 
     if (blockError) {
       await supabase.from("bookings").delete().eq("id", booking.id)
-      return NextResponse.json({ success: false, message: "Las fechas no estan disponibles" }, { status: 409 })
+      return NextResponse.json({ success: false, message: "Las fechas no están disponibles" }, { status: 409 })
     }
 
     await logAudit({
