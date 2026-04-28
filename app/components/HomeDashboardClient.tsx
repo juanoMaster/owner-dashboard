@@ -15,6 +15,13 @@ type TenantRow = {
   tinaja_price: number | null
   deposit_percent: number | null
   has_tinaja: boolean | null
+  currency: string | null
+}
+
+function fmtCurrency(n: number, currency: string): string {
+  if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
+  return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 })
 }
 
 type DashboardPayload = {
@@ -255,6 +262,7 @@ export default function HomeDashboardClient() {
           tenantTinajaPrice={tenant?.tinaja_price ?? 30000}
           tenantDepositPercent={tenant?.deposit_percent ?? 20}
           hasTinaja={tenant?.has_tinaja ?? true}
+          currency={tenant?.currency || "CLP"}
         />
 
         <a
@@ -308,7 +316,7 @@ export default function HomeDashboardClient() {
                   {cabin.name}
                 </div>
                 <div style={{ color: "#5a7058", fontSize: "12px" }}>
-                  {cabin.capacity} personas · ${Math.round(Number(cabin.base_price_night)).toLocaleString("es-CL", { maximumFractionDigits: 0 })}/noche
+                  {cabin.capacity} personas · {fmtCurrency(Number(cabin.base_price_night), tenant?.currency || "CLP")}/noche
                 </div>
               </div>
               <a

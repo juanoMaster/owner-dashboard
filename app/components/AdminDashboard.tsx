@@ -600,7 +600,7 @@ function ReservasTab({ bookings, tenantMap, cabinMap }: any) {
       if (filterStatus === "confirmada" && r.Estado !== "Confirmada") return false
       if (filterStatus === "pendiente" && r.Estado !== "Pendiente") return false
       if (filterStatus === "cancelada" && r.Estado !== "Cancelada") return false
-      if (filterYear && !r.Creada.includes(filterYear.slice(-2))) return false
+      if (filterYear && new Date(r._b.created_at).getFullYear().toString() !== filterYear) return false
       if (q && ![r.Nombre, r.Cliente, r["Cabaña"]].some((v: string) => v.toLowerCase().includes(q))) return false
       return true
     })

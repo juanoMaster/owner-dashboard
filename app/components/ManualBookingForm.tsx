@@ -3,9 +3,13 @@ import { useState, useEffect, CSSProperties } from "react"
 
 type PricingTier = { min_guests: number; max_guests: number; price_per_night: number }
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null }
-interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number; hasTinaja?: boolean }
+interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number; hasTinaja?: boolean; currency?: string }
 
-function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 }) }
+function fmtCurrency(n: number, currency: string): string {
+  if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
+  return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 })
+}
 
 function getPriceForGuests(tiers: PricingTier[] | null | undefined, guests: number, base: number): number {
   if (!tiers || tiers.length === 0) return base
@@ -13,7 +17,8 @@ function getPriceForGuests(tiers: PricingTier[] | null | undefined, guests: numb
   return tier ? tier.price_per_night : base
 }
 
-export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20, hasTinaja = true }: Props) {
+export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20, hasTinaja = true, currency = "CLP" }: Props) {
+  const fmt = (n: number) => fmtCurrency(n, currency)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -57,7 +62,7 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
     const pricePerNight = getPriceForGuests(selectedCabin.pricing_tiers, parseInt(guestCount), selectedCabin.base_price_night)
     const extra = Math.max(0, parseInt(guestCount) - selectedCabin.capacity)
     const subtotal = pricePerNight * n
-    const extras = extra * 5000 * n
+    const extras = extra * 0 * n
     const tinaja = tinajaUse ? parseInt(tinajaDays) * tenantTinajaPrice : 0
     const total = subtotal + extras + tinaja
     return { subtotal, extras, tinaja, total, deposit: Math.round(total * tenantDepositPercent / 100) }
