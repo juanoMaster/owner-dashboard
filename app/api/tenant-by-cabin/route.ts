@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const { data: cabin } = await supabase
     .from("cabins")
-    .select("tenant_id, name, pricing_tiers")
+    .select("tenant_id, name, pricing_tiers, has_tinaja, tinaja_price")
     .eq("id", cabin_id)
     .single()
 
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("business_name, owner_name, slug, owner_whatsapp, has_tinaja, mp_enabled, mp_access_token, currency, location_text, location_maps_url, tagline, activities, page_rules, tinaja_price, deposit_percent, min_nights, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut")
+    .select("business_name, owner_name, slug, owner_whatsapp, mp_enabled, mp_access_token, currency, location_text, location_maps_url, tagline, activities, page_rules, deposit_percent, min_nights, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut")
     .eq("id", cabin.tenant_id)
     .single()
 
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     owner_name: tenant.owner_name,
     slug: tenant.slug,
     owner_whatsapp: tenant.owner_whatsapp,
-    has_tinaja: tenant.has_tinaja ?? true,
+    has_tinaja: cabin.has_tinaja ?? true,
     mp_enabled: !!(tenant.mp_enabled && tenant.mp_access_token),
     currency: tenant.currency || "CLP",
     location_text: tenant.location_text || null,
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
     activities: tenant.activities || [],
     page_rules: tenant.page_rules || [],
     pricing_tiers: cabin.pricing_tiers ?? [],
-    tinaja_price: tenant.tinaja_price || 30000,
+    tinaja_price: cabin.tinaja_price || 30000,
     deposit_percent: tenant.deposit_percent || 20,
     min_nights: tenant.min_nights || 2,
     bank_name: tenant.bank_name || null,

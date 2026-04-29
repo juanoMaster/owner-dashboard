@@ -100,13 +100,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Completa todos los datos bancarios obligatorios." }, { status: 400 })
   }
 
-  const cabinsParsed: Array<{ name: string; base_price_night: number; capacity: number }> = []
+  const cabinsParsed: Array<{ name: string; base_price_night: number; capacity: number; has_tinaja: boolean; tinaja_price: number }> = []
   for (const c of cabinsIn) {
     if (!c || typeof c !== "object") continue
     const row = c as Record<string, unknown>
     const name = String(row.name ?? "").trim()
     const base_price_night = Number(row.base_price_night)
     const capacity = parseInt(String(row.capacity ?? "0"), 10)
+    const has_tinaja = Boolean(row.has_tinaja)
+    const tinaja_price = Number(row.tinaja_price) || 30000
     if (name.length < 1) {
       return NextResponse.json({ error: "Cada cabaña debe tener un nombre." }, { status: 400 })
     }
@@ -116,7 +118,7 @@ export async function POST(req: Request) {
     if (!Number.isFinite(capacity) || capacity < 1) {
       return NextResponse.json({ error: "La capacidad debe ser al menos 1 persona por cabaña." }, { status: 400 })
     }
-    cabinsParsed.push({ name, base_price_night, capacity })
+    cabinsParsed.push({ name, base_price_night, capacity, has_tinaja, tinaja_price })
   }
 
   if (cabinsParsed.length < 1) {
@@ -190,6 +192,8 @@ export async function POST(req: Request) {
     name: c.name,
     base_price_night: c.base_price_night,
     capacity: c.capacity,
+    has_tinaja: c.has_tinaja,
+    tinaja_price: c.tinaja_price,
     cleaning_fee: 0,
     active: true,
   }))

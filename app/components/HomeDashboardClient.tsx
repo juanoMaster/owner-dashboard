@@ -12,9 +12,7 @@ type TenantRow = {
   owner_name: string | null
   business_name: string | null
   slug: string | null
-  tinaja_price: number | null
   deposit_percent: number | null
-  has_tinaja: boolean | null
   currency: string | null
 }
 
@@ -34,6 +32,8 @@ type DashboardPayload = {
     base_price_night: number
     photos: string[] | null
     pricing_tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null
+    has_tinaja: boolean | null
+    tinaja_price: number | null
   }>
   bookings: Array<{
     id: string
@@ -257,11 +257,11 @@ export default function HomeDashboardClient() {
             capacity: c.capacity,
             base_price_night: Number(c.base_price_night),
             pricing_tiers: c.pricing_tiers ?? null,
+            has_tinaja: c.has_tinaja ?? true,
+            tinaja_price: c.tinaja_price ?? 30000,
           }))}
           tenantId={payload.tenant_id}
-          tenantTinajaPrice={tenant?.tinaja_price ?? 30000}
           tenantDepositPercent={tenant?.deposit_percent ?? 20}
-          hasTinaja={tenant?.has_tinaja ?? true}
           currency={tenant?.currency || "CLP"}
         />
 

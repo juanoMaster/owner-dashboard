@@ -17,10 +17,10 @@ export async function POST(req: Request) {
       .from("bookings")
       .select(`
         *,
-        cabins(name),
+        cabins(name, has_tinaja),
         tenants(
           business_name, owner_name, email_owner, owner_whatsapp,
-          deposit_percent, has_tinaja, slug,
+          deposit_percent, slug,
           bank_name, bank_account_type, bank_account_number,
           bank_account_holder, bank_rut, dashboard_token
         )
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       total_amount: booking.total_amount,
       deposit_amount: depositAmount,
       booking_code: booking.booking_code,
-      has_tinaja: t.has_tinaja,
+      has_tinaja: booking.cabins?.has_tinaja ?? false,
       tinaja_amount: booking.tinaja_amount || 0,
     }
 

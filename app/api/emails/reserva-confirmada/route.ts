@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         cabins(name),
         tenants(
           business_name, owner_name, email_owner, owner_whatsapp,
-          deposit_percent, has_tinaja,
+          deposit_percent,
           bank_name, bank_account_type, bank_account_number,
           bank_account_holder, bank_rut
         )

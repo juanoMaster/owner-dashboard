@@ -17,7 +17,7 @@ const BANKS = [
 
 const ACCOUNT_TYPES = ["Cuenta RUT", "Cuenta Vista", "Cuenta Corriente"] as const
 
-type CabinRow = { name: string; base_price_night: string; capacity: string }
+type CabinRow = { name: string; base_price_night: string; capacity: string; has_tinaja: boolean; tinaja_price: string }
 
 type OnboardResult = {
   token: string
@@ -97,7 +97,7 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const [bank_rut, setBankRut] = useState("")
   const [instagram_url, setInstagramUrl] = useState("")
   const [facebook_url, setFacebookUrl] = useState("")
-  const [cabins, setCabins] = useState<CabinRow[]>([{ name: "", base_price_night: "", capacity: "4" }])
+  const [cabins, setCabins] = useState<CabinRow[]>([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000" }])
 
   const [copiedPanel, setCopiedPanel] = useState(false)
   const [copiedPublic, setCopiedPublic] = useState(false)
@@ -110,14 +110,14 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   }, [])
 
   const addCabinRow = () => {
-    setCabins((c) => [...c, { name: "", base_price_night: "", capacity: "4" }])
+    setCabins((c) => [...c, { name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000" }])
   }
 
   const removeCabinRow = (index: number) => {
     setCabins((c) => (c.length <= 1 ? c : c.filter((_, i) => i !== index)))
   }
 
-  const updateCabin = (index: number, field: keyof CabinRow, value: string) => {
+  const updateCabin = (index: number, field: keyof CabinRow, value: string | boolean) => {
     setCabins((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
   }
 
@@ -172,6 +172,8 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
             name: c.name.trim(),
             base_price_night: Number(c.base_price_night),
             capacity: parseInt(c.capacity, 10),
+            has_tinaja: c.has_tinaja,
+            tinaja_price: Number(c.tinaja_price) || 30000,
           })),
         }),
       })
@@ -210,7 +212,7 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
     setBankRut("")
     setInstagramUrl("")
     setFacebookUrl("")
-    setCabins([{ name: "", base_price_night: "", capacity: "4" }])
+    setCabins([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000" }])
     setError(null)
   }
 
@@ -584,6 +586,27 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
                           className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
                         />
                       </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-end gap-3">
+                      <Toggle
+                        id={"tinaja-" + index}
+                        checked={row.has_tinaja}
+                        onChange={(v) => updateCabin(index, "has_tinaja", v)}
+                        label="¿Tiene tinaja?"
+                      />
+                      {row.has_tinaja && (
+                        <div className="flex-1 min-w-[140px]">
+                          <FieldLabel>Precio tinaja/día ($)</FieldLabel>
+                          <input
+                            type="number"
+                            min={0}
+                            step={1000}
+                            value={row.tinaja_price}
+                            onChange={(e) => updateCabin(index, "tinaja_price", e.target.value)}
+                            className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

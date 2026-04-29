@@ -2,8 +2,8 @@
 import { useState, useEffect, CSSProperties } from "react"
 
 type PricingTier = { min_guests: number; max_guests: number; price_per_night: number }
-interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null }
-interface Props { cabins: Cabin[]; tenantId: string; tenantTinajaPrice?: number; tenantDepositPercent?: number; hasTinaja?: boolean; currency?: string }
+interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null; has_tinaja?: boolean; tinaja_price?: number }
+interface Props { cabins: Cabin[]; tenantId: string; tenantDepositPercent?: number; currency?: string }
 
 function fmtCurrency(n: number, currency: string): string {
   if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
@@ -17,7 +17,7 @@ function getPriceForGuests(tiers: PricingTier[] | null | undefined, guests: numb
   return tier ? tier.price_per_night : base
 }
 
-export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice = 30000, tenantDepositPercent = 20, hasTinaja = true, currency = "CLP" }: Props) {
+export default function ManualBookingForm({ cabins, tenantId, tenantDepositPercent = 20, currency = "CLP" }: Props) {
   const fmt = (n: number) => fmtCurrency(n, currency)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -63,7 +63,8 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
     const extra = Math.max(0, parseInt(guestCount) - selectedCabin.capacity)
     const subtotal = pricePerNight * n
     const extras = extra * 0 * n
-    const tinaja = tinajaUse ? parseInt(tinajaDays) * tenantTinajaPrice : 0
+    const tinajaPrice = selectedCabin?.tinaja_price ?? 30000
+    const tinaja = tinajaUse ? parseInt(tinajaDays) * tinajaPrice : 0
     const total = subtotal + extras + tinaja
     return { subtotal, extras, tinaja, total, deposit: Math.round(total * tenantDepositPercent / 100) }
   }
@@ -176,10 +177,10 @@ export default function ManualBookingForm({ cabins, tenantId, tenantTinajaPrice 
                     )}
                   </div>
                 </div>
-                {hasTinaja && (
+                {(selectedCabin?.has_tinaja ?? true) && (
                   <div style={{ ...fg, display: "flex", alignItems: "center", gap: "12px" }}>
                     <input type="checkbox" id="tinaja-m" checked={tinajaUse} onChange={e => setTinajaUse(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer" }} />
-                    <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera (" + fmt(tenantTinajaPrice) + "/d\u00eda)"}</label>
+                    <label htmlFor="tinaja-m" style={{ ...lbl, marginBottom: "0", cursor: "pointer" }}>{"Tinaja de madera (" + fmt(selectedCabin?.tinaja_price ?? 30000) + "/d\u00eda)"}</label>
                     {tinajaUse && <select style={{ ...sel, width: "auto" }} value={tinajaDays} onChange={e => setTinajaDays(e.target.value)}>{Array.from({ length: nights || 7 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? "d\u00eda" : "d\u00edas"}</option>)}</select>}
                   </div>
                 )}

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity, extra_person_price, pricing_tiers")
+      .select("base_price_night, name, capacity, extra_person_price, pricing_tiers, has_tinaja, tinaja_price")
       .eq("id", cabin_id)
       .eq("tenant_id", tenant_id)
       .single()
@@ -66,11 +66,11 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("tinaja_price, deposit_percent, slug")
+      .select("deposit_percent, slug")
       .eq("id", tenant_id)
       .single()
 
-    const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
+    const tinajaPrice = Number(cabin.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
     const tenantSlug = tenantConfig?.slug || "rsv"
 
