@@ -99,13 +99,20 @@ function financialSummary(data: ResumenData): string {
               <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#e74c3c;font-weight:600;text-align:right;">- ${clp(data.comision_takai)}</td>
             </tr>
             <tr>
-              <td colspan="2" style="padding:8px 0 0;border-top:1px solid #d4edda;">
-                <p style="margin:10px 0 0;font-family:${FONT_SERIF};font-size:20px;color:${NAVY};font-weight:700;text-align:center;">
-                  💰 A transferir a Takai: ${clp(data.monto_neto)}
+              <td colspan="2" style="padding:10px 0 0;border-top:1px solid #d4edda;">
+                <p style="margin:10px 0 0;font-family:${FONT_SERIF};font-size:22px;color:${GREEN};font-weight:700;text-align:center;">
+                  💰 Tu ganancia neta: ${clp(data.monto_neto)}
                 </p>
               </td>
             </tr>
           </table>
+        </div>
+
+        <div style="margin-top:16px;background:${NAVY};border-radius:6px;padding:18px 24px;text-align:center;">
+          <p style="margin:0;font-family:${FONT_SERIF};font-size:17px;color:#ffffff;font-weight:700;">
+            📤 A transferir a Takai: ${clp(data.comision_takai)}
+          </p>
+          <p style="margin:6px 0 0;font-family:${FONT_SANS};font-size:11px;color:rgba(255,255,255,0.55);">Corresponde al ${Math.round(TAKAI_COMMISSION_RATE * 100)}% de comisión sobre el total generado</p>
         </div>
       </td>
     </tr>`
@@ -144,7 +151,7 @@ export function generarResumenSemanal(data: ResumenData): string {
     <!-- Header -->
     <tr>
       <td style="background:${NAVY};padding:36px 32px 28px;text-align:center;">
-        <p style="margin:0;font-family:${FONT_SERIF};font-size:32px;font-weight:700;color:#ffffff;letter-spacing:6px;text-transform:uppercase;">TAKAI</p>
+        <img src="https://owner-dashboard-navy.vercel.app/takailogoemail.png" alt="Takai.cl" style="height:50px;width:auto;display:block;margin:0 auto 8px auto;" />
         <p style="margin:8px 0 0;font-family:${FONT_SANS};font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:3px;text-transform:uppercase;">Resumen Semanal</p>
         <div style="width:40px;height:2px;background:${GREEN};margin:16px auto 0;"></div>
       </td>
