@@ -44,11 +44,11 @@ function tableHeader(headerBg: string): string {
 function tableRow(r: ResumenReserva, idx: number): string {
   const isManual = r.is_manual
   const bg = isManual
-    ? (idx % 2 === 0 ? "#f5f5f5" : "#ebebeb")
+    ? (idx % 2 === 0 ? "#fff8e1" : "#fff3cd")
     : (idx % 2 === 0 ? "#ffffff" : "#f9f9f9")
   const badge = isManual
-    ? `<span style="display:inline-block;margin-left:6px;padding:1px 5px;background:#6c757d;color:#fff;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.5px;vertical-align:middle;">MANUAL</span>`
-    : `<span style="display:inline-block;margin-left:6px;padding:1px 5px;background:#27ae60;color:#fff;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.5px;vertical-align:middle;">WEB</span>`
+    ? `<span style="display:inline-block;margin-left:6px;padding:2px 6px;background:#f0ad4e;color:#fff;border-radius:4px;font-size:10px;font-weight:bold;vertical-align:middle;">MANUAL</span>`
+    : `<span style="display:inline-block;margin-left:6px;padding:2px 6px;background:#28a745;color:#fff;border-radius:4px;font-size:10px;font-weight:bold;vertical-align:middle;">WEB</span>`
   const cell = (v: string) =>
     `<td style="padding:10px 12px;font-family:${FONT_SANS};font-size:12px;color:#333;border-bottom:1px solid #e8e8e8;white-space:nowrap;">${v}</td>`
   return `
@@ -154,11 +154,10 @@ function financialSummary(data: ResumenData): string {
           </table>
         </div>
 
-        <div style="margin-top:16px;background:${NAVY};border-radius:6px;padding:18px 24px;text-align:center;">
-          <p style="margin:0;font-family:${FONT_SERIF};font-size:17px;color:#ffffff;font-weight:700;">
-            \u{1F4E4} A transferir a Takai: ${clp(comision_takai)}
-          </p>
-          <p style="margin:6px 0 0;font-family:${FONT_SANS};font-size:11px;color:rgba(255,255,255,0.55);">Corresponde al ${Math.round(TAKAI_COMMISSION_RATE * 100)}% de las reservas online únicamente</p>
+        <div style="margin-top:20px;border:2px solid #e74c3c;border-radius:8px;padding:20px;background:#fff5f5;text-align:center;">
+          <p style="margin:0 0 4px;font-family:${FONT_SANS};font-size:13px;color:#888;text-transform:uppercase;letter-spacing:1px;">Debes transferir a Takai</p>
+          <p style="margin:0;font-family:${FONT_SERIF};font-size:32px;font-weight:800;color:#e74c3c;">${clp(comision_takai)}</p>
+          <p style="margin:6px 0 0;font-family:${FONT_SANS};font-size:12px;color:#aaa;">10% de las reservas online · Semana del ${data.semana_desde} al ${data.semana_hasta}</p>
         </div>
       </td>
     </tr>`
