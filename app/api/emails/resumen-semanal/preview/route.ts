@@ -1,104 +1,28 @@
 export const dynamic = "force-dynamic"
 
-import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { generarResumenSemanal, type ResumenReserva } from "@/lib/email-templates/resumen-semanal"
-
-const TAKAI_COMMISSION_RATE = 0.10
-const PREVIEW_SLUG = "rukatraro"
-
-function detectarGenero(ownerName: string): "male" | "female" {
-  const primerNombre = ownerName.trim().split(/\s+/)[0].toLowerCase()
-  return primerNombre.endsWith("a") ? "female" : "male"
-}
-
-function formatDiaSemana(d: Date): string {
-  return d
-    .toLocaleDateString("es-CL", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      timeZone: "UTC",
-    })
-    .replace(",", "")
-}
-
-function rangoSemanaPasada(): { weekStart: Date; weekEnd: Date } {
-  const now = new Date()
-  const dayOfWeek = now.getUTCDay()
-  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-
-  const weekStart = new Date(now)
-  weekStart.setUTCDate(now.getUTCDate() - daysSinceMonday - 7)
-  weekStart.setUTCHours(0, 0, 0, 0)
-
-  const weekEnd = new Date(weekStart)
-  weekEnd.setUTCDate(weekStart.getUTCDate() + 6)
-  weekEnd.setUTCHours(23, 59, 59, 999)
-
-  return { weekStart, weekEnd }
-}
+import { generarResumenSemanal, type ResumenData } from "@/lib/email-templates/resumen-semanal"
 
 export async function GET() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
-
-  const { data: tenant, error: tenantError } = await supabase
-    .from("tenants")
-    .select("id, business_name, owner_name")
-    .eq("slug", PREVIEW_SLUG)
-    .eq("active", true)
-    .single()
-
-  if (tenantError || !tenant) {
-    return NextResponse.json({ error: "Tenant no encontrado" }, { status: 404 })
+  const data: ResumenData = {
+    business_name: "Rukatraro",
+    owner_name: "Johanna Medina",
+    gender: "female",
+    semana_desde: "lunes 21 de abril",
+    semana_hasta: "domingo 27 de abril",
+    reservas: [
+      { booking_code: "RUK-001", guest_name: "Carlos Muñoz",          cabin_name: "Cabaña Nº1", check_in: "21/04/2026", check_out: "23/04/2026", nights: 2, total_amount: 60000  },
+      { booking_code: "RUK-002", guest_name: "Valentina Soto",        cabin_name: "Cabaña Nº2", check_in: "22/04/2026", check_out: "25/04/2026", nights: 3, total_amount: 120000 },
+      { booking_code: "RUK-003", guest_name: "Pedro Rojas (manual)",  cabin_name: "Cabaña Nº1", check_in: "24/04/2026", check_out: "26/04/2026", nights: 2, total_amount: 60000  },
+      { booking_code: "RUK-004", guest_name: "Francisca Vega",        cabin_name: "Cabaña Nº2", check_in: "25/04/2026", check_out: "28/04/2026", nights: 3, total_amount: 120000 },
+      { booking_code: "RUK-005", guest_name: "Andrés Pereira",        cabin_name: "Cabaña Nº1", check_in: "26/04/2026", check_out: "27/04/2026", nights: 1, total_amount: 30000  },
+    ],
+    total_bruto:    390000,
+    comision_takai:  39000,
+    monto_neto:     351000,
   }
 
-  const { weekStart, weekEnd } = rangoSemanaPasada()
-
-  const { data: bookings, error: bookingsError } = await supabase
-    .from("bookings")
-    .select("booking_code, guest_name, check_in, check_out, nights, total_amount, cabins(name)")
-    .eq("tenant_id", tenant.id)
-    .eq("status", "confirmed")
-    .is("deleted_at", null)
-    .gte("created_at", weekStart.toISOString())
-    .lte("created_at", weekEnd.toISOString())
-
-  if (bookingsError) {
-    return NextResponse.json({ error: bookingsError.message }, { status: 500 })
-  }
-
-  const reservas: ResumenReserva[] = (bookings ?? []).map((b: any) => ({
-    booking_code: b.booking_code ?? "—",
-    guest_name: b.guest_name ?? "—",
-    cabin_name: b.cabins?.name ?? "—",
-    check_in: b.check_in,
-    check_out: b.check_out,
-    nights: b.nights ?? 0,
-    total_amount: Number(b.total_amount) || 0,
-  }))
-
-  const total_bruto = reservas.reduce((sum, r) => sum + r.total_amount, 0)
-  const comision_takai = Math.round(total_bruto * TAKAI_COMMISSION_RATE)
-  const monto_neto = total_bruto - comision_takai
-
-  const html = generarResumenSemanal({
-    business_name: tenant.business_name,
-    owner_name: tenant.owner_name,
-    gender: detectarGenero(tenant.owner_name),
-    semana_desde: formatDiaSemana(weekStart),
-    semana_hasta: formatDiaSemana(weekEnd),
-    reservas,
-    total_bruto,
-    comision_takai,
-    monto_neto,
-  })
-
+  const html = generarResumenSemanal(data)
   return new Response(html, {
-    headers: { "Content-Type": "text/html" },
+    headers: { "Content-Type": "text/html; charset=utf-8" },
   })
 }
