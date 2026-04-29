@@ -658,6 +658,7 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     business_name: data.business_name || "",
     owner_name: data.owner_name || "",
     owner_whatsapp: data.owner_whatsapp || "",
+    email_owner: data.email_owner || "",
     deposit_percent: data.deposit_percent || 20,
     gender: data.gender || "female",
     bank_name: data.bank_name || "",
@@ -691,6 +692,7 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
           { key: "business_name", label: "Nombre del negocio", type: "text" },
           { key: "owner_name", label: "Nombre propietaria", type: "text" },
           { key: "owner_whatsapp", label: "WhatsApp propietaria", type: "text" },
+          { key: "email_owner", label: "Email del propietario", type: "email" },
           { key: "deposit_percent", label: "% depósito (default 20)", type: "number" },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: "16px" }}>
