@@ -1,4 +1,4 @@
-// Takai commission rate applied to confirmed bookings
+// Takai commission rate applied to confirmed web bookings only
 const TAKAI_COMMISSION_RATE = 0.10
 
 // Placeholder until Wise account is configured in production
@@ -17,6 +17,7 @@ export interface ResumenReserva {
   check_out: string
   nights: number
   total_amount: number
+  is_manual: boolean
 }
 
 export interface ResumenData {
@@ -26,30 +27,33 @@ export interface ResumenData {
   semana_desde: string
   semana_hasta: string
   reservas: ResumenReserva[]
-  total_bruto: number
-  comision_takai: number
-  monto_neto: number
 }
 
 function clp(n: number): string {
   return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
-function tableHeader(): string {
+function tableHeader(headerBg: string): string {
   const cols = ["Código", "Huésped", "Cabaña", "Check-in", "Check-out", "Noches", "Total"]
   const cells = cols
     .map(c => `<th style="padding:10px 12px;text-align:left;font-family:${FONT_SANS};font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#ffffff;white-space:nowrap;">${c}</th>`)
     .join("")
-  return `<tr style="background:${NAVY};">${cells}</tr>`
+  return `<tr style="background:${headerBg};">${cells}</tr>`
 }
 
 function tableRow(r: ResumenReserva, idx: number): string {
-  const bg = idx % 2 === 0 ? "#ffffff" : "#f9f9f9"
+  const isManual = r.is_manual
+  const bg = isManual
+    ? (idx % 2 === 0 ? "#f5f5f5" : "#ebebeb")
+    : (idx % 2 === 0 ? "#ffffff" : "#f9f9f9")
+  const badge = isManual
+    ? `<span style="display:inline-block;margin-left:6px;padding:1px 5px;background:#6c757d;color:#fff;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.5px;vertical-align:middle;">MANUAL</span>`
+    : `<span style="display:inline-block;margin-left:6px;padding:1px 5px;background:#27ae60;color:#fff;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.5px;vertical-align:middle;">WEB</span>`
   const cell = (v: string) =>
     `<td style="padding:10px 12px;font-family:${FONT_SANS};font-size:12px;color:#333;border-bottom:1px solid #e8e8e8;white-space:nowrap;">${v}</td>`
   return `
     <tr style="background:${bg};">
-      ${cell(r.booking_code)}
+      <td style="padding:10px 12px;font-family:${FONT_SANS};font-size:12px;color:#333;border-bottom:1px solid #e8e8e8;white-space:nowrap;">${r.booking_code}${badge}</td>
       ${cell(r.guest_name)}
       ${cell(r.cabin_name)}
       ${cell(r.check_in)}
@@ -68,22 +72,56 @@ function noBookingsBlock(): string {
     </tr>`
 }
 
+function bookingsSection(
+  title: string,
+  headerBg: string,
+  reservas: ResumenReserva[],
+  footerNote?: string
+): string {
+  return `
+    <div style="margin-bottom:20px;">
+      <p style="margin:0 0 8px;font-family:${FONT_SANS};font-size:10px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase;">${title}</p>
+      <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0e0e0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;min-width:540px;">
+          ${tableHeader(headerBg)}
+          ${reservas.map((r, i) => tableRow(r, i)).join("")}
+        </table>
+      </div>
+      ${footerNote ? `<p style="margin:6px 0 0;font-family:${FONT_SANS};font-size:11px;color:#888;font-style:italic;">${footerNote}</p>` : ""}
+    </div>`
+}
+
 function bookingsTable(reservas: ResumenReserva[]): string {
+  const webReservas = reservas.filter(r => !r.is_manual)
+  const manualReservas = reservas.filter(r => r.is_manual)
+
+  const webSection = webReservas.length > 0
+    ? bookingsSection("\u{1F4F2} Reservas online", NAVY, webReservas)
+    : ""
+
+  const manualSection = manualReservas.length > 0
+    ? bookingsSection("\u{270F}\u{FE0F} Reservas manuales (sin comisión)", "#6c757d", manualReservas, "Estas reservas no generan comisión Takai.")
+    : ""
+
   return `
     <tr>
       <td style="padding:0 32px 24px;">
-        <p style="margin:0 0 12px;font-family:${FONT_SANS};font-size:10px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase;">Reservas confirmadas</p>
-        <div style="overflow-x:auto;border-radius:6px;border:1px solid #e0e0e0;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;min-width:540px;">
-            ${tableHeader()}
-            ${reservas.map((r, i) => tableRow(r, i)).join("")}
-          </table>
-        </div>
+        ${webSection}
+        ${manualSection}
       </td>
     </tr>`
 }
 
 function financialSummary(data: ResumenData): string {
+  const webReservas = data.reservas.filter(r => !r.is_manual)
+  const manualReservas = data.reservas.filter(r => r.is_manual)
+
+  const total_bruto = data.reservas.reduce((sum, r) => sum + r.total_amount, 0)
+  const base_comisionable = webReservas.reduce((sum, r) => sum + r.total_amount, 0)
+  const total_manual = manualReservas.reduce((sum, r) => sum + r.total_amount, 0)
+  const comision_takai = Math.round(base_comisionable * TAKAI_COMMISSION_RATE)
+  const ganancia_neta = total_bruto - comision_takai
+
   return `
     <tr>
       <td style="padding:0 32px 24px;">
@@ -91,17 +129,25 @@ function financialSummary(data: ResumenData): string {
           <p style="margin:0 0 12px;font-family:${FONT_SANS};font-size:10px;font-weight:700;color:#888;letter-spacing:2px;text-transform:uppercase;">Resumen financiero</p>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#555;">Total generado</td>
-              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#222;font-weight:600;text-align:right;">${clp(data.total_bruto)}</td>
+              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#555;">Total generado (todas las reservas)</td>
+              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#222;font-weight:600;text-align:right;">${clp(total_bruto)}</td>
             </tr>
             <tr>
-              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#555;">Comisión Takai (${Math.round(TAKAI_COMMISSION_RATE * 100)}%)</td>
-              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#e74c3c;font-weight:600;text-align:right;">- ${clp(data.comision_takai)}</td>
+              <td style="padding:2px 0 2px 16px;font-family:${FONT_SANS};font-size:12px;color:#888;">· Reservas online</td>
+              <td style="padding:2px 0;font-family:${FONT_SANS};font-size:12px;color:#888;text-align:right;">${clp(base_comisionable)}</td>
+            </tr>
+            <tr>
+              <td style="padding:2px 0 8px 16px;font-family:${FONT_SANS};font-size:12px;color:#888;">· Reservas manuales</td>
+              <td style="padding:2px 0 8px;font-family:${FONT_SANS};font-size:12px;color:#888;text-align:right;">${clp(total_manual)}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#555;">Comisión Takai ${Math.round(TAKAI_COMMISSION_RATE * 100)}% (solo reservas online)</td>
+              <td style="padding:6px 0;font-family:${FONT_SANS};font-size:14px;color:#e74c3c;font-weight:600;text-align:right;">- ${clp(comision_takai)}</td>
             </tr>
             <tr>
               <td colspan="2" style="padding:10px 0 0;border-top:1px solid #d4edda;">
                 <p style="margin:10px 0 0;font-family:${FONT_SERIF};font-size:22px;color:${GREEN};font-weight:700;text-align:center;">
-                  💰 Tu ganancia neta: ${clp(data.monto_neto)}
+                  \u{1F4B0} Tu ganancia neta: ${clp(ganancia_neta)}
                 </p>
               </td>
             </tr>
@@ -110,9 +156,9 @@ function financialSummary(data: ResumenData): string {
 
         <div style="margin-top:16px;background:${NAVY};border-radius:6px;padding:18px 24px;text-align:center;">
           <p style="margin:0;font-family:${FONT_SERIF};font-size:17px;color:#ffffff;font-weight:700;">
-            📤 A transferir a Takai: ${clp(data.comision_takai)}
+            \u{1F4E4} A transferir a Takai: ${clp(comision_takai)}
           </p>
-          <p style="margin:6px 0 0;font-family:${FONT_SANS};font-size:11px;color:rgba(255,255,255,0.55);">Corresponde al ${Math.round(TAKAI_COMMISSION_RATE * 100)}% de comisión sobre el total generado</p>
+          <p style="margin:6px 0 0;font-family:${FONT_SANS};font-size:11px;color:rgba(255,255,255,0.55);">Corresponde al ${Math.round(TAKAI_COMMISSION_RATE * 100)}% de las reservas online únicamente</p>
         </div>
       </td>
     </tr>`
@@ -146,6 +192,7 @@ function bankDataBlock(): string {
 export function generarResumenSemanal(data: ResumenData): string {
   const saludo = data.gender === "female" ? "Estimada" : "Estimado"
   const hasBookings = data.reservas.length > 0
+  const hasWebBookings = data.reservas.some(r => !r.is_manual)
 
   const content = `
     <!-- Header -->
@@ -176,7 +223,7 @@ export function generarResumenSemanal(data: ResumenData): string {
 
     ${hasBookings ? financialSummary(data) : ""}
 
-    ${hasBookings ? bankDataBlock() : ""}
+    ${hasWebBookings ? bankDataBlock() : ""}
 
     <!-- Footer -->
     <tr>

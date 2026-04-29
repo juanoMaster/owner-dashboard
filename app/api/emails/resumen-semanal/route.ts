@@ -92,18 +92,26 @@ export async function GET() {
 
         if (bookingsError) throw bookingsError
 
-        const reservas: ResumenReserva[] = (bookings ?? []).map((b: any) => ({
-          booking_code: b.booking_code ?? "—",
-          guest_name: b.guest_name ?? "—",
-          cabin_name: b.cabins?.name ?? "—",
-          check_in: b.check_in,
-          check_out: b.check_out,
-          nights: b.nights ?? 0,
-          total_amount: Number(b.total_amount) || 0,
-        }))
+        const reservas: ResumenReserva[] = (bookings ?? []).map((b: any) => {
+          const origen = (() => {
+            try { return JSON.parse(b.notes || "{}").origen || "web" }
+            catch { return "web" }
+          })()
+          return {
+            booking_code: b.booking_code ?? "—",
+            guest_name: b.guest_name ?? "—",
+            cabin_name: b.cabins?.name ?? "—",
+            check_in: b.check_in,
+            check_out: b.check_out,
+            nights: b.nights ?? 0,
+            total_amount: Number(b.total_amount) || 0,
+            is_manual: origen === "manual",
+          }
+        })
 
+        const base_comisionable = reservas.filter(r => !r.is_manual).reduce((sum, r) => sum + r.total_amount, 0)
+        const comision_takai = Math.round(base_comisionable * TAKAI_COMMISSION_RATE)
         const total_bruto = reservas.reduce((sum, r) => sum + r.total_amount, 0)
-        const comision_takai = Math.round(total_bruto * TAKAI_COMMISSION_RATE)
         const monto_neto = total_bruto - comision_takai
 
         const html = generarResumenSemanal({
@@ -113,9 +121,6 @@ export async function GET() {
           semana_desde: formatDiaSemana(weekStart),
           semana_hasta: formatDiaSemana(weekEnd),
           reservas,
-          total_bruto,
-          comision_takai,
-          monto_neto,
         })
 
         await getResend().emails.send({

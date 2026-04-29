@@ -10,15 +10,12 @@ export async function GET() {
     semana_desde: "lunes 21 de abril",
     semana_hasta: "domingo 27 de abril",
     reservas: [
-      { booking_code: "RUK-001", guest_name: "Carlos Muñoz",          cabin_name: "Cabaña Nº1", check_in: "21/04/2026", check_out: "23/04/2026", nights: 2, total_amount: 60000  },
-      { booking_code: "RUK-002", guest_name: "Valentina Soto",        cabin_name: "Cabaña Nº2", check_in: "22/04/2026", check_out: "25/04/2026", nights: 3, total_amount: 120000 },
-      { booking_code: "RUK-003", guest_name: "Pedro Rojas (manual)",  cabin_name: "Cabaña Nº1", check_in: "24/04/2026", check_out: "26/04/2026", nights: 2, total_amount: 60000  },
-      { booking_code: "RUK-004", guest_name: "Francisca Vega",        cabin_name: "Cabaña Nº2", check_in: "25/04/2026", check_out: "28/04/2026", nights: 3, total_amount: 120000 },
-      { booking_code: "RUK-005", guest_name: "Andrés Pereira",        cabin_name: "Cabaña Nº1", check_in: "26/04/2026", check_out: "27/04/2026", nights: 1, total_amount: 30000  },
+      { booking_code: "RUK-001", guest_name: "Carlos Muñoz",         cabin_name: "Cabaña Nº1", check_in: "21/04/2026", check_out: "23/04/2026", nights: 2, total_amount: 60000,  is_manual: false },
+      { booking_code: "RUK-002", guest_name: "Valentina Soto",       cabin_name: "Cabaña Nº2", check_in: "22/04/2026", check_out: "25/04/2026", nights: 3, total_amount: 120000, is_manual: false },
+      { booking_code: "RUK-003", guest_name: "Pedro Rojas (manual)", cabin_name: "Cabaña Nº1", check_in: "24/04/2026", check_out: "26/04/2026", nights: 2, total_amount: 60000,  is_manual: true  },
+      { booking_code: "RUK-004", guest_name: "Francisca Vega",       cabin_name: "Cabaña Nº2", check_in: "25/04/2026", check_out: "28/04/2026", nights: 3, total_amount: 120000, is_manual: false },
+      { booking_code: "RUK-005", guest_name: "Andrés Pereira",       cabin_name: "Cabaña Nº1", check_in: "26/04/2026", check_out: "27/04/2026", nights: 1, total_amount: 30000,  is_manual: true  },
     ],
-    total_bruto:    390000,
-    comision_takai:  39000,
-    monto_neto:     351000,
   }
 
   const html = generarResumenSemanal(data)
