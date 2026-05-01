@@ -666,8 +666,6 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     bank_account_number: data.bank_account_number || "",
     bank_account_holder: data.bank_account_holder || "",
     bank_rut: data.bank_rut || "",
-    has_tinaja: data.has_tinaja ?? true,
-    tinaja_price: data.tinaja_price || 30000,
     mp_access_token: data.mp_access_token || "",
     mp_enabled: data.mp_enabled ?? false,
     country: data.country || "CL",
@@ -803,14 +801,6 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
             <input type="text" value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
           </div>
         ))}
-        <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <input type="checkbox" id="has-tinaja" checked={form.has_tinaja} onChange={e => setForm(p => ({ ...p, has_tinaja: e.target.checked }))} style={{ width: "16px", height: "16px", cursor: "pointer" }} />
-          <label htmlFor="has-tinaja" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>¿Tiene tinaja de madera?</label>
-        </div>
-        <div style={{ marginBottom: "20px" }}>
-          <label style={LABEL}>Precio tinaja por día ($)</label>
-          <input type="number" value={form.tinaja_price} onChange={e => setForm(p => ({ ...p, tinaja_price: Number(e.target.value) }))} style={INPUT} />
-        </div>
         {!isNew && (
           <>
             <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
