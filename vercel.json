@@ -7,6 +7,10 @@
     {
       "path": "/api/health",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/emails/resumen-semanal",
+      "schedule": "0 10 * * 1"
     }
   ]
 }
