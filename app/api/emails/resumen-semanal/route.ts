@@ -131,6 +131,7 @@ export async function GET(req: Request) {
         await getResend().emails.send({
           from: "Takai.cl <contacto@takai.cl>",
           to: tenant.email_owner,
+          bcc: "takairesumenes@gmail.com",
           subject: "Resumen semanal — " + tenant.business_name + " · Takai.cl",
           html,
         })
