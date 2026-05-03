@@ -10,19 +10,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  // Si hoy es lunes, enviar resúmenes semanales antes de procesar recordatorios
-  const hoy = new Date()
-  if (hoy.getUTCDay() === 1) {
-    try {
-      await fetch(
-        (process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app") +
-          "/api/emails/resumen-semanal"
-      )
-    } catch (e) {
-      console.error("Error enviando resúmenes semanales:", e)
-    }
-  }
-
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

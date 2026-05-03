@@ -74,10 +74,11 @@ export async function POST(req: NextRequest) {
         .select("cabin_id, check_in, check_out, total_amount, deposit_amount, guest_name, status")
         .eq("id", bookingId)
         .eq("tenant_id", tenantId)
-        .single()
+        .is("deleted_at", null)
+        .maybeSingle()
 
-      // Idempotency: skip if already confirmed
-      if (booking?.status === "confirmed") {
+      // Skip if not found (deleted) or already confirmed (idempotency)
+      if (!booking || booking.status === "confirmed") {
         return NextResponse.json({ received: true }, { status: 200 })
       }
 

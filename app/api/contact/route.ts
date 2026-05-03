@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Takai.cl <onboarding@resend.dev>",
+          from: "Takai.cl <notificaciones@takai.cl>",
           to: ["contacto@takai.cl"],
           subject: "Nueva solicitud: " + (nombre || "") + " — " + (cabanas || ""),
           html:
