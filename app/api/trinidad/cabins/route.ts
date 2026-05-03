@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
-export const revalidate = 60
+export const dynamic = "force-dynamic"
 
 // Legacy endpoint kept for backwards compatibility with the Trinidad website embed.
 // Uses slug-based lookup so it stays data-driven — no UUIDs in code.

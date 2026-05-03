@@ -85,10 +85,28 @@ function SlugInner() {
 
   useEffect(function() {
     if (!slug) return
-    fetch("/api/tenant/" + slug + "/cabins")
-      .then(r => { if (!r.ok) { setNotFound(true); setLoading(false); return null } return r.json() })
-      .then(d => { if (!d) return; setTenant(d.tenant); setCabins(d.cabins || []); setLoading(false) })
-      .catch(() => { setNotFound(true); setLoading(false) })
+    let cancelled = false
+    function tryFetch(attempt: number) {
+      fetch("/api/tenant/" + slug + "/cabins")
+        .then(function(r) {
+          if (!r.ok) {
+            if (attempt < 2 && !cancelled) { setTimeout(function() { tryFetch(attempt + 1) }, 800 * (attempt + 1)) }
+            else if (!cancelled) { setNotFound(true); setLoading(false) }
+            return null
+          }
+          return r.json()
+        })
+        .then(function(d) {
+          if (!d || cancelled) return
+          setTenant(d.tenant); setCabins(d.cabins || []); setLoading(false)
+        })
+        .catch(function() {
+          if (attempt < 2 && !cancelled) { setTimeout(function() { tryFetch(attempt + 1) }, 800 * (attempt + 1)) }
+          else if (!cancelled) { setNotFound(true); setLoading(false) }
+        })
+    }
+    tryFetch(0)
+    return function() { cancelled = true }
   }, [slug])
 
   const allPhotos = cabins.flatMap(c => c.photos || []).filter(Boolean)
