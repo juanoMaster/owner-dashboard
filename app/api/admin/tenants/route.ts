@@ -13,6 +13,8 @@ export async function PATCH(req: Request) {
     const update: Record<string, any> = {}
     if (mp_access_token !== undefined) update.mp_access_token = mp_access_token
     if (mp_enabled !== undefined) update.mp_enabled = mp_enabled
+    const { whatsapp_enabled } = body
+    if (whatsapp_enabled !== undefined) update.whatsapp_enabled = whatsapp_enabled
     if (Object.keys(update).length === 0) return NextResponse.json({ error: "Sin campos para actualizar" }, { status: 400 })
     const { data, error } = await supabase.from("tenants").update(update).eq("id", id).select().single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -77,6 +79,7 @@ export async function POST(req: Request) {
         tagline: body.tagline || null,
         activities: body.activities || [],
         page_rules: body.page_rules || [],
+        whatsapp_enabled: body.whatsapp_enabled ?? true,
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })

@@ -117,7 +117,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error")
   }
 
-  async function saveMp(data: { id: string; mp_access_token?: string; mp_enabled?: boolean }) {
+  async function savePatch(data: { id: string; mp_access_token?: string; mp_enabled?: boolean; whatsapp_enabled?: boolean }) {
     setSaving(true)
     const res = await fetch("/api/admin/tenants", {
       method: "PATCH",
@@ -128,8 +128,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     setSaving(false)
     if (r.success) {
       setTenants(p => p.map((t: any) => t.id === data.id ? { ...t, ...data } : t))
-    } else alert(r.error || "Error al guardar configuración MP")
+    } else alert(r.error || "Error al guardar")
   }
+  const saveMp = savePatch
 
   async function generateToken(tenant_id: string) {
     setSaving(true)
@@ -171,7 +172,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error al eliminar")
   }
 
-  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría"]
+  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones"]
 
   return (
     <div style={{ background: "#09070a", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8d5f8" }}>
@@ -269,7 +270,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                     <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setTenantSort(s => ({ key: "business_name", dir: s.key === "business_name" ? (s.dir === "asc" ? "desc" : "asc") : "asc" }))}>
                       Negocio{tenantSort.key === "business_name" ? (tenantSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
                     </th>
-                    {["Propietaria", "WhatsApp", "Depósito %", "Estado", "Verificado"].map(h => <th key={h} style={TH}>{h}</th>)}
+                    {["Propietaria", "WhatsApp", "Depósito %", "Estado", "Verificado", "WA Notif."].map(h => <th key={h} style={TH}>{h}</th>)}
                     <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setTenantSort(s => ({ key: "created_at", dir: s.key === "created_at" ? (s.dir === "asc" ? "desc" : "asc") : "desc" }))}>
                       Fecha de ingreso{tenantSort.key === "created_at" ? (tenantSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
                     </th>
@@ -291,6 +292,15 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                       <td style={TD}>
                         <button onClick={() => saveTenant({ action: "verify", id: t.id, verified: !t.verified })} style={BTN(t.verified ? "#c8b878" : "#3a2e50")}>
                           {t.verified ? "✓ Verificado" : "Verificar"}
+                        </button>
+                      </td>
+                      <td style={TD}>
+                        <button
+                          onClick={() => savePatch({ id: t.id, whatsapp_enabled: !t.whatsapp_enabled })}
+                          disabled={saving}
+                          style={BTN(t.whatsapp_enabled !== false ? "#27ae60" : "#e63946")}
+                        >
+                          {t.whatsapp_enabled !== false ? "ON" : "OFF"}
                         </button>
                       </td>
                       <td style={{ ...TD, fontSize: "11px", color: "#5a4870" }}>{fmtDate(t.created_at)}</td>
@@ -494,6 +504,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
           </div>
         )}
 
+        {/* ══ TAB 6: COMISIONES ══ */}
+        {tab === 6 && <ComisionesTab bookings={bookings} tenants={tenants} tenantMap={tenantMap} adminToken={adminToken} />}
+
       </main>
 
       {/* ══ ONBOARDING NUEVO CLIENTE ══ */}
@@ -668,6 +681,7 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     bank_rut: data.bank_rut || "",
     mp_access_token: data.mp_access_token || "",
     mp_enabled: data.mp_enabled ?? false,
+    whatsapp_enabled: data.whatsapp_enabled ?? true,
     country: data.country || "CL",
     currency: data.currency || "CLP",
     location_text: data.location_text || "",
@@ -786,6 +800,18 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
             </button>
           </div>
         </div>
+        <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <input
+            type="checkbox"
+            id="wa-enabled"
+            checked={form.whatsapp_enabled}
+            onChange={e => setForm(p => ({ ...p, whatsapp_enabled: e.target.checked }))}
+            style={{ width: "16px", height: "16px", cursor: "pointer" }}
+          />
+          <label htmlFor="wa-enabled" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>
+            Notificaciones WhatsApp habilitadas
+          </label>
+        </div>
         <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
           <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Datos bancarios</div>
         </div>
@@ -841,6 +867,137 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
             Cancelar
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ══ COMISIONES TAB ════════════════════════
+function ComisionesTab({ bookings, tenants, tenantMap, adminToken }: any) {
+  const [filterTenant, setFilterTenant] = useState("")
+  const [filterStatus, setFilterStatus] = useState("")
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString())
+  const [saving, setSaving] = useState(false)
+  const IS: React.CSSProperties = { background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "7px 12px", outline: "none", fontFamily: "sans-serif" }
+
+  const commissionable = useMemo(() =>
+    bookings.filter((b: any) =>
+      b.status === "confirmed" &&
+      !b.deleted_at &&
+      b.commission_status !== "not_applicable" &&
+      b.commission_amount > 0
+    ), [bookings])
+
+  const tenantNames = useMemo(() => Array.from(new Set(commissionable.map((b: any) => tenantMap[b.tenant_id] || b.tenant_id))).sort(), [commissionable, tenantMap])
+  const years = useMemo(() => Array.from(new Set(commissionable.map((b: any) => new Date(b.check_in).getFullYear().toString()))).sort((a: any, b: any) => Number(b) - Number(a)), [commissionable])
+
+  const filtered = useMemo(() => {
+    return commissionable.filter((b: any) => {
+      if (filterTenant && tenantMap[b.tenant_id] !== filterTenant) return false
+      if (filterStatus && b.commission_status !== filterStatus) return false
+      if (filterYear && new Date(b.check_in).getFullYear().toString() !== filterYear) return false
+      return true
+    })
+  }, [commissionable, filterTenant, filterStatus, filterYear, tenantMap])
+
+  const totalPending = filtered.filter((b: any) => b.commission_status === "pending").reduce((s: number, b: any) => s + (b.commission_amount || 0), 0)
+  const totalPaid = filtered.filter((b: any) => b.commission_status === "paid").reduce((s: number, b: any) => s + (b.commission_amount || 0), 0)
+  const totalFiltered = filtered.reduce((s: number, b: any) => s + (b.commission_amount || 0), 0)
+
+  async function markPaid(bookingId: string) {
+    setSaving(true)
+    try {
+      const res = await fetch("/api/admin/commissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+        body: JSON.stringify({ booking_id: bookingId, commission_status: "paid" }),
+      })
+      if (res.ok) {
+        window.location.reload()
+      } else {
+        const r = await res.json()
+        alert(r.error || "Error al marcar como pagada")
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const statusColor = (s: string) => s === "paid" ? "#27ae60" : s === "pending" ? "#f97316" : "#5a4870"
+  const statusLabel = (s: string) => s === "paid" ? "Pagada" : s === "pending" ? "Pendiente" : s || "—"
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "24px" }}>
+        <div style={{ background: "#100d14", border: "1px solid #2a1e38", borderRadius: "14px", padding: "16px 18px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "6px" }}>Pendientes</div>
+          <div style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#f97316" }}>{fmt(totalPending)}</div>
+        </div>
+        <div style={{ background: "#100d14", border: "1px solid #2a1e38", borderRadius: "14px", padding: "16px 18px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "6px" }}>Pagadas</div>
+          <div style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#27ae60" }}>{fmt(totalPaid)}</div>
+        </div>
+        <div style={{ background: "#100d14", border: "1px solid #2a1e38", borderRadius: "14px", padding: "16px 18px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "6px" }}>Total vista</div>
+          <div style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#c8b878" }}>{fmt(totalFiltered)}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "10px", marginBottom: "18px", alignItems: "center" }}>
+        <select value={filterTenant} onChange={e => setFilterTenant(e.target.value)} style={IS}>
+          <option value="">Todos los clientes</option>
+          {(tenantNames as string[]).map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={IS}>
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagada</option>
+        </select>
+        <select value={filterYear} onChange={e => setFilterYear(e.target.value)} style={IS}>
+          <option value="">Todos los años</option>
+          {(years as string[]).map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <span style={{ fontSize: "11px", color: "#3a2e50", marginLeft: "auto" }}>{filtered.length} reservas</span>
+      </div>
+
+      <div style={{ overflowX: "auto" as const, borderRadius: "14px", border: "1px solid #1e1428" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+          <thead>
+            <tr>
+              {["Cliente", "Check-in", "Huésped", "Total", "Comisión", "Estado", "Acción"].map(h => <th key={h} style={TH}>{h}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0
+              ? <tr><td colSpan={7} style={{ ...TD, textAlign: "center" as const, padding: "40px", color: "#3a2e50" }}>Sin comisiones con esos filtros</td></tr>
+              : filtered.map((b: any) => (
+                <tr key={b.id}>
+                  <td style={{ ...TD, color: "#9a78c8", fontSize: "11px" }}>{tenantMap[b.tenant_id] || "—"}</td>
+                  <td style={{ ...TD, fontSize: "11px" }}>{fmtDate(b.check_in)}</td>
+                  <td style={{ ...TD, fontSize: "12px" }}>{(() => { try { const n = JSON.parse(b.notes || "{}"); return n.nombre || "—" } catch { return "—" } })()}</td>
+                  <td style={{ ...TD, fontFamily: "Georgia,serif", color: "#c8b878" }}>{fmt(b.total_amount || 0)}</td>
+                  <td style={{ ...TD, fontFamily: "Georgia,serif", color: "#e8d5a3", fontWeight: 600 }}>{fmt(b.commission_amount || 0)}</td>
+                  <td style={TD}>
+                    <span style={{ fontSize: "11px", fontWeight: 600, color: statusColor(b.commission_status), background: statusColor(b.commission_status) + "15", border: "1px solid " + statusColor(b.commission_status) + "30", padding: "2px 8px", borderRadius: "6px" }}>
+                      {statusLabel(b.commission_status)}
+                    </span>
+                  </td>
+                  <td style={TD}>
+                    {b.commission_status === "pending" && (
+                      <button
+                        onClick={() => markPaid(b.id)}
+                        disabled={saving}
+                        style={BTN("#27ae60")}
+                      >
+                        Marcar pagada
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
       </div>
     </div>
   )

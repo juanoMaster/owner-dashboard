@@ -15,7 +15,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { toke
   const [
     { data: tenants }, { data: cabins }, { data: tokens }, { data: bookings }, { data: auditRows },
   ] = await Promise.all([
-    supabase.from("tenants").select("id, business_name, owner_name, owner_whatsapp, email_owner, deposit_percent, gender, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, active, verified, created_at, slug, dashboard_token, country, currency, location_text, location_maps_url, tagline, activities, page_rules").order("created_at"),
+    supabase.from("tenants").select("id, business_name, owner_name, owner_whatsapp, email_owner, deposit_percent, gender, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, active, verified, created_at, slug, dashboard_token, country, currency, location_text, location_maps_url, tagline, activities, page_rules, mp_enabled, whatsapp_enabled").order("created_at"),
     supabase.from("cabins").select("id, tenant_id, name, capacity, base_price_night, cleaning_fee, extra_person_price, extras, amenities, description, active, created_at").order("tenant_id"),
     supabase.from("dashboard_links").select("id, tenant_id, token_hash, active, created_at, last_used_at").order("created_at", { ascending: false }),
     supabase.from("bookings").select("id, tenant_id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, commission_amount, commission_status, status, notes, created_at, deleted_at").order("created_at", { ascending: false }).limit(2000),
