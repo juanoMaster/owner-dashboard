@@ -22,7 +22,7 @@ export default function EmbedIframeSnippet({ slug }: { slug: string | null | und
     setOrigin(typeof window !== "undefined" ? window.location.origin : "")
   }, [])
 
-  const calendarUrl = slug ? `https://${slug}.takai.cl/embed/calendario` : ""
+  const calendarUrl = slug ? `https://reservas.takai.cl/embed/${slug}/calendario` : ""
   const legacyCalendarUrl = origin && slug ? `${origin}/embed/${slug}/calendario` : ""
   const iframeCode =
     calendarUrl ? `<iframe src="${calendarUrl}" width="100%" height="500" frameborder="0" title="Calendario ${slug}"></iframe>` : ""

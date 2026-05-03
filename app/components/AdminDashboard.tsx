@@ -301,7 +301,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                             {t.active ? "Desactivar" : "Activar"}
                           </button>
                           {t.slug && (
-                            <a href={"https://" + t.slug + ".takai.cl"} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#7ab87a"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                            <a href={"https://reservas.takai.cl/" + t.slug} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#7ab87a"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                               Ver página
                             </a>
                           )}

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 
 const PANEL_BASE = "https://panel.takai.cl"
-const CLIENT_DOMAIN_SUFFIX = ".takai.cl"
+const RESERVAS_BASE = "https://reservas.takai.cl"
 
 const BANKS = [
   "BancoEstado",
@@ -220,8 +220,8 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const token = result?.token ?? ""
   const biz = result?.business_name ?? ""
   const panelUrl = `${PANEL_BASE}/?token=${encodeURIComponent(token)}`
-  const publicUrl = slug ? `https://${slug}${CLIENT_DOMAIN_SUFFIX}` : ""
-  const embedUrl = slug ? `https://${slug}${CLIENT_DOMAIN_SUFFIX}/embed/calendario` : ""
+  const publicUrl = slug ? `${RESERVAS_BASE}/${slug}` : ""
+  const embedUrl = slug ? `${RESERVAS_BASE}/embed/${slug}/calendario` : ""
   const iframeCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" title="Calendario ${slug}"></iframe>`
 
   const copy = async (text: string, feedback: (v: boolean) => void) => {
