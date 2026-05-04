@@ -65,6 +65,7 @@ export async function POST(req: Request) {
     await supabase.from("calendar_blocks")
       .update({ reason: "system_booking" })
       .eq("booking_id", booking_id)
+      .neq("reason", "manual")
 
     await logAudit({
       tenant_id,
