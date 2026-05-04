@@ -74,11 +74,13 @@ export default function BookingsList({
   bookings: initial,
   cabins,
   tenantId,
+  token,
   onDashboardRefresh,
 }: {
   bookings: Booking[]
   cabins: Cabin[]
   tenantId: string
+  token: string
   onDashboardRefresh?: () => Promise<boolean>
 }) {
   const [bookings, setBookings] = useState(initial)
@@ -103,7 +105,7 @@ export default function BookingsList({
       const res = await fetch("/api/bookings/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking_id: id, tenant_id: tenantId }),
+        body: JSON.stringify({ booking_id: id, tenant_id: tenantId, token }),
       })
       const data = await res.json()
       if (res.ok) {

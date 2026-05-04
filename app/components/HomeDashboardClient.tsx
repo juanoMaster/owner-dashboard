@@ -402,6 +402,7 @@ export default function HomeDashboardClient() {
               bookings={bookings}
               cabins={cabins.map((c) => ({ id: c.id, name: c.name }))}
               tenantId={payload.tenant_id}
+              token={sessionToken}
               onDashboardRefresh={refreshDashboard}
             />
           </div>
