@@ -202,15 +202,12 @@ function ReservarInner() {
         try {
           const mpRes = await fetch("/api/mp/status?booking_id=" + data.booking_id)
           const mpData = await mpRes.json()
-          console.log("[MP status]", mpRes.status, mpData)
           if (!mpRes.ok) {
-            console.warn("[MP status] respuesta no OK:", mpData.error)
             setMpEnabled(false)
           } else {
             setMpEnabled(mpData.mp_enabled === true && metodoPago === "tarjeta")
           }
-        } catch (e) {
-          console.error("[MP status] error de red:", e)
+        } catch {
           setMpEnabled(false)
         }
       } else {

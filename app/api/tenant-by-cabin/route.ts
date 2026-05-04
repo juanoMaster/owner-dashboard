@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const { data: cabin } = await supabase
     .from("cabins")
-    .select("tenant_id, name, pricing_tiers, has_tinaja, tinaja_price")
+    .select("tenant_id, name, pricing_tiers, has_tinaja, tinaja_price, extra_person_price")
     .eq("id", cabin_id)
     .single()
 
@@ -51,6 +51,7 @@ export async function GET(req: Request) {
     tagline: tenant.tagline || null,
     activities: tenant.activities || [],
     page_rules: tenant.page_rules || [],
+    extra_person_price: cabin.extra_person_price || 0,
     pricing_tiers: cabin.pricing_tiers ?? [],
     tinaja_price: cabin.tinaja_price || 30000,
     deposit_percent: tenant.deposit_percent || 20,

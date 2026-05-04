@@ -72,8 +72,6 @@ export async function GET(req: NextRequest) {
     }
 
     const bookings = bookingsRes.data ?? []
-    console.log("[/api/dashboard] tenant_id:", tenantId, "| total bookings:", bookings.length, "| ids:", bookings.map(b => b.id))
-
     return NextResponse.json({
       tenant_id: tenantId,
       tenant: tenantRes.data ?? null,

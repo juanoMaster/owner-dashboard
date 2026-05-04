@@ -31,11 +31,9 @@ export async function POST(req: Request) {
     if (error || !booking) return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 })
 
     const t = booking.tenants
-    const nights = Math.round(
-      (new Date(booking.check_out).getTime() - new Date(booking.check_in).getTime()) / 86400000
-    )
-    const depositAmount = Math.round(booking.total_amount * (t.deposit_percent / 100))
-    const dashboardUrl = `https://owner-dashboard-navy.vercel.app/?token=${t.dashboard_token}`
+    const nights = booking.nights
+    const depositAmount = booking.deposit_amount
+    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl"}/?token=${t.dashboard_token}`
 
     const formatDate = (d: string) =>
       new Date(d + "T12:00:00").toLocaleDateString("es-CL", {

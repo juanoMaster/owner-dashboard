@@ -87,13 +87,8 @@ export default function BookingsList({
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log("[BookingsList] initial actualizado:", initial.length, "ids:", initial.map(b => b.id))
     setBookings(initial)
   }, [initial])
-
-  useEffect(() => {
-    console.log("[BookingsList] bookings en estado:", bookings.length, "ids:", bookings.map(b => b.id))
-  }, [bookings])
 
   const cabinMap: Record<string, string> = {}
   cabins.forEach((c) => { cabinMap[c.id] = c.name })
@@ -129,7 +124,7 @@ export default function BookingsList({
       const res = await fetch("/api/bookings/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking_id: id, tenant_id: tenantId }),
+        body: JSON.stringify({ booking_id: id, tenant_id: tenantId, token }),
       })
       if (res.ok) {
         const ok = (await onDashboardRefresh?.()) ?? false

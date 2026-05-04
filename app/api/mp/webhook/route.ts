@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
         .from("calendar_blocks")
         .update({ reason: "system_booking" })
         .eq("booking_id", bookingId)
+        .neq("reason", "manual")
 
       await logAudit({
         tenant_id: tenantId,
