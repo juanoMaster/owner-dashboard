@@ -44,6 +44,10 @@ export async function POST(req: Request) {
     if (nights < 1) {
       return NextResponse.json({ success: false, message: "Las fechas no son válidas" }, { status: 400 })
     }
+    const todayStr = new Date().toISOString().split("T")[0]
+    if (check_in < todayStr) {
+      return NextResponse.json({ success: false, message: "No se pueden crear reservas en fechas pasadas" }, { status: 400 })
+    }
 
     // Verificar que no exista reserva confirmada para esas fechas
     const { data: existingConfirmed } = await supabase

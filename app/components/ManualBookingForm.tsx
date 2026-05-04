@@ -91,7 +91,8 @@ export default function ManualBookingForm({ cabins, tenantId, tenantDepositPerce
 
   const nights = calcNights()
   const calc = calcTotal()
-  const today = new Date().toISOString().split("T")[0]
+  const _d = new Date()
+  const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,"0")}-${String(_d.getDate()).padStart(2,"0")}`
 
   const inp: CSSProperties = { width: "100%", padding: "10px 12px", border: "1px solid #2a3e28", borderRadius: "8px", fontSize: "14px", color: "#e8d5a3", background: "#0d1a12", boxSizing: "border-box", outline: "none" }
   const sel: CSSProperties = { ...inp, cursor: "pointer" }

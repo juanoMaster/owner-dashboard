@@ -38,7 +38,8 @@ function ReservarInner() {
   const basePriceNight = Number(params.get("price")) || 30000
   const tiersParam = params.get("tiers")
   const capacidad = Number(params.get("capacity")) || 4
-  const today = new Date().toISOString().split("T")[0]
+  const _d = new Date()
+  const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,"0")}-${String(_d.getDate()).padStart(2,"0")}`
 
   const [tenantId, setTenantId] = useState("")
   const [businessName, setBusinessName] = useState("Cabaña")
