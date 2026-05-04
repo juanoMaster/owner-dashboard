@@ -82,8 +82,9 @@ export async function POST(req: Request) {
     const extraGuests = Math.max(0, guestCount - cabin.capacity)
     const extraPersonPrice = Number(cabin.extra_person_price) || 0
     const resolvedPricePerNight = getPriceForGuests(cabin.pricing_tiers, guestCount, cabin.base_price_night)
+    const hasTierMatch = (cabin.pricing_tiers || []).some((t: any) => guestCount >= t.min_guests && guestCount <= t.max_guests)
     const subtotal = resolvedPricePerNight * nights
-    const extras = extraGuests * extraPersonPrice * nights
+    const extras = hasTierMatch ? 0 : extraGuests * extraPersonPrice * nights
     const tinajaTotal = tinajaCount * tinajaPrice
     const total = subtotal + extras + tinajaTotal
     const deposit = Math.round(total * depositPercent / 100)
@@ -167,7 +168,7 @@ export async function POST(req: Request) {
 
     if (guest_email) {
       try {
-        await fetch((process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
+        await fetch((process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app") + "/api/emails/nueva-reserva", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ booking_id: booking.id })

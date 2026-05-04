@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react"
 
-const PANEL_BASE = "https://panel.takai.cl"
+const PANEL_BASE = "https://owner-dashboard-navy.vercel.app"
 const RESERVAS_BASE = "https://reservas.takai.cl"
 
 const BANKS = [

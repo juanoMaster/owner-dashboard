@@ -110,11 +110,12 @@ function ReservarInner() {
   function fmt(n: number) { return fmtCurrency(n, currency) }
 
   const precio_noche = getPriceForGuests(pricingTiers, guests, basePriceNight)
+  const hasTierMatch = pricingTiers.length > 0 && pricingTiers.some(t => guests >= t.min_guests && guests <= t.max_guests)
 
   const noches = checkIn && checkOut
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
-  const extrasPersonas = Math.max(0, guests - capacidad) * extraPersonPrice * noches
+  const extrasPersonas = hasTierMatch ? 0 : Math.max(0, guests - capacidad) * extraPersonPrice * noches
   const subtotal = precio_noche * noches + extrasPersonas
   const tinaja = tinajaDias * tinajaPrecio
   const total = subtotal + tinaja

@@ -316,7 +316,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                             </a>
                           )}
                           {t.dashboard_token && (
-                            <a href={"https://panel.takai.cl/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                            <a href={"https://owner-dashboard-navy.vercel.app/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                               Abrir panel
                             </a>
                           )}
