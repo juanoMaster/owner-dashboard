@@ -206,7 +206,7 @@ function ReservarInner() {
             console.warn("[MP status] respuesta no OK:", mpData.error)
             setMpEnabled(false)
           } else {
-            setMpEnabled(mpData.mp_enabled === true)
+            setMpEnabled(mpData.mp_enabled === true && metodoPago === "tarjeta")
           }
         } catch (e) {
           console.error("[MP status] error de red:", e)
