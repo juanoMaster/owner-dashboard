@@ -316,7 +316,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                             </a>
                           )}
                           {t.dashboard_token && (
-                            <a href={"https://owner-dashboard-navy.vercel.app/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                            <a href={(process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                               Abrir panel
                             </a>
                           )}
@@ -515,9 +515,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
           adminToken={adminToken}
           onClose={() => setModal(null)}
           onCreated={(data) => {
-            setTenants((p) => [...p, data.tenant as any])
-            setCabins((p) => [...p, ...((data.cabins || []) as any[])])
-            setTokens((p) => [...p, data.dashboard_link as any])
+            setTenants((p) => [...p, data.tenant])
+            setCabins((p) => [...p, ...((data.cabins || []) as Record<string, unknown>[])])
+            setTokens((p) => [...p, data.dashboard_link])
           }}
         />
       )}

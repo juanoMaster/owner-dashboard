@@ -75,12 +75,27 @@ function ReservarInner() {
   const [tenantMpEnabled, setTenantMpEnabled] = useState(false)
   const [mpLoading, setMpLoading] = useState(false)
   const [tinajaPrecio, setTinajaPrecio] = useState(30000)
+  const [calendarBlocks, setCalendarBlocks] = useState<Array<{ start: string; end: string }>>([])
+  const [calendarLoaded, setCalendarLoaded] = useState(false)
   const [depositPercent, setDepositPercent] = useState(20)
   const [minNights, setMinNights] = useState(2)
   const [pricingTiers, setPricingTiers] = useState<Array<{ min_guests: number; max_guests: number; price_per_night: number }>>(() => {
     if (!tiersParam) return []
     try { return JSON.parse(decodeURIComponent(tiersParam)) } catch { return [] }
   })
+
+  useEffect(() => {
+    if (!cabin_id) return
+    fetch("/api/calendar?cabin_id=" + cabin_id, { cache: "no-store" })
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.events)) {
+          setCalendarBlocks(data.events.map((e: any) => ({ start: e.start, end: e.end })))
+        }
+        setCalendarLoaded(true)
+      })
+      .catch(() => setCalendarLoaded(true))
+  }, [cabin_id])
 
   useEffect(() => {
     if (!cabin_id) return
@@ -383,6 +398,44 @@ function ReservarInner() {
                 {dispStatus === "occupied" && !suggest && !redTakai && (
                   <div style={s.err}>{"Estas fechas no están disponibles. Por favor elige otras."}</div>
                 )}
+
+                {calendarLoaded && (() => {
+                  const isBlocked = (d: string) => calendarBlocks.some(b => b.start <= d && d < b.end)
+                  const firstDay = new Date(today + "T12:00:00")
+                  const offset = (firstDay.getDay() + 6) % 7
+                  const MO = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+                  const days = Array.from({ length: 60 }, (_, i) => {
+                    const d = new Date(today + "T12:00:00")
+                    d.setDate(d.getDate() + i)
+                    return d
+                  })
+                  return (
+                    <div style={{ marginTop: "14px" }}>
+                      <div style={{ fontSize: "10px", color: "#4a6a48", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "8px" }}>
+                        Disponibilidad — próximos 60 días
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "2px", marginBottom: "6px" }}>
+                        {["Lu","Ma","Mi","Ju","Vi","Sa","Do"].map(l => (
+                          <div key={l} style={{ textAlign: "center" as const, fontSize: "9px", color: "#3a5a38", paddingBottom: "2px" }}>{l}</div>
+                        ))}
+                        {Array.from({ length: offset }, (_, i) => <div key={"pad" + i} />)}
+                        {days.map(d => {
+                          const ds = d.toISOString().slice(0, 10)
+                          const blocked = isBlocked(ds)
+                          return (
+                            <div key={ds} title={d.getDate() + " " + MO[d.getMonth()]} style={{ textAlign: "center" as const, fontSize: "9px", padding: "4px 2px", borderRadius: "3px", background: blocked ? "#2a0808" : "#0a1e0e", color: blocked ? "#e63946" : "#3a7a4a" }}>
+                              {d.getDate()}
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div style={{ display: "flex", gap: "12px" }}>
+                        <span style={{ fontSize: "10px", color: "#3a7a4a" }}>■ Libre</span>
+                        <span style={{ fontSize: "10px", color: "#e63946" }}>■ Ocupado</span>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
 
               <div style={s.card}>
@@ -533,7 +586,7 @@ function ReservarInner() {
             </div>
             {submitError && <div style={s.err}>{submitError}</div>}
             <div style={{ fontSize: "12px", color: "#6a7e68", marginBottom: "16px", lineHeight: 1.6 }}>
-              {"Al confirmar quedará registrada tu solicitud con un código único. Úsalo como glosa en tu transferencia. La transferencia debe realizarse dentro de las próximas 24 horas. Si no se recibe el pago en ese plazo, la reserva será cancelada automáticamente y las fechas quedarán disponibles nuevamente."}
+              {"Al confirmar quedará registrada tu solicitud con un código único. Úsalo como glosa en tu transferencia. Tu propietario revisará tu solicitud y te contactará para coordinar el pago."}
             </div>
             <button
               style={loading || (metodoPago === "tarjeta" && !tenantMpEnabled) ? s.btnDisabled : s.btn}
@@ -592,7 +645,7 @@ function ReservarInner() {
                   ))}
                 </div>
                 <div style={{ marginTop: "16px", fontSize: "12px", color: "#5a7058", lineHeight: 1.6 }}>
-                  {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que " + (ownerName || businessName) + " identifique tu pago. Tienes un máximo de 24 horas para realizar la transferencia. Pasado ese plazo, la reserva será cancelada y las fechas quedarán disponibles nuevamente."}
+                  {"Usa "}<strong style={{ color: "#7ab87a" }}>{codigo}</strong>{" como glosa para que " + (ownerName || businessName) + " identifique tu pago. Tu propietario revisará tu solicitud y te contactará para coordinar el pago."}
                 </div>
                 <a href={backHref} style={{ display: "block", marginTop: "24px", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}>
                   Volver al inicio

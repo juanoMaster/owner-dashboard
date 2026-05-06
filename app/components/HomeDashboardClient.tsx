@@ -40,6 +40,8 @@ type DashboardPayload = {
     name: string
     capacity: number
     base_price_night: number
+    description: string | null
+    cleaning_fee: number | null
     photos: string[] | null
     pricing_tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null
     has_tinaja: boolean | null
@@ -115,6 +117,8 @@ export default function HomeDashboardClient() {
   const [statsLoading, setStatsLoading] = useState(false)
   const [editingPrice, setEditingPrice] = useState<{ cabinId: string; value: string } | null>(null)
   const [savingPrice, setSavingPrice] = useState(false)
+  const [editingField, setEditingField] = useState<{ cabinId: string; field: "capacity" | "cleaning_fee" | "description"; value: string } | null>(null)
+  const [savingField, setSavingField] = useState(false)
 
   const load = useCallback(
     async (token: string, fromUrl: boolean) => {
@@ -203,6 +207,32 @@ export default function HomeDashboardClient() {
     })()
     return () => { cancelled = true }
   }, [searchParams, load, sessionToken, payload])
+
+  async function updateCabinField() {
+    if (!sessionToken || !editingField) return
+    setSavingField(true)
+    try {
+      const res = await fetch("/api/cabins/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: sessionToken,
+          cabin_id: editingField.cabinId,
+          field: editingField.field,
+          value: editingField.value,
+        }),
+      })
+      if (res.ok) {
+        await refreshDashboard()
+        setEditingField(null)
+      } else {
+        const d = await res.json()
+        alert(d.error || "Error al guardar")
+      }
+    } finally {
+      setSavingField(false)
+    }
+  }
 
   async function updateCabinPrice() {
     if (!sessionToken || !editingPrice) return
@@ -331,54 +361,101 @@ export default function HomeDashboardClient() {
 
             {cabins.map((cabin) => {
               const isEditing = editingPrice?.cabinId === cabin.id
+              const isEditingCap = editingField?.cabinId === cabin.id && editingField?.field === "capacity"
+              const isEditingFee = editingField?.cabinId === cabin.id && editingField?.field === "cleaning_fee"
+              const isEditingDesc = editingField?.cabinId === cabin.id && editingField?.field === "description"
+              const EBtn: React.CSSProperties = { background: "transparent", border: "1px solid #2a3e28", borderRadius: "5px", color: "#5a7058", fontSize: "10px", padding: "2px 7px", cursor: "pointer", fontFamily: "sans-serif", lineHeight: 1.4 }
+              const SaveBtn: React.CSSProperties = { background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "3px 10px", cursor: "pointer", fontFamily: "sans-serif" }
+              const CancelBtn: React.CSSProperties = { background: "transparent", color: "#5a7058", border: "none", fontSize: "11px", cursor: "pointer", fontFamily: "sans-serif" }
+              const FieldInp: React.CSSProperties = { background: "#0d1a12", border: "1px solid #7ab87a", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "3px 8px", outline: "none", fontFamily: "sans-serif" }
               return (
                 <div
                   key={cabin.id}
                   style={{ marginBottom: "12px", padding: "18px 20px", background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px" }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "3px" }}>
+                      <div style={{ fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "6px" }}>
                         {cabin.name}
                       </div>
-                      <div style={{ color: "#5a7058", fontSize: "12px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const }}>
-                        <span>{cabin.capacity} personas</span>
+
+                      {/* Capacidad */}
+                      <div style={{ color: "#5a7058", fontSize: "12px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const, marginBottom: "4px" }}>
+                        {isEditingCap ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <input type="number" min={1} max={50} value={editingField!.value} autoFocus
+                              onChange={e => setEditingField({ ...editingField!, value: e.target.value })}
+                              onKeyDown={e => { if (e.key === "Enter") updateCabinField(); if (e.key === "Escape") setEditingField(null) }}
+                              style={{ ...FieldInp, width: "60px" }} />
+                            <span style={{ color: "#4a6a48" }}>personas</span>
+                            <button onClick={updateCabinField} disabled={savingField} style={SaveBtn}>{savingField ? "..." : "OK"}</button>
+                            <button onClick={() => setEditingField(null)} style={CancelBtn}>Cancelar</button>
+                          </span>
+                        ) : (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <span>{cabin.capacity} personas</span>
+                            <button onClick={() => setEditingField({ cabinId: cabin.id, field: "capacity", value: String(cabin.capacity) })} style={EBtn}>editar</button>
+                          </span>
+                        )}
+
                         <span style={{ color: "#2a3e28" }}>·</span>
+
+                        {/* Precio/noche */}
                         {isEditing ? (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                            <input
-                              type="number"
-                              value={editingPrice.value}
+                            <input type="number" value={editingPrice!.value} autoFocus
                               onChange={e => setEditingPrice({ cabinId: cabin.id, value: e.target.value })}
                               onKeyDown={e => { if (e.key === "Enter") updateCabinPrice(); if (e.key === "Escape") setEditingPrice(null) }}
-                              style={{ width: "100px", background: "#0d1a12", border: "1px solid #7ab87a", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "3px 8px", outline: "none", fontFamily: "sans-serif" }}
-                              autoFocus
-                            />
+                              style={{ ...FieldInp, width: "100px" }} />
                             <span style={{ color: "#4a6a48" }}>/noche</span>
-                            <button
-                              onClick={updateCabinPrice}
-                              disabled={savingPrice}
-                              style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "3px 10px", cursor: "pointer", fontFamily: "sans-serif" }}
-                            >
-                              {savingPrice ? "..." : "Guardar"}
-                            </button>
-                            <button
-                              onClick={() => setEditingPrice(null)}
-                              style={{ background: "transparent", color: "#5a7058", border: "none", fontSize: "11px", cursor: "pointer", fontFamily: "sans-serif" }}
-                            >
-                              Cancelar
-                            </button>
+                            <button onClick={updateCabinPrice} disabled={savingPrice} style={SaveBtn}>{savingPrice ? "..." : "Guardar"}</button>
+                            <button onClick={() => setEditingPrice(null)} style={CancelBtn}>Cancelar</button>
                           </span>
                         ) : (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                             <span>{fmtCurrency(Number(cabin.base_price_night), currency)}/noche</span>
-                            <button
-                              onClick={() => setEditingPrice({ cabinId: cabin.id, value: String(Math.round(Number(cabin.base_price_night))) })}
-                              style={{ background: "transparent", border: "1px solid #2a3e28", borderRadius: "5px", color: "#5a7058", fontSize: "10px", padding: "2px 7px", cursor: "pointer", fontFamily: "sans-serif", lineHeight: 1.4 }}
-                            >
-                              editar
-                            </button>
+                            <button onClick={() => setEditingPrice({ cabinId: cabin.id, value: String(Math.round(Number(cabin.base_price_night))) })} style={EBtn}>editar</button>
                           </span>
+                        )}
+
+                        <span style={{ color: "#2a3e28" }}>·</span>
+
+                        {/* Tarifa limpieza */}
+                        {isEditingFee ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <input type="number" min={0} value={editingField!.value} autoFocus
+                              onChange={e => setEditingField({ ...editingField!, value: e.target.value })}
+                              onKeyDown={e => { if (e.key === "Enter") updateCabinField(); if (e.key === "Escape") setEditingField(null) }}
+                              style={{ ...FieldInp, width: "100px" }} />
+                            <span style={{ color: "#4a6a48" }}>limpieza</span>
+                            <button onClick={updateCabinField} disabled={savingField} style={SaveBtn}>{savingField ? "..." : "OK"}</button>
+                            <button onClick={() => setEditingField(null)} style={CancelBtn}>Cancelar</button>
+                          </span>
+                        ) : (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <span>{cabin.cleaning_fee ? fmtCurrency(Number(cabin.cleaning_fee), currency) + " limpieza" : "sin tarifa limpieza"}</span>
+                            <button onClick={() => setEditingField({ cabinId: cabin.id, field: "cleaning_fee", value: String(cabin.cleaning_fee ?? 0) })} style={EBtn}>editar</button>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Descripción */}
+                      <div style={{ marginTop: "6px" }}>
+                        {isEditingDesc ? (
+                          <div>
+                            <textarea value={editingField!.value} rows={3} autoFocus
+                              onChange={e => setEditingField({ ...editingField!, value: e.target.value })}
+                              style={{ width: "100%", background: "#0d1a12", border: "1px solid #7ab87a", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "6px 8px", outline: "none", fontFamily: "sans-serif", resize: "vertical" as const, boxSizing: "border-box" as const }} />
+                            <div style={{ display: "flex", gap: "6px", marginTop: "5px" }}>
+                              <button onClick={updateCabinField} disabled={savingField} style={SaveBtn}>{savingField ? "..." : "Guardar"}</button>
+                              <button onClick={() => setEditingField(null)} style={CancelBtn}>Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                            <span style={{ fontSize: "12px", color: "#3a5a38", lineHeight: 1.5 }}>{cabin.description || "Sin descripción"}</span>
+                            <button onClick={() => setEditingField({ cabinId: cabin.id, field: "description", value: cabin.description || "" })} style={{ ...EBtn, flexShrink: 0 }}>editar</button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -389,6 +466,7 @@ export default function HomeDashboardClient() {
                       Ver Calendario
                     </a>
                   </div>
+
                   <CabinPhotos
                     cabinId={cabin.id}
                     cabinName={cabin.name}

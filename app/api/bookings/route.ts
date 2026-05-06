@@ -101,84 +101,60 @@ export async function POST(req: Request) {
       price_per_night: resolvedPricePerNight
     })
 
-    const { data: booking, error: bookingError } = await supabase
-      .from("bookings")
-      .insert([{
-        tenant_id, cabin_id, check_in, check_out,
-        guests: guestCount, nights,
-        subtotal_amount: subtotal, total_amount: total,
-        deposit_percent: depositPercent, deposit_amount: deposit, balance_amount: balance,
-        status: "draft",
-        notes: notesData,
-        booking_code: bookingCode,
-        guest_name,
-        guest_email,
-        guest_phone,
-        tinaja_amount: tinajaTotal,
-        commission_percent: 0, commission_amount: 0, commission_status: "not_applicable"
-      }])
-      .select("id")
-      .single()
+    const { data: rpcResult, error: rpcError } = await supabase.rpc("create_booking_atomic", {
+      p_tenant_id: tenant_id,
+      p_cabin_id: cabin_id,
+      p_check_in: check_in,
+      p_check_out: check_out,
+      p_guests: guestCount,
+      p_nights: nights,
+      p_subtotal_amount: subtotal,
+      p_total_amount: total,
+      p_deposit_percent: depositPercent,
+      p_deposit_amount: deposit,
+      p_balance_amount: balance,
+      p_notes: notesData,
+      p_booking_code: bookingCode,
+      p_guest_name: guest_name,
+      p_guest_email: guest_email,
+      p_guest_phone: guest_phone,
+      p_tinaja_amount: tinajaTotal,
+    })
 
-    if (bookingError || !booking) {
-      return NextResponse.json({ success: false, message: bookingError?.message || "Error al guardar" }, { status: 500 })
+    if (rpcError) {
+      return NextResponse.json({ success: false, message: rpcError.message || "Error al guardar" }, { status: 500 })
     }
 
-    const { error: blockError } = await supabase
-      .from("calendar_blocks")
-      .insert([{
-        tenant_id, cabin_id,
-        start_date: check_in, end_date: check_out,
-        reason: "transfer_pending", booking_id: booking.id
-      }])
-
-    if (blockError) {
-      await supabase.from("bookings").delete().eq("id", booking.id)
-      return NextResponse.json({ success: false, message: "Las fechas no están disponibles" }, { status: 409 })
+    const rpc = rpcResult as { success: boolean; booking_id?: string; message?: string }
+    if (!rpc.success) {
+      return NextResponse.json({ success: false, message: rpc.message || "Las fechas no están disponibles" }, { status: 409 })
     }
 
-    // Detección de race condition: verificar que no haya otro bloque concurrente
-    // para las mismas fechas (otra reserva que pasó el chequeo de disponibilidad
-    // en paralelo). Solución definitiva: ejecutar supabase/migrations/001_create_booking_atomic.sql
-    const { data: concurrent } = await supabase
-      .from("calendar_blocks")
-      .select("id")
-      .eq("cabin_id", cabin_id)
-      .eq("tenant_id", tenant_id)
-      .lt("start_date", check_out)
-      .gt("end_date", check_in)
-      .not("booking_id", "is", null)
-      .neq("booking_id", booking.id)
-
-    if (concurrent && concurrent.length > 0) {
-      await supabase.from("calendar_blocks").delete().eq("booking_id", booking.id)
-      await supabase.from("bookings").delete().eq("id", booking.id)
-      return NextResponse.json({ success: false, message: "Las fechas ya no están disponibles" }, { status: 409 })
-    }
+    const bookingId = rpc.booking_id!
 
     await logAudit({
       tenant_id,
       cabin_id,
       action: "booking_created",
       entity_type: "booking",
-      entity_id: booking.id,
+      entity_id: bookingId,
       details: { check_in, check_out, nights, total_amount: total, deposit_amount: deposit, origen: "formulario_turista", guest_name, booking_code: bookingCode },
       performed_by: "formulario_turista",
     })
 
     if (guest_email) {
       try {
-        await fetch((process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app") + "/api/emails/nueva-reserva", {
+        await fetch((process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ booking_id: booking.id })
+          body: JSON.stringify({ booking_id: bookingId })
         })
       } catch {
         // fallo silencioso — la reserva ya quedó guardada
       }
     }
 
-    return NextResponse.json({ success: true, booking_id: booking.id, booking_code: bookingCode, total, deposit, nights })
+    return NextResponse.json({ success: true, booking_id: bookingId, booking_code: bookingCode, total, deposit, nights })
   } catch (err: any) {
     await sendErrorAlert({ route: "POST /api/bookings", error: err.message, details: { cabin_id, check_in, check_out } })
     return NextResponse.json({ success: false, message: err.message || "Error interno" }, { status: 500 })

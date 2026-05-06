@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react"
 
-const PANEL_BASE = "https://owner-dashboard-navy.vercel.app"
+const PANEL_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
 const RESERVAS_BASE = "https://reservas.takai.cl"
 
 const BANKS = [

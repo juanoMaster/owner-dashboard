@@ -6,7 +6,7 @@ export function getResend() {
   return _resend
 }
 
-const LOGO_URL = "https://owner-dashboard-navy.vercel.app/takai-logo-email.png"
+const LOGO_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/takai-logo-email.png"
 const GOLD = "#C9A84C"
 const GOLD_LIGHT = "#e8c96a"
 const BG_LOGO = "#0d1520"

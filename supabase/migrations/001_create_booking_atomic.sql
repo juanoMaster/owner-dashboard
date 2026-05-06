@@ -1,6 +1,4 @@
 -- Migración C5: función atómica para crear reservas sin race condition
--- EJECUTAR en Supabase: Dashboard → SQL Editor → New query → Run
---
 -- Usa un advisory lock por cabaña para serializar reservas concurrentes.
 -- Dos turistas intentando reservar la misma cabaña al mismo tiempo serán
 -- forzados a esperar en fila; el segundo verá el bloque del primero.
@@ -14,6 +12,7 @@ CREATE OR REPLACE FUNCTION create_booking_atomic(
   p_nights int,
   p_subtotal_amount numeric,
   p_total_amount numeric,
+  p_deposit_percent int,
   p_deposit_amount numeric,
   p_balance_amount numeric,
   p_notes text,
@@ -29,11 +28,8 @@ AS $$
 DECLARE
   v_booking_id uuid;
 BEGIN
-  -- Serializar reservas concurrentes para la misma cabaña
   PERFORM pg_advisory_xact_lock(hashtext(p_cabin_id::text));
 
-  -- Verificar disponibilidad (ahora es atómica: nadie más puede insertar
-  -- un bloque para esta cabaña mientras mantenemos el advisory lock)
   IF EXISTS (
     SELECT 1 FROM calendar_blocks
     WHERE cabin_id = p_cabin_id
@@ -51,7 +47,7 @@ BEGIN
     tinaja_amount, commission_percent, commission_amount, commission_status
   ) VALUES (
     p_tenant_id, p_cabin_id, p_check_in, p_check_out, p_guests, p_nights,
-    p_subtotal_amount, p_total_amount, 20, p_deposit_amount, p_balance_amount,
+    p_subtotal_amount, p_total_amount, p_deposit_percent, p_deposit_amount, p_balance_amount,
     'draft', p_notes, p_booking_code, p_guest_name, p_guest_email, p_guest_phone,
     p_tinaja_amount, 0, 0, 'not_applicable'
   )

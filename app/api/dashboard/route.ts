@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
     const { data: link, error: linkError } = await supabaseAdmin
       .from("dashboard_links")
-      .select("id, tenant_id")
+      .select("id, tenant_id, expires_at")
       .eq("token_hash", tokenHash)
       .eq("active", true)
       .maybeSingle()
@@ -29,6 +29,9 @@ export async function GET(req: NextRequest) {
     }
     if (!link) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+    if (link.expires_at && new Date(link.expires_at) < new Date()) {
+      return NextResponse.json({ error: "Token expired" }, { status: 401 })
     }
 
     const tenantId = link.tenant_id
@@ -47,7 +50,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle(),
       supabaseAdmin
         .from("cabins")
-        .select("id, name, capacity, base_price_night, photos, pricing_tiers, has_tinaja, tinaja_price")
+        .select("id, name, capacity, base_price_night, description, cleaning_fee, photos, pricing_tiers, has_tinaja, tinaja_price")
         .eq("tenant_id", tenantId)
         .eq("active", true),
       supabaseAdmin

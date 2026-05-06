@@ -12,10 +12,13 @@ export async function POST(req: Request) {
     if (action === "create") {
       const rawToken = crypto.randomBytes(32).toString("hex")
       const tokenHash = crypto.createHash("sha256").update(rawToken, "utf8").digest("hex")
+      const expiresAt = new Date()
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1)
       const { data, error } = await supabase.from("dashboard_links").insert([{
         tenant_id: body.tenant_id,
         token_hash: tokenHash,
         active: true,
+        expires_at: expiresAt.toISOString(),
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       // Guardar el raw_token en tenants.dashboard_token para acceso rápido desde admin
