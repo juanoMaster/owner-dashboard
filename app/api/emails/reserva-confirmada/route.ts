@@ -22,7 +22,7 @@ export async function POST(req: Request) {
           business_name, owner_name, email_owner, owner_whatsapp,
           deposit_percent,
           bank_name, bank_account_type, bank_account_number,
-          bank_account_holder, bank_rut
+          bank_account_holder, bank_rut, guidebook
         )
       `)
       .eq("id", booking_id)
@@ -41,6 +41,10 @@ export async function POST(req: Request) {
       new Date(d + "T12:00:00").toLocaleDateString("es-CL", {
         weekday: "long", year: "numeric", month: "long", day: "numeric"
       })
+
+    const reservasUrl = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"
+    const guidebookHasContent = t.guidebook && Object.values(t.guidebook).some((v: any) => v && String(v).trim().length > 0)
+    const guidebookUrl = guidebookHasContent ? `${reservasUrl}/bienvenida/${booking.booking_code}` : undefined
 
     await getResend().emails.send({
       from: `${t.business_name} <reservas@takai.cl>`,
@@ -62,6 +66,7 @@ export async function POST(req: Request) {
         bank_account_holder: t.bank_account_holder || "Por confirmar",
         bank_rut: t.bank_rut || "Por confirmar",
         owner_whatsapp: t.owner_whatsapp || "",
+        guidebook_url: guidebookUrl,
       })
     })
 

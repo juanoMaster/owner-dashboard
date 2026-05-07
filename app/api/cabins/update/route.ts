@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 
-const ALLOWED_FIELDS = ["description", "capacity", "cleaning_fee"] as const
+const ALLOWED_FIELDS = ["description", "capacity", "cleaning_fee", "season_prices"] as const
 type AllowedField = typeof ALLOWED_FIELDS[number]
 
 export async function PATCH(req: Request) {
@@ -13,7 +13,8 @@ export async function PATCH(req: Request) {
     { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
   )
   try {
-    const { token, cabin_id, field, value } = await req.json()
+    const body = await req.json()
+    const { token, cabin_id, field, value } = body
     if (!token || !cabin_id || !field || value === undefined) {
       return NextResponse.json({ error: "Faltan campos" }, { status: 400 })
     }
@@ -40,14 +41,18 @@ export async function PATCH(req: Request) {
 
     if (!cabin) return NextResponse.json({ error: "Cabaña no encontrada" }, { status: 404 })
 
-    let parsed: string | number = value
+    let parsed: string | number | object = value
     if (field === "capacity") {
       parsed = parseInt(value)
-      if (isNaN(parsed) || parsed < 1) return NextResponse.json({ error: "Capacidad inválida" }, { status: 400 })
+      if (isNaN(parsed as number) || (parsed as number) < 1) return NextResponse.json({ error: "Capacidad inválida" }, { status: 400 })
     }
     if (field === "cleaning_fee") {
       parsed = Number(value)
-      if (isNaN(parsed) || parsed < 0) return NextResponse.json({ error: "Tarifa inválida" }, { status: 400 })
+      if (isNaN(parsed as number) || (parsed as number) < 0) return NextResponse.json({ error: "Tarifa inválida" }, { status: 400 })
+    }
+    if (field === "season_prices") {
+      if (!Array.isArray(value)) return NextResponse.json({ error: "season_prices debe ser un array" }, { status: 400 })
+      parsed = value
     }
 
     const { error } = await supabase.from("cabins").update({ [field]: parsed }).eq("id", cabin_id)

@@ -70,6 +70,7 @@ function ReservarInner() {
   const [autoAssignId, setAutoAssignId] = useState("")
   const [suggest, setSuggest] = useState<any>(null)
   const [redTakai, setRedTakai] = useState(false)
+  const [activeSeasonName, setActiveSeasonName] = useState<string | null>(null)
   const [bookingId, setBookingId] = useState("")
   const [mpEnabled, setMpEnabled] = useState<boolean | null>(null)
   const [tenantMpEnabled, setTenantMpEnabled] = useState(false)
@@ -166,19 +167,19 @@ function ReservarInner() {
 
   useEffect(() => {
     if (!checkIn || !checkOut || !noches_ok || !cabin_id) {
-      setDispStatus("idle"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); return
+      setDispStatus("idle"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); setActiveSeasonName(null); return
     }
     setDispStatus("checking")
     const timer = setTimeout(async () => {
       try {
         const vParam = visitedCabins.join(",")
-        const res = await fetch("/api/availability?cabin_id=" + cabin_id + "&check_in=" + checkIn + "&check_out=" + checkOut + "&visited=" + encodeURIComponent(vParam))
+        const res = await fetch("/api/availability?cabin_id=" + cabin_id + "&check_in=" + checkIn + "&check_out=" + checkOut + "&visited=" + encodeURIComponent(vParam) + "&guests=" + guests)
         const data = await res.json()
-        if (data.available) { setDispStatus("ok"); setAutoAssignId(""); setSuggest(null); setRedTakai(false) }
-        else if (data.auto_assign) { setAutoAssignId(data.auto_assign.cabin_id); setDispStatus("ok"); setSuggest(null); setRedTakai(false) }
-        else if (data.suggest) { setDispStatus("occupied"); setSuggest(data.suggest); setRedTakai(false); setAutoAssignId("") }
-        else if (data.red_takai) { setDispStatus("occupied"); setSuggest(null); setRedTakai(true); setAutoAssignId("") }
-        else { setDispStatus("occupied"); setSuggest(null); setRedTakai(false); setAutoAssignId("") }
+        if (data.available) { setDispStatus("ok"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); setActiveSeasonName(data.active_season_name ?? null) }
+        else if (data.auto_assign) { setAutoAssignId(data.auto_assign.cabin_id); setDispStatus("ok"); setSuggest(null); setRedTakai(false); setActiveSeasonName(null) }
+        else if (data.suggest) { setDispStatus("occupied"); setSuggest(data.suggest); setRedTakai(false); setAutoAssignId(""); setActiveSeasonName(null) }
+        else if (data.red_takai) { setDispStatus("occupied"); setSuggest(null); setRedTakai(true); setAutoAssignId(""); setActiveSeasonName(null) }
+        else { setDispStatus("occupied"); setSuggest(null); setRedTakai(false); setAutoAssignId(""); setActiveSeasonName(null) }
       } catch (e) { setDispStatus("idle") }
     }, 700)
     return () => clearTimeout(timer)
@@ -377,7 +378,12 @@ function ReservarInner() {
                 </div>
                 {checkIn && checkOut && !noches_ok && <div style={s.err}>{"La estadía mínima es de " + minNights + " noches."}</div>}
                 {dispStatus === "checking" && <div style={{ fontSize: "12px", color: "#6a7e68", padding: "8px 0" }}>Verificando disponibilidad...</div>}
-                {dispStatus === "ok" && <div style={s.ok}>Fechas disponibles. Puedes continuar.</div>}
+                {dispStatus === "ok" && (
+                  <div style={s.ok}>
+                    Fechas disponibles. Puedes continuar.
+                    {activeSeasonName && <span style={{ display: "block", marginTop: "4px", fontSize: "11px", opacity: 0.8 }}>Precio {activeSeasonName}</span>}
+                  </div>
+                )}
                 {dispStatus === "occupied" && suggest && (
                   <div style={s.err}>
                     <strong>{cabin_name} no tiene disponibilidad para esas fechas.</strong>

@@ -232,6 +232,7 @@ export function emailReservaConfirmada(data: {
   bank_account_holder: string
   bank_rut: string
   owner_whatsapp: string
+  guidebook_url?: string
 }) {
   return wrapper(`
     ${header(data.business_name)}
@@ -257,6 +258,22 @@ export function emailReservaConfirmada(data: {
         </table>
       </td>
     </tr>
+
+    ${data.guidebook_url ? `
+    <tr>
+      <td style="padding:0 40px 32px;text-align:center;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
+          <tr>
+            <td style="padding:20px 24px;">
+              <p style="margin:0 0 6px;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.5px;">📖 Manual de bienvenida</p>
+              <p style="margin:0 0 14px;font-family:${FONT_SANS};font-size:14px;color:${TEXT_LIGHT};line-height:1.6;">Guarda este link — tiene toda la info que necesitas para tu llegada.</p>
+              <a href="${data.guidebook_url}" style="display:inline-block;background:${GOLD};color:#0a0700;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${FONT_SANS};font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;">Ver mi manual →</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    ` : ""}
 
     <tr>
       <td style="padding:0 40px 40px;text-align:center;">

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 import { getResend, emailReservaCancelada, sendErrorAlert } from "@/lib/resend"
 import { createHash } from "crypto"
+import { sendWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: Request) {
   const supabase = createClient(
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
     }
     const { data: booking, error: fetchErr } = await supabase
       .from("bookings")
-      .select("cabin_id, check_in, check_out, total_amount, notes, status, deleted_at, guest_email, guest_name, booking_code, cabins(name), tenants(business_name, owner_name)")
+      .select("cabin_id, check_in, check_out, total_amount, notes, status, deleted_at, guest_email, guest_name, guest_phone, booking_code, cabins(name), tenants(business_name, owner_name)")
       .eq("id", booking_id)
       .eq("tenant_id", tenant_id)
       .single()
@@ -87,6 +88,14 @@ export async function POST(req: Request) {
         })
       } catch (_) {}
     }
+
+    // WhatsApp al huésped
+    if (booking.guest_phone && booking.booking_code) {
+      const t = booking.tenants as any
+      const msg = `❌ Tu reserva ${booking.booking_code} en ${t?.business_name || ""} fue cancelada.\nSi tienes dudas, contacta directamente al propietario.`
+      sendWhatsApp({ to: booking.guest_phone, message: msg, tenantId: tenant_id }).catch(() => {})
+    }
+
     return NextResponse.json({ success: true })
   } catch (err: any) {
     await sendErrorAlert({ route: "POST /api/bookings/cancel", error: err.message })

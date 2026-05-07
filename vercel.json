@@ -11,6 +11,10 @@
     {
       "path": "/api/emails/resumen-semanal",
       "schedule": "0 10 * * 1"
+    },
+    {
+      "path": "/api/emails/solicitar-review",
+      "schedule": "0 14 * * *"
     }
   ]
 }

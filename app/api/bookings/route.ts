@@ -3,16 +3,8 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 import { generateBookingCode } from "@/lib/booking-code"
-
-function getPriceForGuests(
-  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
-  guests: number,
-  basePriceNight: number
-): number {
-  if (!tiers || tiers.length === 0) return basePriceNight
-  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
-  return tier ? tier.price_per_night : basePriceNight
-}
+import { getPriceForDates } from "@/lib/pricing"
+import { sendWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: Request) {
   const supabase = createClient(
@@ -38,7 +30,7 @@ export async function POST(req: Request) {
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity, tenant_id, extra_person_price, pricing_tiers, has_tinaja, tinaja_price")
+      .select("base_price_night, name, capacity, tenant_id, extra_person_price, pricing_tiers, has_tinaja, tinaja_price, season_prices")
       .eq("id", cabin_id)
       .single()
 
@@ -50,7 +42,7 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("deposit_percent, min_nights, slug")
+      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency")
       .eq("id", tenant_id)
       .single()
 
@@ -58,6 +50,8 @@ export async function POST(req: Request) {
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
     const minNights = Number(tenantConfig?.min_nights) || 1
     const tenantSlug = tenantConfig?.slug || "rsv"
+    const businessName = tenantConfig?.business_name || ""
+    const currency = tenantConfig?.currency || "CLP"
 
     const nights = Math.round(
       (new Date(check_out + "T12:00:00").getTime() - new Date(check_in + "T12:00:00").getTime()) / 86400000
@@ -70,26 +64,42 @@ export async function POST(req: Request) {
     if (nights < 1) {
       return NextResponse.json({ success: false, message: "Las fechas no son válidas" }, { status: 400 })
     }
-    if (nights < minNights) {
-      return NextResponse.json({
-        success: false,
-        message: "La estadía mínima es de " + minNights + " noche" + (minNights === 1 ? "" : "s") + "."
-      }, { status: 400 })
-    }
 
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
+
+    // Calcular precio usando temporadas y tiers
+    const priceResult = getPriceForDates({
+      cabin: {
+        base_price_night: Number(cabin.base_price_night),
+        season_prices: cabin.season_prices,
+        pricing_tiers: cabin.pricing_tiers,
+      },
+      checkIn: check_in,
+      checkOut: check_out,
+      guests: guestCount,
+      tenantMinNights: minNights,
+    })
+
+    const effectiveMinNights = priceResult.min_nights_required
+    if (nights < effectiveMinNights) {
+      return NextResponse.json({
+        success: false,
+        message: "La estadía mínima es de " + effectiveMinNights + " noche" + (effectiveMinNights === 1 ? "" : "s") + "."
+      }, { status: 400 })
+    }
+
     const extraGuests = Math.max(0, guestCount - cabin.capacity)
     const extraPersonPrice = Number(cabin.extra_person_price) || 0
-    const resolvedPricePerNight = getPriceForGuests(cabin.pricing_tiers, guestCount, cabin.base_price_night)
     const hasTierMatch = (cabin.pricing_tiers || []).some((t: any) => guestCount >= t.min_guests && guestCount <= t.max_guests)
-    const subtotal = resolvedPricePerNight * nights
+    const subtotal = priceResult.total
     const extras = hasTierMatch ? 0 : extraGuests * extraPersonPrice * nights
     const tinajaTotal = tinajaCount * tinajaPrice
     const total = subtotal + extras + tinajaTotal
     const deposit = Math.round(total * depositPercent / 100)
     const balance = total - deposit
     const bookingCode = generateBookingCode(tenantSlug)
+    const effectivePricePerNight = nights > 0 ? Math.round(subtotal / nights) : Number(cabin.base_price_night)
 
     const notesData = JSON.stringify({
       nombre: guest_name,
@@ -98,7 +108,7 @@ export async function POST(req: Request) {
       notas: notes || "",
       origen: "web",
       tinaja: String(tinajaCount),
-      price_per_night: resolvedPricePerNight
+      price_per_night: effectivePricePerNight
     })
 
     const { data: rpcResult, error: rpcError } = await supabase.rpc("create_booking_atomic", {
@@ -143,15 +153,24 @@ export async function POST(req: Request) {
     })
 
     if (guest_email) {
-      try {
-        await fetch((process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ booking_id: bookingId })
-        })
-      } catch {
-        // fallo silencioso — la reserva ya quedó guardada
-      }
+      fetch((process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: bookingId })
+      }).catch(() => {})
+    }
+
+    // WhatsApp al huésped
+    if (guest_phone) {
+      const currencyLabel = currency
+      const guestMsg = `Hola ${guest_name} 👋 Recibimos tu solicitud de reserva en ${businessName}.\n📅 Check-in: ${check_in} | Check-out: ${check_out}\n💰 Total: ${currencyLabel} ${total} | Anticipo: ${currencyLabel} ${deposit}\nTu propietario revisará tu solicitud y te contactará para coordinar el pago.\nCódigo de reserva: ${bookingCode}`
+      sendWhatsApp({ to: guest_phone, message: guestMsg, tenantId: tenant_id }).catch(() => {})
+    }
+
+    // WhatsApp al propietario
+    if (tenantConfig?.owner_whatsapp) {
+      const ownerMsg = `🏕️ Nueva reserva en ${businessName}!\n👤 ${guest_name} | 📱 ${guest_phone}\n📅 ${check_in} → ${check_out} (${nights} noches)\n💰 ${currency} ${total} | Anticipo: ${currency} ${deposit}\n👉 Revisar en panel.takai.cl`
+      sendWhatsApp({ to: tenantConfig.owner_whatsapp, message: ownerMsg, tenantId: tenant_id }).catch(() => {})
     }
 
     return NextResponse.json({ success: true, booking_id: bookingId, booking_code: bookingCode, total, deposit, nights })

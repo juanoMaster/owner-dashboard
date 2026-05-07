@@ -15,6 +15,16 @@ type TenantRow = {
   slug: string | null
   deposit_percent: number | null
   currency: string | null
+  guidebook?: Record<string, string> | null
+  google_review_url?: string | null
+}
+
+type SeasonPrice = {
+  name: string
+  start_md: string
+  end_md: string
+  price_per_night: number
+  min_nights?: number
 }
 
 type StatsMonth = {
@@ -46,6 +56,7 @@ type DashboardPayload = {
     pricing_tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null
     has_tinaja: boolean | null
     tinaja_price: number | null
+    season_prices: SeasonPrice[] | null
   }>
   bookings: Array<{
     id: string
@@ -120,6 +131,18 @@ export default function HomeDashboardClient() {
   const [editingField, setEditingField] = useState<{ cabinId: string; field: "capacity" | "cleaning_fee" | "description"; value: string } | null>(null)
   const [savingField, setSavingField] = useState(false)
 
+  // Temporadas
+  const [editingSeasons, setEditingSeasons] = useState<{ cabinId: string; seasons: SeasonPrice[] } | null>(null)
+  const [addSeasonForm, setAddSeasonForm] = useState<{ name: string; start_md: string; end_md: string; price_per_night: string; min_nights: string } | null>(null)
+  const [savingSeasons, setSavingSeasons] = useState(false)
+
+  // Guidebook
+  const [guidebookDraft, setGuidebookDraft] = useState<Record<string, string>>({})
+  const [editingGuidebook, setEditingGuidebook] = useState(false)
+  const [savingGuidebook, setSavingGuidebook] = useState(false)
+  const [googleReviewUrlDraft, setGoogleReviewUrlDraft] = useState("")
+  const [savingReviewUrl, setSavingReviewUrl] = useState(false)
+
   const load = useCallback(
     async (token: string, fromUrl: boolean) => {
       setStatus("loading")
@@ -182,6 +205,13 @@ export default function HomeDashboardClient() {
       fetchStats()
     }
   }, [activeTab, stats, statsLoading, fetchStats])
+
+  useEffect(() => {
+    if (payload?.tenant) {
+      setGuidebookDraft((payload.tenant.guidebook as Record<string, string>) || {})
+      setGoogleReviewUrlDraft(payload.tenant.google_review_url || "")
+    }
+  }, [payload])
 
   useEffect(() => {
     const urlToken = searchParams.get("token")
@@ -253,6 +283,65 @@ export default function HomeDashboardClient() {
       }
     } finally {
       setSavingPrice(false)
+    }
+  }
+
+  async function saveSeasonPrices(cabinId: string, seasons: SeasonPrice[]) {
+    if (!sessionToken) return
+    setSavingSeasons(true)
+    try {
+      const res = await fetch("/api/cabins/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: sessionToken, cabin_id: cabinId, field: "season_prices", value: seasons }),
+      })
+      if (res.ok) {
+        await refreshDashboard()
+        setEditingSeasons(null)
+        setAddSeasonForm(null)
+      } else {
+        const d = await res.json()
+        alert(d.error || "Error al guardar temporadas")
+      }
+    } finally {
+      setSavingSeasons(false)
+    }
+  }
+
+  async function saveGuidebook() {
+    if (!sessionToken) return
+    setSavingGuidebook(true)
+    try {
+      const res = await fetch("/api/tenant/guidebook", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: sessionToken, guidebook: guidebookDraft }),
+      })
+      if (res.ok) {
+        setEditingGuidebook(false)
+        await refreshDashboard()
+      } else {
+        const d = await res.json()
+        alert(d.error || "Error al guardar manual")
+      }
+    } finally {
+      setSavingGuidebook(false)
+    }
+  }
+
+  async function saveGoogleReviewUrl() {
+    if (!sessionToken) return
+    setSavingReviewUrl(true)
+    try {
+      const res = await fetch("/api/tenant/guidebook", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: sessionToken, google_review_url: googleReviewUrlDraft }),
+      })
+      if (res.ok) await refreshDashboard()
+      else alert("Error al guardar URL de reseña")
+    } finally {
+      setSavingReviewUrl(false)
     }
   }
 
@@ -472,6 +561,136 @@ export default function HomeDashboardClient() {
                     cabinName={cabin.name}
                     initialPhotos={cabin.photos ?? []}
                   />
+
+                  {/* ── Temporadas ── */}
+                  <div style={{ marginTop: "14px", borderTop: "1px solid #2a3e28", paddingTop: "14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a" }}>
+                        Precios por temporada
+                      </div>
+                      {editingSeasons?.cabinId !== cabin.id && (
+                        <button
+                          onClick={() => { setEditingSeasons({ cabinId: cabin.id, seasons: cabin.season_prices ? [...cabin.season_prices] : [] }); setAddSeasonForm(null) }}
+                          style={{ background: "transparent", border: "1px solid #2a3e28", borderRadius: "5px", color: "#5a7058", fontSize: "10px", padding: "2px 7px", cursor: "pointer", fontFamily: "sans-serif" }}
+                        >
+                          editar
+                        </button>
+                      )}
+                    </div>
+
+                    {editingSeasons?.cabinId !== cabin.id && (
+                      <div>
+                        {(!cabin.season_prices || cabin.season_prices.length === 0) ? (
+                          <div style={{ fontSize: "11px", color: "#3a5a38" }}>Sin temporadas configuradas. Precio base aplica todo el año.</div>
+                        ) : (
+                          cabin.season_prices.map((s, i) => (
+                            <div key={i} style={{ fontSize: "11px", color: "#5a7058", display: "flex", justifyContent: "space-between", padding: "3px 0" }}>
+                              <span>{s.name} ({s.start_md} → {s.end_md})</span>
+                              <span style={{ color: "#e8d5a3", fontFamily: "Georgia,serif" }}>{fmtCurrency(s.price_per_night, currency)}/noche</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+
+                    {editingSeasons?.cabinId === cabin.id && (
+                      <div>
+                        {editingSeasons.seasons.length === 0 && (
+                          <div style={{ fontSize: "11px", color: "#3a5a38", marginBottom: "8px" }}>Sin temporadas. Agrega una abajo.</div>
+                        )}
+                        {editingSeasons.seasons.map((s, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #2a3e2840" }}>
+                            <span style={{ fontSize: "11px", color: "#5a7058" }}>{s.name} ({s.start_md}→{s.end_md}) · {fmtCurrency(s.price_per_night, currency)}{s.min_nights ? ` · mín ${s.min_nights}n` : ""}</span>
+                            <button
+                              onClick={() => setEditingSeasons({ cabinId: cabin.id, seasons: editingSeasons.seasons.filter((_, j) => j !== i) })}
+                              style={{ background: "transparent", border: "none", color: "#e63946", fontSize: "10px", cursor: "pointer", fontFamily: "sans-serif" }}
+                            >
+                              eliminar
+                            </button>
+                          </div>
+                        ))}
+
+                        {!addSeasonForm ? (
+                          <button
+                            onClick={() => setAddSeasonForm({ name: "", start_md: "", end_md: "", price_per_night: "", min_nights: "" })}
+                            style={{ background: "transparent", border: "1px dashed #2a3e28", borderRadius: "6px", color: "#5a7058", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "sans-serif", marginTop: "8px", width: "100%" }}
+                          >
+                            + Agregar temporada
+                          </button>
+                        ) : (
+                          <div style={{ background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "8px", padding: "12px", marginTop: "8px" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
+                              <div>
+                                <div style={{ fontSize: "9px", color: "#5a7058", marginBottom: "3px" }}>Nombre</div>
+                                <input type="text" placeholder="Temporada Alta" value={addSeasonForm.name}
+                                  onChange={e => setAddSeasonForm({ ...addSeasonForm, name: e.target.value })}
+                                  style={{ width: "100%", boxSizing: "border-box" as const, background: "#162618", border: "1px solid #2a3e28", borderRadius: "5px", color: "#e8d5a3", fontSize: "11px", padding: "4px 7px", outline: "none", fontFamily: "sans-serif" }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: "9px", color: "#5a7058", marginBottom: "3px" }}>Precio/noche</div>
+                                <input type="number" placeholder="85000" value={addSeasonForm.price_per_night}
+                                  onChange={e => setAddSeasonForm({ ...addSeasonForm, price_per_night: e.target.value })}
+                                  style={{ width: "100%", boxSizing: "border-box" as const, background: "#162618", border: "1px solid #2a3e28", borderRadius: "5px", color: "#e8d5a3", fontSize: "11px", padding: "4px 7px", outline: "none", fontFamily: "sans-serif" }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: "9px", color: "#5a7058", marginBottom: "3px" }}>Inicio (MM-DD)</div>
+                                <input type="text" placeholder="12-15" value={addSeasonForm.start_md}
+                                  onChange={e => setAddSeasonForm({ ...addSeasonForm, start_md: e.target.value })}
+                                  style={{ width: "100%", boxSizing: "border-box" as const, background: "#162618", border: "1px solid #2a3e28", borderRadius: "5px", color: "#e8d5a3", fontSize: "11px", padding: "4px 7px", outline: "none", fontFamily: "sans-serif" }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: "9px", color: "#5a7058", marginBottom: "3px" }}>Fin (MM-DD)</div>
+                                <input type="text" placeholder="03-15" value={addSeasonForm.end_md}
+                                  onChange={e => setAddSeasonForm({ ...addSeasonForm, end_md: e.target.value })}
+                                  style={{ width: "100%", boxSizing: "border-box" as const, background: "#162618", border: "1px solid #2a3e28", borderRadius: "5px", color: "#e8d5a3", fontSize: "11px", padding: "4px 7px", outline: "none", fontFamily: "sans-serif" }} />
+                              </div>
+                              <div>
+                                <div style={{ fontSize: "9px", color: "#5a7058", marginBottom: "3px" }}>Mín. noches (opcional)</div>
+                                <input type="number" placeholder="3" value={addSeasonForm.min_nights}
+                                  onChange={e => setAddSeasonForm({ ...addSeasonForm, min_nights: e.target.value })}
+                                  style={{ width: "100%", boxSizing: "border-box" as const, background: "#162618", border: "1px solid #2a3e28", borderRadius: "5px", color: "#e8d5a3", fontSize: "11px", padding: "4px 7px", outline: "none", fontFamily: "sans-serif" }} />
+                              </div>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button
+                                onClick={() => {
+                                  if (!addSeasonForm.name || !addSeasonForm.start_md || !addSeasonForm.end_md || !addSeasonForm.price_per_night) return
+                                  const newSeason: SeasonPrice = {
+                                    name: addSeasonForm.name,
+                                    start_md: addSeasonForm.start_md,
+                                    end_md: addSeasonForm.end_md,
+                                    price_per_night: Number(addSeasonForm.price_per_night),
+                                    ...(addSeasonForm.min_nights ? { min_nights: Number(addSeasonForm.min_nights) } : {}),
+                                  }
+                                  setEditingSeasons({ cabinId: cabin.id, seasons: [...editingSeasons.seasons, newSeason] })
+                                  setAddSeasonForm(null)
+                                }}
+                                style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "5px 12px", cursor: "pointer", fontFamily: "sans-serif" }}
+                              >
+                                Agregar
+                              </button>
+                              <button onClick={() => setAddSeasonForm(null)} style={{ background: "transparent", color: "#5a7058", border: "none", fontSize: "11px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{ display: "flex", gap: "6px", marginTop: "10px" }}>
+                          <button
+                            onClick={() => saveSeasonPrices(cabin.id, editingSeasons.seasons)}
+                            disabled={savingSeasons}
+                            style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "5px 14px", cursor: "pointer", fontFamily: "sans-serif" }}
+                          >
+                            {savingSeasons ? "..." : "Guardar temporadas"}
+                          </button>
+                          <button onClick={() => { setEditingSeasons(null); setAddSeasonForm(null) }} style={{ background: "transparent", color: "#5a7058", border: "none", fontSize: "11px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -483,6 +702,104 @@ export default function HomeDashboardClient() {
               token={sessionToken}
               onDashboardRefresh={refreshDashboard}
             />
+
+            {/* ── Manual de Bienvenida ── */}
+            <div style={{ borderTop: "1px solid #2a3e28", margin: "24px 0" }} />
+            <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>
+              Manual de Bienvenida
+            </div>
+            <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "18px 20px", marginBottom: "12px" }}>
+              {!editingGuidebook ? (
+                <div>
+                  <div style={{ fontSize: "12px", color: "#5a7058", lineHeight: 1.7, marginBottom: "12px" }}>
+                    El manual de bienvenida es una página que tus huéspedes reciben cuando confirmas su reserva. Incluye instrucciones de llegada, WiFi, reglas y más.
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px", marginBottom: "12px" }}>
+                    {Object.entries(guidebookDraft).filter(([, v]) => v).map(([k]) => (
+                      <span key={k} style={{ background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "4px", fontSize: "10px", color: "#5a7058", padding: "2px 8px" }}>{k.replace(/_/g, " ")}</span>
+                    ))}
+                    {Object.values(guidebookDraft).every(v => !v) && (
+                      <span style={{ fontSize: "11px", color: "#3a5a38" }}>Sin contenido configurado.</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setEditingGuidebook(true)}
+                    style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, padding: "8px 18px", cursor: "pointer", fontFamily: "sans-serif" }}
+                  >
+                    Editar manual
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  {([
+                    ["arrival_instructions", "Instrucciones de llegada", "textarea"],
+                    ["checkin_time", "Hora de check-in (ej: 15:00)", "text"],
+                    ["checkout_time", "Hora de check-out (ej: 11:00)", "text"],
+                    ["wifi_name", "Nombre de la red WiFi", "text"],
+                    ["wifi_password", "Contraseña WiFi", "text"],
+                    ["house_rules", "Reglas de la cabaña", "textarea"],
+                    ["local_tips", "Tips locales", "textarea"],
+                    ["checkout_instructions", "Instrucciones de salida", "textarea"],
+                    ["emergency_contact", "Contacto de emergencia", "text"],
+                  ] as [string, string, string][]).map(([key, label, type]) => (
+                    <div key={key} style={{ marginBottom: "12px" }}>
+                      <div style={{ fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a7058", marginBottom: "5px" }}>{label}</div>
+                      {type === "textarea" ? (
+                        <textarea
+                          rows={3}
+                          value={guidebookDraft[key] || ""}
+                          onChange={e => setGuidebookDraft({ ...guidebookDraft, [key]: e.target.value })}
+                          style={{ width: "100%", boxSizing: "border-box" as const, background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "8px 10px", outline: "none", fontFamily: "sans-serif", resize: "vertical" as const }}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={guidebookDraft[key] || ""}
+                          onChange={e => setGuidebookDraft({ ...guidebookDraft, [key]: e.target.value })}
+                          style={{ width: "100%", boxSizing: "border-box" as const, background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "8px 10px", outline: "none", fontFamily: "sans-serif" }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                    <button
+                      onClick={saveGuidebook}
+                      disabled={savingGuidebook}
+                      style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, padding: "8px 18px", cursor: "pointer", fontFamily: "sans-serif" }}
+                    >
+                      {savingGuidebook ? "Guardando..." : "Guardar manual"}
+                    </button>
+                    <button onClick={() => setEditingGuidebook(false)} style={{ background: "transparent", color: "#5a7058", border: "none", fontSize: "12px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── URL de Reseña Google ── */}
+            <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "18px 20px", marginBottom: "12px" }}>
+              <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "10px" }}>
+                Solicitud de Reseña (Google)
+              </div>
+              <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "10px", lineHeight: 1.6 }}>
+                Si configuras esta URL, enviaremos automáticamente un email pidiendo reseña al día siguiente del check-out.
+              </div>
+              <input
+                type="url"
+                placeholder="https://g.page/r/..."
+                value={googleReviewUrlDraft}
+                onChange={e => setGoogleReviewUrlDraft(e.target.value)}
+                style={{ width: "100%", boxSizing: "border-box" as const, background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "8px 10px", outline: "none", fontFamily: "sans-serif", marginBottom: "10px" }}
+              />
+              <button
+                onClick={saveGoogleReviewUrl}
+                disabled={savingReviewUrl}
+                style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, padding: "8px 18px", cursor: "pointer", fontFamily: "sans-serif" }}
+              >
+                {savingReviewUrl ? "Guardando..." : "Guardar URL"}
+              </button>
+            </div>
           </div>
         )}
 
