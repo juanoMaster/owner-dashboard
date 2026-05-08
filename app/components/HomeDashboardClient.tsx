@@ -95,10 +95,10 @@ function LoadingScreen() {
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "14px", padding: "16px 18px" }}>
-      <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#4a6a48", marginBottom: "6px" }}>{label}</div>
-      <div style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#e8d5a3", marginBottom: "2px" }}>{value}</div>
-      {sub && <div style={{ fontSize: "11px", color: "#3a5a38" }}>{sub}</div>}
+    <div style={{ background: "linear-gradient(145deg, #1a2e1c 0%, #0e1a0f 100%)", border: "1px solid #2e4a2c", borderRadius: "18px", padding: "20px 22px", boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}>
+      <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#4a7a4a", marginBottom: "8px" }}>{label}</div>
+      <div style={{ fontFamily: "Georgia,serif", fontSize: "26px", color: "#e8d5a3", marginBottom: "4px", letterSpacing: "0.5px" }}>{value}</div>
+      {sub && <div style={{ fontSize: "11px", color: "#3d6a3d", lineHeight: 1.4 }}>{sub}</div>}
     </div>
   )
 }
@@ -365,8 +365,8 @@ export default function HomeDashboardClient() {
 
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px", borderBottom: "1px solid #ffffff0f", background: "#0a1510" }}>
-        <div style={{ fontFamily: "Georgia,serif", fontSize: "20px", letterSpacing: "4px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 28px", borderBottom: "1px solid #1e3a1e", background: "linear-gradient(180deg, #0f2014 0%, #0a1510 100%)", boxShadow: "0 2px 20px rgba(0,0,0,0.4)" }}>
+        <div style={{ fontFamily: "Georgia,serif", fontSize: "17px", letterSpacing: "5px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
           {businessName.split(" ").map(function (word, i) {
             return (
               <span key={i} style={{ color: i === 0 ? "#e8d5a3" : "#7ab87a" }}>
@@ -403,19 +403,19 @@ export default function HomeDashboardClient() {
         ))}
       </div>
 
-      <main style={{ padding: "28px 20px", maxWidth: "680px", margin: "0 auto" }}>
+      <main style={{ padding: "32px 20px", maxWidth: "720px", margin: "0 auto" }}>
 
         {/* ── TAB 0: INICIO ── */}
         {activeTab === 0 && (
           <div>
-            <div style={{ marginBottom: "28px" }}>
-              <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "8px" }}>
+            <div style={{ marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #1a3020" }}>
+              <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#5a8a5a", marginBottom: "10px" }}>
                 Panel del Propietario
               </div>
-              <h1 style={{ fontFamily: "Georgia,serif", fontSize: "26px", color: "#e8d5a3", margin: "0 0 6px 0", fontWeight: 400 }}>
+              <h1 style={{ fontFamily: "Georgia,serif", fontSize: "32px", color: "#e8d5a3", margin: "0 0 8px 0", fontWeight: 400, letterSpacing: "0.5px" }}>
                 Bienvenido/a, {ownerName}
               </h1>
-              <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
+              <p style={{ color: "#3d6040", fontSize: "13px", margin: 0, lineHeight: 1.6 }}>
                 Desde aquí gestionas tus cabañas, confirmas pagos y bloqueas fechas en el calendario.
               </p>
             </div>
@@ -437,14 +437,15 @@ export default function HomeDashboardClient() {
 
             <a
               href="/historial"
-              style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#5a7058", fontSize: "11px", padding: "8px 16px", border: "1px solid #1a2e1a", borderRadius: "20px", textDecoration: "none", letterSpacing: "0.5px", marginTop: "8px" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#5a8a5a", fontSize: "11px", padding: "8px 20px", border: "1px solid #2a4028", borderRadius: "20px", textDecoration: "none", letterSpacing: "1px", marginTop: "8px" }}
             >
               {"Ver historial de reservas →"}
             </a>
 
-            <div style={{ borderTop: "1px solid #2a3e28", margin: "24px 0" }} />
+            <div style={{ borderTop: "1px solid #1a3020", margin: "28px 0" }} />
 
-            <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "18px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ display: "inline-block", width: "20px", height: "1px", background: "linear-gradient(90deg, #7ab87a, transparent)" }} />
               Tus cabañas
             </div>
 
@@ -453,18 +454,18 @@ export default function HomeDashboardClient() {
               const isEditingCap = editingField?.cabinId === cabin.id && editingField?.field === "capacity"
               const isEditingFee = editingField?.cabinId === cabin.id && editingField?.field === "cleaning_fee"
               const isEditingDesc = editingField?.cabinId === cabin.id && editingField?.field === "description"
-              const EBtn: React.CSSProperties = { background: "transparent", border: "1px solid #2a3e28", borderRadius: "5px", color: "#5a7058", fontSize: "10px", padding: "2px 7px", cursor: "pointer", fontFamily: "sans-serif", lineHeight: 1.4 }
-              const SaveBtn: React.CSSProperties = { background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "3px 10px", cursor: "pointer", fontFamily: "sans-serif" }
-              const CancelBtn: React.CSSProperties = { background: "transparent", color: "#5a7058", border: "none", fontSize: "11px", cursor: "pointer", fontFamily: "sans-serif" }
+              const EBtn: React.CSSProperties = { background: "rgba(42,64,40,0.35)", border: "1px solid #2a4028", borderRadius: "6px", color: "#5a8a5a", fontSize: "10px", padding: "2px 8px", cursor: "pointer", fontFamily: "sans-serif", lineHeight: 1.4 }
+              const SaveBtn: React.CSSProperties = { background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: 700, padding: "4px 12px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 8px rgba(122,184,122,0.2)" }
+              const CancelBtn: React.CSSProperties = { background: "transparent", color: "#4a6a48", border: "none", fontSize: "11px", cursor: "pointer", fontFamily: "sans-serif" }
               const FieldInp: React.CSSProperties = { background: "#0d1a12", border: "1px solid #7ab87a", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "3px 8px", outline: "none", fontFamily: "sans-serif" }
               return (
                 <div
                   key={cabin.id}
-                  style={{ marginBottom: "12px", padding: "18px 20px", background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px" }}
+                  style={{ marginBottom: "16px", padding: "22px 24px", background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", boxShadow: "0 4px 24px rgba(0,0,0,0.35)" }}
                 >
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "Georgia,serif", fontSize: "16px", color: "#e8d5a3", marginBottom: "6px" }}>
+                      <div style={{ fontFamily: "Georgia,serif", fontSize: "19px", color: "#e8d5a3", marginBottom: "8px", letterSpacing: "0.3px" }}>
                         {cabin.name}
                       </div>
 
@@ -550,7 +551,7 @@ export default function HomeDashboardClient() {
                     </div>
                     <a
                       href={"/calendar?cabin_id=" + encodeURIComponent(cabin.id)}
-                      style={{ background: "#7ab87a", color: "#0d1a12", padding: "9px 18px", borderRadius: "10px", textDecoration: "none", fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px", flexShrink: 0 }}
+                      style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", padding: "10px 20px", borderRadius: "12px", textDecoration: "none", fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px", flexShrink: 0, boxShadow: "0 2px 12px rgba(122,184,122,0.25)" }}
                     >
                       Ver Calendario
                     </a>
@@ -563,7 +564,7 @@ export default function HomeDashboardClient() {
                   />
 
                   {/* ── Temporadas ── */}
-                  <div style={{ marginTop: "14px", borderTop: "1px solid #2a3e28", paddingTop: "14px" }}>
+                  <div style={{ marginTop: "18px", borderTop: "1px solid #1e3a1e", paddingTop: "16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                       <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a" }}>
                         Precios por temporada
@@ -613,7 +614,7 @@ export default function HomeDashboardClient() {
                         {!addSeasonForm ? (
                           <button
                             onClick={() => setAddSeasonForm({ name: "", start_md: "", end_md: "", price_per_night: "", min_nights: "" })}
-                            style={{ background: "transparent", border: "1px dashed #2a3e28", borderRadius: "6px", color: "#5a7058", fontSize: "10px", padding: "5px 10px", cursor: "pointer", fontFamily: "sans-serif", marginTop: "8px", width: "100%" }}
+                            style={{ background: "transparent", border: "1px dashed #2a4028", borderRadius: "8px", color: "#5a8a5a", fontSize: "10px", padding: "6px 10px", cursor: "pointer", fontFamily: "sans-serif", marginTop: "8px", width: "100%" }}
                           >
                             + Agregar temporada
                           </button>
@@ -665,7 +666,7 @@ export default function HomeDashboardClient() {
                                   setEditingSeasons({ cabinId: cabin.id, seasons: [...editingSeasons.seasons, newSeason] })
                                   setAddSeasonForm(null)
                                 }}
-                                style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "5px 12px", cursor: "pointer", fontFamily: "sans-serif" }}
+                                style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: 700, padding: "6px 14px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 8px rgba(122,184,122,0.2)" }}
                               >
                                 Agregar
                               </button>
@@ -680,7 +681,7 @@ export default function HomeDashboardClient() {
                           <button
                             onClick={() => saveSeasonPrices(cabin.id, editingSeasons.seasons)}
                             disabled={savingSeasons}
-                            style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "6px", fontSize: "11px", fontWeight: 700, padding: "5px 14px", cursor: "pointer", fontFamily: "sans-serif" }}
+                            style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "11px", fontWeight: 700, padding: "6px 16px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 8px rgba(122,184,122,0.2)" }}
                           >
                             {savingSeasons ? "..." : "Guardar temporadas"}
                           </button>
@@ -704,11 +705,12 @@ export default function HomeDashboardClient() {
             />
 
             {/* ── Manual de Bienvenida ── */}
-            <div style={{ borderTop: "1px solid #2a3e28", margin: "24px 0" }} />
-            <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "14px" }}>
+            <div style={{ borderTop: "1px solid #1a3020", margin: "28px 0" }} />
+            <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "18px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ display: "inline-block", width: "20px", height: "1px", background: "linear-gradient(90deg, #7ab87a, transparent)" }} />
               Manual de Bienvenida
             </div>
-            <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "18px 20px", marginBottom: "12px" }}>
+            <div style={{ background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", padding: "22px 24px", marginBottom: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
               {!editingGuidebook ? (
                 <div>
                   <div style={{ fontSize: "12px", color: "#5a7058", lineHeight: 1.7, marginBottom: "12px" }}>
@@ -724,7 +726,7 @@ export default function HomeDashboardClient() {
                   </div>
                   <button
                     onClick={() => setEditingGuidebook(true)}
-                    style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, padding: "8px 18px", cursor: "pointer", fontFamily: "sans-serif" }}
+                    style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "10px", fontSize: "12px", fontWeight: 700, padding: "9px 22px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 10px rgba(122,184,122,0.25)", letterSpacing: "0.3px" }}
                   >
                     Editar manual
                   </button>
@@ -765,7 +767,7 @@ export default function HomeDashboardClient() {
                     <button
                       onClick={saveGuidebook}
                       disabled={savingGuidebook}
-                      style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, padding: "8px 18px", cursor: "pointer", fontFamily: "sans-serif" }}
+                      style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "10px", fontSize: "12px", fontWeight: 700, padding: "9px 22px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 10px rgba(122,184,122,0.25)", letterSpacing: "0.3px" }}
                     >
                       {savingGuidebook ? "Guardando..." : "Guardar manual"}
                     </button>
@@ -778,7 +780,7 @@ export default function HomeDashboardClient() {
             </div>
 
             {/* ── URL de Reseña Google ── */}
-            <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "18px 20px", marginBottom: "12px" }}>
+            <div style={{ background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", padding: "22px 24px", marginBottom: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
               <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "10px" }}>
                 Solicitud de Reseña (Google)
               </div>
@@ -795,7 +797,7 @@ export default function HomeDashboardClient() {
               <button
                 onClick={saveGoogleReviewUrl}
                 disabled={savingReviewUrl}
-                style={{ background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "8px", fontSize: "12px", fontWeight: 700, padding: "8px 18px", cursor: "pointer", fontFamily: "sans-serif" }}
+                style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "10px", fontSize: "12px", fontWeight: 700, padding: "9px 22px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 10px rgba(122,184,122,0.25)", letterSpacing: "0.3px" }}
               >
                 {savingReviewUrl ? "Guardando..." : "Guardar URL"}
               </button>
@@ -810,7 +812,7 @@ export default function HomeDashboardClient() {
               <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "8px" }}>
                 Estadísticas
               </div>
-              <h1 style={{ fontFamily: "Georgia,serif", fontSize: "24px", color: "#e8d5a3", margin: "0 0 4px 0", fontWeight: 400 }}>
+              <h1 style={{ fontFamily: "Georgia,serif", fontSize: "28px", color: "#e8d5a3", margin: "0 0 4px 0", fontWeight: 400, letterSpacing: "0.5px" }}>
                 Últimos 12 meses
               </h1>
               <p style={{ color: "#4a6a48", fontSize: "13px", margin: 0 }}>
@@ -841,8 +843,8 @@ export default function HomeDashboardClient() {
                 </div>
 
                 {/* Revenue chart */}
-                <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "16px" }}>
+                <div style={{ background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", padding: "24px", marginBottom: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.35)" }}>
+                  <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "18px" }}>
                     Ingresos por mes
                   </div>
                   <ResponsiveContainer width="100%" height={200}>
@@ -857,8 +859,8 @@ export default function HomeDashboardClient() {
                 </div>
 
                 {/* Bookings chart */}
-                <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "20px", marginBottom: "16px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "16px" }}>
+                <div style={{ background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", padding: "24px", marginBottom: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.35)" }}>
+                  <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "18px" }}>
                     Reservas por mes
                   </div>
                   <ResponsiveContainer width="100%" height={160}>
@@ -873,8 +875,8 @@ export default function HomeDashboardClient() {
                 </div>
 
                 {/* Nights chart */}
-                <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "16px", padding: "20px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "16px" }}>
+                <div style={{ background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", padding: "24px", boxShadow: "0 4px 20px rgba(0,0,0,0.35)" }}>
+                  <div style={{ fontSize: "9px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "18px" }}>
                     Noches reservadas por mes
                   </div>
                   <ResponsiveContainer width="100%" height={160}>

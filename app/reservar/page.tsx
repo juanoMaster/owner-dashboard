@@ -472,7 +472,7 @@ function ReservarInner() {
                 <input style={{ ...s.inp, marginBottom: "14px" }} type="text" placeholder="Ej: Renata Núñez"
                   value={nombre} onChange={e => setNombre(e.target.value)} />
                 <span style={s.lbl}>WhatsApp</span>
-                <input style={{ ...s.inp, marginBottom: "14px" }} type="tel" placeholder="+56 9 1234 5678"
+                <input style={{ ...s.inp, marginBottom: "14px" }} type="tel" placeholder="+593 99 123 4567"
                   value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
                 <span style={s.lbl}>{"Correo electrónico"}</span>
                 <input style={s.inp} type="email" placeholder="tu@correo.com"

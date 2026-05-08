@@ -165,7 +165,7 @@ export default function ManualBookingForm({ cabins, tenantId, tenantDepositPerce
                   <input type="text" style={inp} placeholder={"Nombre completo"} value={guestName} onChange={e => setGuestName(e.target.value)} />
                 </div>
                 <div style={r2}>
-                  <div><label style={lbl}>{"WhatsApp *"}</label><input type="tel" style={inp} placeholder={"+56 9 XXXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} /></div>
+                  <div><label style={lbl}>{"WhatsApp *"}</label><input type="tel" style={inp} placeholder={"+593 9X XXX XXXX"} value={guestWhatsapp} onChange={e => setGuestWhatsapp(e.target.value)} /></div>
                   <div>
                     <label style={lbl}>{"N\u00famero de hu\u00e9spedes"}</label>
                     <select style={sel} value={guestCount} onChange={e => setGuestCount(e.target.value)}>

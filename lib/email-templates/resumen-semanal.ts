@@ -28,7 +28,7 @@ function clp(n: number): string {
   return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
-// "lunes 21 de abril" + "domingo 27 de abril" → "Semana 21 – 27 Abr 2026"
+// "lunes 21 de abril" + "domingo 27 de abril" → "Semana 21 – 27 Abr 2025"
 function weekChip(desde: string, hasta: string): string {
   const MONTHS: Record<string, string> = {
     enero:"Ene",febrero:"Feb",marzo:"Mar",abril:"Abr",mayo:"May",junio:"Jun",
