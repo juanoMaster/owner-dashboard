@@ -6,7 +6,7 @@ import HistorialClient from "./HistorialClient"
 import { getPersistedToken, setPersistedToken, clearPersistedToken } from "@/lib/takai-token"
 
 type HistorialPayload = {
-  tenant: { business_name: string | null; owner_name: string | null } | null
+  tenant: { business_name: string | null; owner_name: string | null; currency?: string | null } | null
   cabins: Array<{ id: string; name: string }>
   bookings: any[]
 }
@@ -216,6 +216,7 @@ export default function HistorialPageClient() {
           bookings={payload.bookings || []}
           cabinMap={cabinMap}
           businessName={payload.tenant?.business_name || ""}
+          currency={payload.tenant?.currency || "CLP"}
         />
       </main>
     </div>

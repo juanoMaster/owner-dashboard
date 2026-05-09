@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, CSSProperties } from "react"
+import { getPriceForGuests, PricingTier } from "@/lib/pricing"
 
-type PricingTier = { min_guests: number; max_guests: number; price_per_night: number }
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null; has_tinaja?: boolean; tinaja_price?: number }
 interface Props { cabins: Cabin[]; tenantId: string; tenantDepositPercent?: number; currency?: string }
 
@@ -9,12 +9,6 @@ function fmtCurrency(n: number, currency: string): string {
   if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
   if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
   return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 })
-}
-
-function getPriceForGuests(tiers: PricingTier[] | null | undefined, guests: number, base: number): number {
-  if (!tiers || tiers.length === 0) return base
-  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
-  return tier ? tier.price_per_night : base
 }
 
 export default function ManualBookingForm({ cabins, tenantId, tenantDepositPercent = 20, currency = "CLP" }: Props) {

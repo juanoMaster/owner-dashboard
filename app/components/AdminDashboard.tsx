@@ -2,20 +2,13 @@
 import { useState, useMemo } from "react"
 import AuditClient from "./AuditClient"
 import NewClientOnboarding from "./NewClientOnboarding"
+import { parseNotes } from "@/lib/parse-notes"
 
 // ── helpers ──────────────────────────────
 function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL") }
 function fmtDate(s: string) { if (!s) return ""; return new Date(s.length === 10 ? s + "T12:00:00" : s).toLocaleDateString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric" }) }
 function fmtDT(s: string) { if (!s) return ""; return new Date(s).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) }
 const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
-function parseNotes(notes: any): Record<string, string> {
-  if (!notes) return {}
-  const obj = typeof notes === "object" ? notes : typeof notes === "string" && notes.trimStart().startsWith("{") ? (() => { try { return JSON.parse(notes) } catch { return null } })() : null
-  if (obj) return { nombre: obj.nombre || obj.Nombre || "", whatsapp: obj.whatsapp || obj.WhatsApp || "", origen: obj.origen || "" }
-  const r: Record<string,string> = {}
-  String(notes).split("|").forEach(p => { const i = p.indexOf(":"); if (i > -1) r[p.slice(0,i).trim().toLowerCase()] = p.slice(i+1).trim() })
-  return r
-}
 
 // ── stat card ─────────────────────────────
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {

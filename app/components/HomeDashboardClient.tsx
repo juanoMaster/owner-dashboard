@@ -701,6 +701,7 @@ export default function HomeDashboardClient() {
               cabins={cabins.map((c) => ({ id: c.id, name: c.name }))}
               tenantId={payload.tenant_id}
               token={sessionToken}
+              currency={payload.tenant?.currency || "CLP"}
               onDashboardRefresh={refreshDashboard}
             />
 

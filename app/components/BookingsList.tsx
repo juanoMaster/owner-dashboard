@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { parseNotes } from "@/lib/parse-notes"
 
 interface Booking {
   id: string
@@ -25,39 +26,10 @@ interface Cabin {
   name: string
 }
 
-function parseNotes(notes: any): Record<string, string> {
-  const result: Record<string, string> = {}
-  if (!notes) return result
 
-  // Supabase puede devolver JSONB como objeto JS, o la API puede guardar JSON.stringify
-  const obj: Record<string, string> | null =
-    typeof notes === "object"
-      ? notes
-      : typeof notes === "string" && notes.trimStart().startsWith("{")
-        ? (() => { try { return JSON.parse(notes) } catch { return null } })()
-        : null
-
-  if (obj) {
-    if (obj.nombre || obj.Nombre)     result["Nombre"]   = obj.nombre   || obj.Nombre   || ""
-    if (obj.whatsapp || obj.WhatsApp) result["WhatsApp"] = obj.whatsapp || obj.WhatsApp || ""
-    if (obj.codigo || obj.Codigo)     result["Codigo"]   = obj.codigo   || obj.Codigo   || ""
-    if (obj.tinaja || obj.Tinaja)     result["Tinaja"]   = obj.tinaja   || obj.Tinaja   || ""
-    return result
-  }
-
-  // Formato pipe-delimited: "Nombre:Juan|WhatsApp:+56912345678|..."
-  (notes as string).split("|").forEach((part) => {
-    const idx = part.indexOf(":")
-    if (idx > -1) {
-      const key = part.slice(0, idx).trim()
-      const val = part.slice(idx + 1).trim()
-      if (key && val) result[key] = val
-    }
-  })
-  return result
-}
-
-function fmt(n: number): string {
+function fmtCurrency(n: number, currency: string): string {
+  if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
   return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 })
 }
 
@@ -75,12 +47,14 @@ export default function BookingsList({
   cabins,
   tenantId,
   token,
+  currency = "CLP",
   onDashboardRefresh,
 }: {
   bookings: Booking[]
   cabins: Cabin[]
   tenantId: string
   token: string
+  currency?: string
   onDashboardRefresh?: () => Promise<boolean>
 }) {
   const [bookings, setBookings] = useState(initial)
@@ -153,10 +127,10 @@ export default function BookingsList({
       ) : (
         bookings.map((b) => {
           const info = parseNotes(b.notes || "")
-          const nombre = b.guest_name || info["Nombre"] || "Sin nombre"
-          const whatsapp = b.guest_phone || info["WhatsApp"] || ""
-          const codigo = b.booking_code || info["Codigo"] || info["C\u00f3digo"] || ""
-          const tinajaRaw = info["Tinaja"] || ""
+          const nombre = b.guest_name || info["nombre"] || "Sin nombre"
+          const whatsapp = b.guest_phone || info["whatsapp"] || ""
+          const codigo = b.booking_code || info["codigo"] || ""
+          const tinajaRaw = info["tinaja"] || ""
           const tinajaDias = parseInt(tinajaRaw) || 0
           const isLoading = loadingId === b.id
           const phone = cleanPhone(whatsapp)
@@ -178,7 +152,7 @@ export default function BookingsList({
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
                   <span style={{ color: "#5a7058" }}>Total</span>
-                  <span style={{ color: "#c8d8c0", fontWeight: 600 }}>{fmt(b.total_amount)}</span>
+                  <span style={{ color: "#c8d8c0", fontWeight: 600 }}>{fmtCurrency(b.total_amount, currency)}</span>
                 </div>
                 {tinajaDias > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", padding: "4px 0" }}>
@@ -190,7 +164,7 @@ export default function BookingsList({
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#c0392b12", border: "1px solid #c0392b28", borderRadius: "10px", padding: "10px 14px", marginBottom: "14px" }}>
                 <span style={{ fontSize: "12px", color: "#e67a7a" }}>Transferencia a confirmar</span>
-                <span style={{ fontSize: "16px", fontWeight: 700, color: "#e67a7a", fontFamily: "Georgia, serif" }}>{fmt(b.deposit_amount)}</span>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: "#e67a7a", fontFamily: "Georgia, serif" }}>{fmtCurrency(b.deposit_amount, currency)}</span>
               </div>
 
               {phone && (

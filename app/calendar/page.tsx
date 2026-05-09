@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, Suspense } from "react"
+import { parseNotes } from "@/lib/parse-notes"
 import { useSearchParams, useRouter } from "next/navigation"
 import { getPersistedToken, setPersistedToken } from "@/lib/takai-token"
 import FullCalendar from "@fullcalendar/react"
@@ -9,31 +10,12 @@ import interactionPlugin from "@fullcalendar/interaction"
 import esLocale from "@fullcalendar/core/locales/es"
 import ManualBookingForm from "../components/ManualBookingForm"
 
-function fmt(n: number) {
+function fmtCurrency(n: number, currency: string) {
+  if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
   return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
-function parseNotes(notes: any): Record<string, string> {
-  if (!notes) return {}
-  const obj =
-    typeof notes === "object" ? notes
-    : typeof notes === "string" && notes.trimStart().startsWith("{")
-      ? (() => { try { return JSON.parse(notes) } catch { return null } })()
-      : null
-  if (obj) return {
-    nombre: obj.nombre || obj.Nombre || "",
-    whatsapp: obj.whatsapp || obj.WhatsApp || "",
-    codigo: obj.codigo || obj.Codigo || "",
-    tinaja: obj.tinaja || obj.Tinaja || "",
-    notas: obj.notas || obj.Notas || "",
-  }
-  const result: Record<string, string> = {}
-  ;(notes as string).split("|").forEach((part: string) => {
-    const i = part.indexOf(":")
-    if (i > -1) result[part.slice(0, i).trim()] = part.slice(i + 1).trim()
-  })
-  return result
-}
 
 function formatDate(d: string) {
   return new Date(d + "T12:00:00").toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })
@@ -51,6 +33,7 @@ function CalendarContent() {
   const [tenantId, setTenantId] = useState("")
   const [cabinPrice, setCabinPrice] = useState(0)
   const [cabinCapacity, setCabinCapacity] = useState(4)
+  const [currency, setCurrency] = useState("CLP")
   const [modal, setModal] = useState<any>(null)
   const [modalLoading, setModalLoading] = useState(false)
   const [message, setMessage] = useState("")
@@ -65,6 +48,7 @@ function CalendarContent() {
     if (data.tenant_id) setTenantId(data.tenant_id)
     if (data.cabin_price) setCabinPrice(data.cabin_price)
     if (data.cabin_capacity) setCabinCapacity(data.cabin_capacity)
+    if (data.currency) setCurrency(data.currency)
     const list = data.events || []
     setEvents(list.map((e: any) => {
       const d = new Date(e.end + "T12:00:00")
@@ -335,9 +319,9 @@ function CalendarContent() {
                       ["Check-out", formatDate(modal.endStr)],
                       booking?.nights ? ["Noches", String(booking.nights)] : null,
                       booking?.guests ? ["Personas", String(booking.guests)] : null,
-                      booking?.total_amount ? ["Total", fmt(booking.total_amount)] : null,
-                      booking?.deposit_amount ? ["Adelanto (20%)", fmt(booking.deposit_amount)] : null,
-                      booking?.balance_amount ? ["Saldo", fmt(booking.balance_amount)] : null,
+                      booking?.total_amount ? ["Total", fmtCurrency(booking.total_amount, currency)] : null,
+                      booking?.deposit_amount ? ["Adelanto (20%)", fmtCurrency(booking.deposit_amount, currency)] : null,
+                      booking?.balance_amount ? ["Saldo", fmtCurrency(booking.balance_amount, currency)] : null,
                       notes.tinaja && notes.tinaja !== "0" ? ["Tinaja", notes.tinaja + " día(s)"] : null,
                       notes.notas ? ["Notas", notes.notas] : null,
                     ] as any[]).filter(Boolean).map((row: any, i: number, arr: any[]) => (

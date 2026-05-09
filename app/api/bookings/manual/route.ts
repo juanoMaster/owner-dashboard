@@ -3,16 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { logAudit } from "@/lib/audit"
 import { sendErrorAlert } from "@/lib/resend"
 import { generateBookingCode } from "@/lib/booking-code"
-
-function getPriceForGuests(
-  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
-  guests: number,
-  basePriceNight: number
-): number {
-  if (!tiers || tiers.length === 0) return basePriceNight
-  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
-  return tier ? tier.price_per_night : basePriceNight
-}
+import { getPriceForGuests } from "@/lib/pricing"
 
 export async function POST(req: Request) {
   const supabase = createClient(

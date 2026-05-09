@@ -2,16 +2,7 @@
 import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import type { CSSProperties } from "react"
-
-function getPriceForGuests(
-  tiers: Array<{ min_guests: number; max_guests: number; price_per_night: number }> | null | undefined,
-  guests: number,
-  basePriceNight: number
-): number {
-  if (!tiers || tiers.length === 0) return basePriceNight
-  const tier = tiers.find(t => guests >= t.min_guests && guests <= t.max_guests)
-  return tier ? tier.price_per_night : basePriceNight
-}
+import { getPriceForGuests } from "@/lib/pricing"
 
 function fmtCurrency(n: number, currency: string) {
   if (currency === "USD") return "$" + n.toFixed(2)

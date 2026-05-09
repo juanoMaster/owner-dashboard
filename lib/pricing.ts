@@ -34,7 +34,7 @@ function getSeasonForNight(date: Date, seasons: SeasonPrice[]): SeasonPrice | nu
   return null
 }
 
-function getPriceForGuests(
+export function getPriceForGuests(
   tiers: PricingTier[] | null | undefined,
   guests: number,
   basePriceNight: number

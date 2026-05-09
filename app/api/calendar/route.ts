@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   const isOwner = authenticatedTenantId !== null && authenticatedTenantId === cabin?.tenant_id
 
   const { data: tenant } = (isOwner && cabin?.tenant_id)
-    ? await supabase.from("tenants").select("business_name").eq("id", cabin.tenant_id).maybeSingle()
+    ? await supabase.from("tenants").select("business_name, currency").eq("id", cabin.tenant_id).maybeSingle()
     : { data: null }
 
   const { data: blocks, error } = await supabase
@@ -82,6 +82,7 @@ export async function GET(req: Request) {
     tenant_id: isOwner ? (cabin?.tenant_id || "") : "",
     cabin_price: isOwner ? (Number(cabin?.base_price_night) || 0) : 0,
     cabin_capacity: isOwner ? (cabin?.capacity || 4) : 4,
+    currency: isOwner ? (tenant?.currency || "CLP") : "CLP",
   })
 }
 

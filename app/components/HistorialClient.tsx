@@ -1,5 +1,6 @@
 "use client"
 import { useState, useMemo } from "react"
+import { parseNotes } from "@/lib/parse-notes"
 
 interface Booking {
   id: string
@@ -18,24 +19,12 @@ interface Booking {
   deleted_by: string | null
 }
 
-function parseNotes(notes: any): Record<string, string> {
-  if (!notes) return {}
-  const obj =
-    typeof notes === "object"
-      ? notes
-      : typeof notes === "string" && notes.trimStart().startsWith("{")
-        ? (() => { try { return JSON.parse(notes) } catch { return null } })()
-        : null
-  if (obj) return { nombre: obj.nombre || obj.Nombre || "", whatsapp: obj.whatsapp || obj.WhatsApp || "", codigo: obj.codigo || obj.Codigo || "", origen: obj.origen || "", tinaja: obj.tinaja || "" }
-  const result: Record<string, string> = {}
-  String(notes).split("|").forEach((part) => {
-    const idx = part.indexOf(":")
-    if (idx > -1) result[part.slice(0, idx).trim().toLowerCase()] = part.slice(idx + 1).trim()
-  })
-  return result
-}
 
-function fmt(n: number) { return "$" + Math.round(n).toLocaleString("es-CL") }
+function fmtCurrency(n: number, currency: string) {
+  if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
+  return "$" + Math.round(n).toLocaleString("es-CL")
+}
 
 function fmtDate(s: string) {
   if (!s) return ""
@@ -82,7 +71,7 @@ function downloadCSV(rows: any[], businessName: string) {
   URL.revokeObjectURL(url)
 }
 
-export default function HistorialClient({ bookings, cabinMap, businessName }: { bookings: Booking[]; cabinMap: Record<string, string>; businessName: string }) {
+export default function HistorialClient({ bookings, cabinMap, businessName, currency = "CLP" }: { bookings: Booking[]; cabinMap: Record<string, string>; businessName: string; currency?: string }) {
   const [search, setSearch] = useState("")
   const [filterCabin, setFilterCabin] = useState("")
   const [filterStatus, setFilterStatus] = useState("")
@@ -112,9 +101,9 @@ export default function HistorialClient({ bookings, cabinMap, businessName }: { 
         "Check-out": fmtDate(b.check_out),
         Noches: b.nights,
         Personas: b.guests,
-        Total: fmt(b.total_amount),
-        Deposito: fmt(b.deposit_amount),
-        Saldo: fmt(b.balance_amount),
+        Total: fmtCurrency(b.total_amount, currency),
+        Deposito: fmtCurrency(b.deposit_amount, currency),
+        Saldo: fmtCurrency(b.balance_amount, currency),
         Estado: statusLabel(b),
         _statusColor: statusColor(b),
         Origen: origenLabel(n.origen),

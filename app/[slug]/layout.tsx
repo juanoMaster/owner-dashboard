@@ -17,13 +17,25 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     )
     const { data: tenant } = await supabase
       .from("tenants")
-      .select("business_name, tagline")
+      .select("id, business_name, tagline")
       .eq("slug", params.slug)
       .maybeSingle()
     if (!tenant) return fallback
     const title = tenant.business_name || fallback.title as string
     const description = tenant.tagline || fallback.description as string
-    return { title, description, openGraph: { title, description, type: "website" } }
+    const { data: firstCabin } = await supabase
+      .from("cabins")
+      .select("photos")
+      .eq("tenant_id", tenant.id)
+      .eq("active", true)
+      .not("photos", "is", null)
+      .limit(1)
+      .maybeSingle()
+    const ogImage = firstCabin?.photos?.[0] || null
+    return {
+      title, description,
+      openGraph: { title, description, type: "website", ...(ogImage ? { images: [{ url: ogImage }] } : {}) },
+    }
   } catch {
     return fallback
   }
