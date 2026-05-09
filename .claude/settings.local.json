@@ -8,7 +8,9 @@
       "PowerShell(Get-Content \"C:\\\\Users\\\\Juano\\\\Desktop\\\\Takai.IA\\\\Sistema de cabañas\\\\owner-dashboard\\\\.env.local\" | Select-String \"^[A-Z_a-z]\" | ForEach-Object { \\($_ -split \"=\"\\)[0] })",
       "mcp__claude_ai_Supabase__apply_migration",
       "PowerShell(npm run *)",
-      "PowerShell(Set-Content *)"
+      "PowerShell(Set-Content *)",
+      "Bash(Get-Content *)",
+      "PowerShell(git *)"
     ]
   }
 }
