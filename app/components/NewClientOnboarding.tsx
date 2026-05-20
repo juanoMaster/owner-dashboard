@@ -17,7 +17,9 @@ const BANKS = [
 
 const ACCOUNT_TYPES = ["Cuenta RUT", "Cuenta Vista", "Cuenta Corriente"] as const
 
-type CabinRow = { name: string; base_price_night: string; capacity: string; has_tinaja: boolean; tinaja_price: string }
+type CabinRow = { name: string; base_price_night: string; capacity: string; has_tinaja: boolean; tinaja_price: string; extra_person_price: string }
+type ExtraService = { name: string; price: string }
+type ActivityItem = string
 
 type OnboardResult = {
   token: string
@@ -97,7 +99,16 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const [bank_rut, setBankRut] = useState("")
   const [instagram_url, setInstagramUrl] = useState("")
   const [facebook_url, setFacebookUrl] = useState("")
-  const [cabins, setCabins] = useState<CabinRow[]>([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000" }])
+  const [latitude, setLatitude] = useState("")
+  const [longitude, setLongitude] = useState("")
+  const [email_owner_2, setEmailOwner2] = useState("")
+  const [cancellation_policy, setCancellationPolicy] = useState("")
+  const [extra_services, setExtraServices] = useState<ExtraService[]>([])
+  const [activities_list, setActivitiesList] = useState<ActivityItem[]>([])
+  const [newSvcName, setNewSvcName] = useState("")
+  const [newSvcPrice, setNewSvcPrice] = useState("")
+  const [newActivity, setNewActivity] = useState("")
+  const [cabins, setCabins] = useState<CabinRow[]>([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000", extra_person_price: "0" }])
 
   const [copiedPanel, setCopiedPanel] = useState(false)
   const [copiedPublic, setCopiedPublic] = useState(false)
@@ -110,7 +121,7 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   }, [])
 
   const addCabinRow = () => {
-    setCabins((c) => [...c, { name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000" }])
+    setCabins((c) => [...c, { name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000", extra_person_price: "0" }])
   }
 
   const removeCabinRow = (index: number) => {
@@ -154,6 +165,7 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
         body: JSON.stringify({
           business_name: business_name.trim(),
           email_owner: email_owner.trim(),
+          email_owner_2: email_owner_2.trim() || null,
           owner_whatsapp: owner_whatsapp.trim() || null,
           gender,
           has_tinaja,
@@ -168,12 +180,18 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
           bank_rut: bank_rut.trim(),
           instagram_url: instagram_url.trim() || null,
           facebook_url: facebook_url.trim() || null,
+          latitude: latitude.trim() ? Number(latitude) : null,
+          longitude: longitude.trim() ? Number(longitude) : null,
+          extra_services: extra_services.filter(s => s.name.trim()).map(s => ({ name: s.name.trim(), price: Number(s.price) || 0 })),
+          activities: activities_list.filter(a => a.trim()).map(a => ({ icon: "📍", name: a.trim() })),
+          page_rules: cancellation_policy.trim() ? [{ type: "cancellation", text: cancellation_policy.trim() }] : [],
           cabins: cabins.map((c) => ({
             name: c.name.trim(),
             base_price_night: Number(c.base_price_night),
             capacity: parseInt(c.capacity, 10),
             has_tinaja: c.has_tinaja,
             tinaja_price: Number(c.tinaja_price) || 30000,
+            extra_person_price: Number(c.extra_person_price) || 0,
           })),
         }),
       })
@@ -212,7 +230,13 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
     setBankRut("")
     setInstagramUrl("")
     setFacebookUrl("")
-    setCabins([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000" }])
+    setLatitude("")
+    setLongitude("")
+    setEmailOwner2("")
+    setCancellationPolicy("")
+    setExtraServices([])
+    setActivitiesList([])
+    setCabins([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000", extra_person_price: "0" }])
     setError(null)
   }
 
@@ -372,16 +396,6 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
                     className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none ring-[#7a5a98]/0 transition focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
                   />
                 </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Email del dueño</FieldLabel>
-                  <input
-                    type="email"
-                    required
-                    value={email_owner}
-                    onChange={(e) => setEmailOwner(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
                 <div>
                   <FieldLabel>Teléfono WhatsApp</FieldLabel>
                   <input
@@ -510,8 +524,28 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
             </section>
 
             <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Redes sociales (opcional)</h3>
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Contacto y notificaciones</h3>
               <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <FieldLabel required>Email del dueño</FieldLabel>
+                  <input
+                    type="email"
+                    required
+                    value={email_owner}
+                    onChange={(e) => setEmailOwner(e.target.value)}
+                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <FieldLabel>Email adicional para notificaciones</FieldLabel>
+                  <input
+                    type="email"
+                    value={email_owner_2}
+                    onChange={(e) => setEmailOwner2(e.target.value)}
+                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                  <p className="mt-1 text-[11px] text-[#5a4870]">Ambos emails recibirán notificaciones de nuevas reservas</p>
+                </div>
                 <div className="sm:col-span-2">
                   <FieldLabel>Instagram URL</FieldLabel>
                   <input
@@ -529,6 +563,122 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
                     placeholder="https://facebook.com/..."
                     className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
                   />
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Ubicación exacta (mapa embed)</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <FieldLabel>Latitud</FieldLabel>
+                  <input
+                    type="number"
+                    step="any"
+                    value={latitude}
+                    onChange={(e) => setLatitude(e.target.value)}
+                    placeholder="-39.8142"
+                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Longitud</FieldLabel>
+                  <input
+                    type="number"
+                    step="any"
+                    value={longitude}
+                    onChange={(e) => setLongitude(e.target.value)}
+                    placeholder="-72.2306"
+                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                </div>
+                <p className="sm:col-span-2 text-[11px] text-[#5a4870]">Puedes obtener las coordenadas desde Google Maps → clic derecho en el lugar → copiar lat/lng</p>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Políticas</h3>
+              <div>
+                <FieldLabel>Política de cancelación/devolución</FieldLabel>
+                <textarea
+                  value={cancellation_policy}
+                  onChange={(e) => setCancellationPolicy(e.target.value)}
+                  placeholder="Ej: Cancelaciones con más de 7 días: reembolso del 80%. Con menos de 48 hs: sin reembolso."
+                  rows={3}
+                  className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30 resize-y"
+                />
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Servicios extras (opcional)</h3>
+              <div className="space-y-2">
+                {extra_services.map((svc, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2">
+                    <span className="flex-1 text-sm text-[#c8b8e0]">{svc.name}</span>
+                    <span className="text-sm text-[#c8b878]">${Number(svc.price).toLocaleString("es-CL")}</span>
+                    <button type="button" onClick={() => setExtraServices(s => s.filter((_, j) => j !== i))}
+                      className="text-red-400/90 hover:text-red-400 text-base leading-none px-1">×</button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <input
+                    value={newSvcName}
+                    onChange={e => setNewSvcName(e.target.value)}
+                    placeholder="Nombre (ej: Leña)"
+                    className="flex-[2] rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                  <input
+                    type="number"
+                    value={newSvcPrice}
+                    onChange={e => setNewSvcPrice(e.target.value)}
+                    placeholder="Precio"
+                    className="flex-1 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newSvcName.trim()) return
+                      setExtraServices(s => [...s, { name: newSvcName.trim(), price: newSvcPrice }])
+                      setNewSvcName(""); setNewSvcPrice("")
+                    }}
+                    className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white shrink-0"
+                  >
+                    + Agregar
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Atractivos cercanos (opcional)</h3>
+              <div className="space-y-2">
+                {activities_list.map((act, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2">
+                    <span className="text-base">📍</span>
+                    <span className="flex-1 text-sm text-[#c8b8e0]">{act}</span>
+                    <button type="button" onClick={() => setActivitiesList(a => a.filter((_, j) => j !== i))}
+                      className="text-red-400/90 hover:text-red-400 text-base leading-none px-1">×</button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <input
+                    value={newActivity}
+                    onChange={e => setNewActivity(e.target.value)}
+                    placeholder="Ej: Lago Calafquén a 500m"
+                    className="flex-1 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newActivity.trim()) return
+                      setActivitiesList(a => [...a, newActivity.trim()])
+                      setNewActivity("")
+                    }}
+                    className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white shrink-0"
+                  >
+                    + Agregar
+                  </button>
                 </div>
               </div>
             </section>
@@ -585,6 +735,20 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
                           onChange={(e) => updateCabin(index, "capacity", e.target.value)}
                           className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
                         />
+                      </div>
+                    </div>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <FieldLabel>Precio por persona extra ($)</FieldLabel>
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={row.extra_person_price}
+                          onChange={(e) => updateCabin(index, "extra_person_price", e.target.value)}
+                          className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+                        />
+                        <p className="mt-1 text-[11px] text-[#5a4870]">Cobro adicional por persona sobre la capacidad máxima</p>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap items-end gap-3">

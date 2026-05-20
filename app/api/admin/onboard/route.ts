@@ -84,6 +84,12 @@ export async function POST(req: Request) {
   const bank_rut = String(body.bank_rut ?? "").trim()
   const instagram_url = body.instagram_url != null ? String(body.instagram_url).trim() : ""
   const facebook_url = body.facebook_url != null ? String(body.facebook_url).trim() : ""
+  const email_owner_2 = body.email_owner_2 != null ? String(body.email_owner_2).trim() : ""
+  const latitude = body.latitude != null && body.latitude !== "" ? Number(body.latitude) : null
+  const longitude = body.longitude != null && body.longitude !== "" ? Number(body.longitude) : null
+  const extra_services = Array.isArray(body.extra_services) ? body.extra_services : []
+  const activities = Array.isArray(body.activities) ? body.activities : []
+  const page_rules = Array.isArray(body.page_rules) ? body.page_rules : []
 
   const cabinsIn = Array.isArray(body.cabins) ? body.cabins : []
 
@@ -100,7 +106,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Completa todos los datos bancarios obligatorios." }, { status: 400 })
   }
 
-  const cabinsParsed: Array<{ name: string; base_price_night: number; capacity: number; has_tinaja: boolean; tinaja_price: number }> = []
+  const cabinsParsed: Array<{ name: string; base_price_night: number; capacity: number; has_tinaja: boolean; tinaja_price: number; extra_person_price: number }> = []
   for (const c of cabinsIn) {
     if (!c || typeof c !== "object") continue
     const row = c as Record<string, unknown>
@@ -109,6 +115,7 @@ export async function POST(req: Request) {
     const capacity = parseInt(String(row.capacity ?? "0"), 10)
     const has_tinaja = Boolean(row.has_tinaja)
     const tinaja_price = Number(row.tinaja_price) || 30000
+    const extra_person_price = Number(row.extra_person_price) || 0
     if (name.length < 1) {
       return NextResponse.json({ error: "Cada cabaña debe tener un nombre." }, { status: 400 })
     }
@@ -118,7 +125,7 @@ export async function POST(req: Request) {
     if (!Number.isFinite(capacity) || capacity < 1) {
       return NextResponse.json({ error: "La capacidad debe ser al menos 1 persona por cabaña." }, { status: 400 })
     }
-    cabinsParsed.push({ name, base_price_night, capacity, has_tinaja, tinaja_price })
+    cabinsParsed.push({ name, base_price_night, capacity, has_tinaja, tinaja_price, extra_person_price })
   }
 
   if (cabinsParsed.length < 1) {
@@ -138,6 +145,7 @@ export async function POST(req: Request) {
     owner_name,
     owner_whatsapp: owner_whatsapp || null,
     email_owner,
+    email_owner_2: email_owner_2 || null,
     slug,
     gender,
     has_tinaja,
@@ -148,6 +156,11 @@ export async function POST(req: Request) {
     deposit_percent: advance_percentage,
     instagram_url: instagram_url || null,
     facebook_url: facebook_url || null,
+    latitude: (latitude !== null && !isNaN(latitude as number)) ? latitude : null,
+    longitude: (longitude !== null && !isNaN(longitude as number)) ? longitude : null,
+    extra_services,
+    activities,
+    page_rules,
     bank_name,
     bank_account_type,
     bank_account_number,
@@ -194,6 +207,7 @@ export async function POST(req: Request) {
     capacity: c.capacity,
     has_tinaja: c.has_tinaja,
     tinaja_price: c.tinaja_price,
+    extra_person_price: c.extra_person_price,
     cleaning_fee: 0,
     active: true,
   }))

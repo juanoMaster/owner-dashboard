@@ -660,11 +660,13 @@ function ReservasTab({ bookings, tenantMap, cabinMap }: any) {
 // ══ TENANT MODAL ══════════════════════════
 function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
   const isNew = !data.id
+  const existingCancellationPolicy = (data.page_rules || []).find((r: any) => typeof r === 'object' && r !== null && r.type === 'cancellation')?.text || ""
   const [form, setForm] = useState({
     business_name: data.business_name || "",
     owner_name: data.owner_name || "",
     owner_whatsapp: data.owner_whatsapp || "",
     email_owner: data.email_owner || "",
+    email_owner_2: data.email_owner_2 || "",
     deposit_percent: data.deposit_percent || 20,
     gender: data.gender || "female",
     bank_name: data.bank_name || "",
@@ -680,13 +682,24 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     location_text: data.location_text || "",
     location_maps_url: data.location_maps_url || "",
     tagline: data.tagline || "",
+    instagram_url: data.instagram_url || "",
+    facebook_url: data.facebook_url || "",
+    has_tinaja: data.has_tinaja ?? false,
+    tinaja_price: data.tinaja_price || 0,
+    min_nights: data.min_nights || 2,
+    latitude: data.latitude ?? "",
+    longitude: data.longitude ?? "",
     activities: (data.activities || []) as Array<{icon: string; name: string}>,
-    page_rules: (data.page_rules || []) as string[],
+    page_rules: ((data.page_rules || []) as any[]).filter((r: any) => typeof r === 'string') as string[],
+    extra_services: (data.extra_services || []) as Array<{name: string; price: number}>,
   })
+  const [cancellationPolicyText, setCancellationPolicyText] = useState(existingCancellationPolicy)
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   const [newActIcon, setNewActIcon] = useState("")
   const [newActName, setNewActName] = useState("")
   const [newRule, setNewRule] = useState("")
+  const [newSvcName, setNewSvcName] = useState("")
+  const [newSvcPrice, setNewSvcPrice] = useState("")
   return (
     <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={MODAL_BOX}>
@@ -697,14 +710,46 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
           { key: "business_name", label: "Nombre del negocio", type: "text" },
           { key: "owner_name", label: "Nombre propietaria", type: "text" },
           { key: "owner_whatsapp", label: "WhatsApp propietaria", type: "text" },
-          { key: "email_owner", label: "Email del propietario", type: "email" },
           { key: "deposit_percent", label: "% depósito (default 20)", type: "number" },
+          { key: "min_nights", label: "Noches mínimas (default 2)", type: "number" },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: "16px" }}>
             <label style={LABEL}>{f.label}</label>
             <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
           </div>
         ))}
+        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Contacto y notificaciones</div>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Email principal del dueño</label>
+          <input type="email" value={form.email_owner} onChange={set("email_owner")} style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "6px" }}>
+          <label style={LABEL}>Email adicional para notificaciones</label>
+          <input type="email" value={form.email_owner_2} onChange={set("email_owner_2")} style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px", fontSize: "11px", color: "#5a4870" }}>Ambos emails recibirán notificaciones de nuevas reservas</div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Instagram URL</label>
+          <input type="text" value={form.instagram_url} onChange={set("instagram_url")} placeholder="https://instagram.com/..." style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Facebook URL</label>
+          <input type="text" value={form.facebook_url} onChange={set("facebook_url")} placeholder="https://facebook.com/..." style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <input type="checkbox" id="has-tinaja" checked={form.has_tinaja}
+            onChange={e => setForm(p => ({ ...p, has_tinaja: e.target.checked }))}
+            style={{ width: "16px", height: "16px", cursor: "pointer" }} />
+          <label htmlFor="has-tinaja" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>Tiene tinaja</label>
+        </div>
+        {form.has_tinaja && (
+          <div style={{ marginBottom: "16px" }}>
+            <label style={LABEL}>Precio tinaja por día ($)</label>
+            <input type="number" value={form.tinaja_price} onChange={set("tinaja_price")} style={INPUT} />
+          </div>
+        )}
         <div style={{ marginBottom: "16px" }}>
           <label style={LABEL}>Género</label>
           <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))} style={{ ...INPUT }}>
@@ -744,6 +789,20 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
           <input type="text" value={form.location_maps_url} onChange={set("location_maps_url")}
             placeholder="https://maps.google.com/..." style={INPUT} />
         </div>
+        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Ubicación exacta (mapa embed)</div>
+        </div>
+        <div style={{ display: "flex", gap: "10px", marginBottom: "6px" }}>
+          <div style={{ flex: 1 }}>
+            <label style={LABEL}>Latitud</label>
+            <input type="number" step="any" value={form.latitude} onChange={set("latitude")} placeholder="-39.8142" style={INPUT} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={LABEL}>Longitud</label>
+            <input type="number" step="any" value={form.longitude} onChange={set("longitude")} placeholder="-72.2306" style={INPUT} />
+          </div>
+        </div>
+        <div style={{ marginBottom: "16px", fontSize: "11px", color: "#5a4870" }}>Puedes obtener las coordenadas desde Google Maps → clic derecho en el lugar → copiar lat/lng</div>
         <div style={{ marginBottom: "16px" }}>
           <label style={LABEL}>Actividades cercanas</label>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px", marginBottom: "8px" }}>
@@ -765,6 +824,46 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
               if (!newActName.trim()) return
               setForm(p => ({ ...p, activities: [...p.activities, { icon: newActIcon || "📍", name: newActName.trim() }] }))
               setNewActIcon(""); setNewActName("")
+            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
+              + Agregar
+            </button>
+          </div>
+        </div>
+        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Políticas</div>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Política de cancelación/devolución</label>
+          <textarea
+            value={cancellationPolicyText}
+            onChange={e => setCancellationPolicyText(e.target.value)}
+            placeholder="Ej: Cancelaciones con más de 7 días: reembolso del 80%. Cancelaciones con menos de 48 hs: sin reembolso."
+            style={{ ...INPUT, minHeight: "80px", resize: "vertical" as const }}
+          />
+        </div>
+        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
+          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Servicios extras</div>
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "10px" }}>
+            {form.extra_services.map((svc: any, i: number) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "7px 10px" }}>
+                <span style={{ flex: 1, fontSize: "13px", color: "#c8b8e0" }}>{svc.name}</span>
+                <span style={{ fontSize: "13px", color: "#c8b878" }}>{"$" + Number(svc.price).toLocaleString("es-CL")}</span>
+                <button onClick={() => setForm(p => ({ ...p, extra_services: p.extra_services.filter((_: any, j: number) => j !== i) }))}
+                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <input placeholder="Nombre (ej: Leña)" value={newSvcName} onChange={e => setNewSvcName(e.target.value)}
+              style={{ ...INPUT, flex: 2 }} />
+            <input placeholder="Precio" type="number" value={newSvcPrice} onChange={e => setNewSvcPrice(e.target.value)}
+              style={{ ...INPUT, flex: 1 }} />
+            <button onClick={() => {
+              if (!newSvcName.trim() || !newSvcPrice) return
+              setForm(p => ({ ...p, extra_services: [...p.extra_services, { name: newSvcName.trim(), price: Number(newSvcPrice) }] }))
+              setNewSvcName(""); setNewSvcPrice("")
             }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
               + Agregar
             </button>
@@ -852,7 +951,13 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
           </>
         )}
         <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-          <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}
+          <button onClick={() => {
+            const finalPageRules = [
+              ...(cancellationPolicyText.trim() ? [{ type: "cancellation", text: cancellationPolicyText.trim() }] : []),
+              ...form.page_rules,
+            ]
+            onSave({ action: isNew ? "create" : "update", id: data.id, ...form, page_rules: finalPageRules })
+          }} disabled={saving}
             style={{ flex: 1, padding: "12px", background: "#7a5a98", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
             {saving ? "Guardando..." : "Guardar"}
           </button>

@@ -10,7 +10,10 @@
       "PowerShell(npm run *)",
       "PowerShell(Set-Content *)",
       "Bash(Get-Content *)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "Bash(git pull *)",
+      "Bash(npm run *)",
+      "Bash(git add *)"
     ]
   }
 }

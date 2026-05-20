@@ -12,8 +12,10 @@ interface TenantData {
   business_name: string; facebook_url?: string | null; instagram_url?: string | null
   verified?: boolean; currency?: string; location_text?: string | null
   location_maps_url?: string | null; tagline?: string | null
-  activities?: Array<{ icon: string; name: string }>; page_rules?: string[]
+  activities?: Array<{ icon: string; name: string } | string>; page_rules?: Array<string | Record<string, string>>
   owner_whatsapp?: string | null
+  latitude?: number | null; longitude?: number | null
+  extra_services?: Array<{ name: string; price: number }>
 }
 
 const GOLD = "#C9A84C"; const GOLD_L = "#d4b96a"; const BG = "#060606"
@@ -124,7 +126,10 @@ function SlugInner() {
   const fmt = (n: number) => fmtPrice(n, currency)
   const hasSocial = !!(tenant.facebook_url || tenant.instagram_url)
   const activities = tenant.activities && tenant.activities.length > 0 ? tenant.activities : null
-  const rules = tenant.page_rules && tenant.page_rules.length > 0 ? tenant.page_rules : null
+  const rulesRaw = tenant.page_rules ? (tenant.page_rules as any[]).filter((r: any) => typeof r === 'string') : []
+  const rules = rulesRaw.length > 0 ? rulesRaw : null
+  const extraServices = tenant.extra_services && tenant.extra_services.length > 0 ? tenant.extra_services : null
+  const hasMap = !!(tenant.latitude && tenant.longitude)
   const tagline = tenant.tagline || tenant.business_name
   const sortedCabins = [...cabins].sort((a, b) => a.base_price_night - b.base_price_night)
 
@@ -411,6 +416,33 @@ function SlugInner() {
           </div>
         )}
 
+        {/* MAP */}
+        {hasMap && (
+          <div className="tk-section" style={{ padding: "18px 20px 0" }}>
+            <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: GOLD, marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              Cómo llegar<div style={{ flex: 1, height: "1px", background: "rgba(201,168,76,0.12)" }} />
+            </div>
+            <div style={{ borderRadius: "12px", overflow: "hidden", border: "1px solid " + BORDER }}>
+              <iframe
+                src={"https://maps.google.com/maps?q=" + tenant.latitude + "," + tenant.longitude + "&z=15&output=embed"}
+                width="100%"
+                height="300"
+                style={{ border: 0, display: "block" }}
+                loading="lazy"
+              />
+            </div>
+            <div style={{ marginTop: "10px", textAlign: "center" as const }}>
+              <a
+                href={"https://maps.google.com/?q=" + tenant.latitude + "," + tenant.longitude}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "8px 18px", textDecoration: "none", fontSize: "12px", color: GOLD, fontWeight: 500 }}>
+                Cómo llegar →
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* ACTIVITIES */}
         {activities && (
           <div className="tk-section" style={{ position: "relative", overflow: "hidden", padding: "18px 20px 16px" }}>
@@ -421,13 +453,34 @@ function SlugInner() {
                 Qué hacer cerca<div style={{ flex: 1, height: "1px", background: "rgba(201,168,76,0.12)" }} />
               </div>
               <div className="tk-acts-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "6px" }}>
-                {activities.map((act, i) => (
-                  <div key={i} style={{ background: "rgba(13,13,13,0.9)", border: "1px solid " + BORDER, borderRadius: "10px", padding: "11px 6px", textAlign: "center" as const }}>
-                    <div style={{ fontSize: "18px", marginBottom: "4px" }}>{act.icon}</div>
-                    <div style={{ fontSize: "8px", color: "#555", letterSpacing: "0.5px" }}>{act.name}</div>
-                  </div>
-                ))}
+                {activities.map((act, i) => {
+                  const actIcon = typeof act === 'string' ? '📍' : act.icon
+                  const actName = typeof act === 'string' ? act : act.name
+                  return (
+                    <div key={i} style={{ background: "rgba(13,13,13,0.9)", border: "1px solid " + BORDER, borderRadius: "10px", padding: "11px 6px", textAlign: "center" as const }}>
+                      <div style={{ fontSize: "18px", marginBottom: "4px" }}>{actIcon}</div>
+                      <div style={{ fontSize: "8px", color: "#555", letterSpacing: "0.5px" }}>{actName}</div>
+                    </div>
+                  )
+                })}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* EXTRA SERVICES */}
+        {extraServices && (
+          <div className="tk-section" style={{ padding: "18px 20px 0" }}>
+            <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: GOLD, marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              Servicios adicionales<div style={{ flex: 1, height: "1px", background: "rgba(201,168,76,0.12)" }} />
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "8px" }}>
+              {extraServices.map((svc, i) => (
+                <div key={i} style={{ background: "rgba(13,13,13,0.9)", border: "1px solid " + BORDER, borderRadius: "10px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ fontSize: "13px", color: TEXT, fontWeight: 400 }}>{svc.name}</div>
+                  <div style={{ fontFamily: SERIF, fontSize: "14px", color: GOLD, whiteSpace: "nowrap" as const }}>{"$" + Math.round(svc.price).toLocaleString("es-CL")}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}

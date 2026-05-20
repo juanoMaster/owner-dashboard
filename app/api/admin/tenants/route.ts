@@ -54,6 +54,15 @@ export async function POST(req: Request) {
         tagline: body.tagline || null,
         activities: body.activities || [],
         page_rules: body.page_rules || [],
+        instagram_url: body.instagram_url || null,
+        facebook_url: body.facebook_url || null,
+        has_tinaja: body.has_tinaja ?? false,
+        tinaja_price: body.tinaja_price ? Number(body.tinaja_price) : null,
+        min_nights: body.min_nights ? Number(body.min_nights) : 2,
+        latitude: body.latitude ? Number(body.latitude) : null,
+        longitude: body.longitude ? Number(body.longitude) : null,
+        email_owner_2: body.email_owner_2 || null,
+        extra_services: body.extra_services || [],
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -79,6 +88,15 @@ export async function POST(req: Request) {
         tagline: body.tagline || null,
         activities: body.activities || [],
         page_rules: body.page_rules || [],
+        instagram_url: body.instagram_url || null,
+        facebook_url: body.facebook_url || null,
+        has_tinaja: body.has_tinaja ?? false,
+        tinaja_price: body.tinaja_price ? Number(body.tinaja_price) : null,
+        min_nights: body.min_nights ? Number(body.min_nights) : 2,
+        latitude: body.latitude ? Number(body.latitude) : null,
+        longitude: body.longitude ? Number(body.longitude) : null,
+        email_owner_2: body.email_owner_2 || null,
+        extra_services: body.extra_services || [],
         whatsapp_enabled: body.whatsapp_enabled ?? true,
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })

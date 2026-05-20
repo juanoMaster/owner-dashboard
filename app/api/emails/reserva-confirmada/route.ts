@@ -22,7 +22,8 @@ export async function POST(req: Request) {
           business_name, owner_name, email_owner, owner_whatsapp,
           deposit_percent,
           bank_name, bank_account_type, bank_account_number,
-          bank_account_holder, bank_rut, guidebook
+          bank_account_holder, bank_rut, guidebook,
+          latitude, longitude
         )
       `)
       .eq("id", booking_id)
@@ -67,6 +68,8 @@ export async function POST(req: Request) {
         bank_rut: t.bank_rut || "Por confirmar",
         owner_whatsapp: t.owner_whatsapp || "",
         guidebook_url: guidebookUrl,
+        latitude: t.latitude ?? null,
+        longitude: t.longitude ?? null,
       })
     })
 
