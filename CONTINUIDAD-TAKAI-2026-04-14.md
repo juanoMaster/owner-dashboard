@@ -1,4 +1,4 @@
-﻿# CONTINUIDAD TAKAI — AUDITORÍA 2026-04-27 (actualizado 28-05-2026)
+# CONTINUIDAD TAKAI — 2026-04-14 (actualizado 28-05-2026)
 
 ## CONTEXTO
 SaaS multi-tenant reservas cabañas. Stack: Next.js 14, TypeScript, Supabase, Vercel Hobby, Resend, Mercado Pago.
