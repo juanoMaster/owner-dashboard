@@ -49,6 +49,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
   const [modal, setModal] = useState<any>(null)
   const [saving, setSaving] = useState(false)
   const [newTokenValue, setNewTokenValue] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const [tenantSort, setTenantSort] = useState<{ key: "business_name" | "created_at"; dir: "asc" | "desc" }>({ key: "created_at", dir: "desc" })
   const [cabinSort, setCabinSort] = useState<{ key: "tenant_name" | "created_at"; dir: "asc" | "desc" }>({ key: "tenant_name", dir: "asc" })
   const [filterCabinTenant, setFilterCabinTenant] = useState("")
@@ -439,10 +440,25 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
             <SectionHeader title="Tokens de acceso" />
             {newTokenValue && (
               <div style={{ background: "#0a1a0a", border: "1px solid #27ae6060", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px" }}>
-                <div style={{ fontSize: "11px", color: "#27ae60", marginBottom: "8px", fontWeight: 600 }}>Token generado — cópialo ahora, no volverá a mostrarse</div>
-                <div style={{ fontFamily: "monospace", fontSize: "13px", color: "#7ab87a", wordBreak: "break-all" as const, background: "#060e06", padding: "10px 14px", borderRadius: "8px" }}>{newTokenValue}</div>
-                <div style={{ fontSize: "11px", color: "#3a5a38", marginTop: "8px" }}>URL de acceso: /?token={newTokenValue}</div>
-                <button onClick={() => setNewTokenValue(null)} style={{ ...BTN("#e63946"), marginTop: "10px" }}>Cerrar</button>
+                <div style={{ fontSize: "11px", color: "#27ae60", marginBottom: "10px", fontWeight: 600 }}>Token generado — cópialo ahora, no volverá a mostrarse</div>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    readOnly
+                    value={`https://panel.takai.cl/?token=${newTokenValue}`}
+                    style={{ fontFamily: "monospace", fontSize: "12px", color: "#7ab87a", background: "#060e06", padding: "10px 14px", borderRadius: "8px", border: "1px solid #27ae6040", flex: 1, outline: "none" }}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://panel.takai.cl/?token=${newTokenValue}`)
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    }}
+                    style={{ ...BTN("#27ae60"), background: "#0a1a0a", whiteSpace: "nowrap" as const, padding: "10px 14px" }}
+                  >
+                    {copied ? "¡Copiado!" : "Copiar link"}
+                  </button>
+                </div>
+                <button onClick={() => { setNewTokenValue(null); setCopied(false) }} style={{ ...BTN("#e63946"), marginTop: "10px" }}>Cerrar</button>
               </div>
             )}
             <div style={{ overflowX: "auto" as const, borderRadius: "14px", border: "1px solid #1e1428" }}>
