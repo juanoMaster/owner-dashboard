@@ -1,4 +1,4 @@
-﻿# CONTINUIDAD TAKAI — AUDITORÍA 2026-04-27
+﻿# CONTINUIDAD TAKAI — AUDITORÍA 2026-04-27 (actualizado 28-05-2026)
 
 ## CONTEXTO
 SaaS multi-tenant reservas cabañas. Stack: Next.js 14, TypeScript, Supabase, Vercel Hobby, Resend, Mercado Pago.
@@ -107,15 +107,26 @@ Bloque 1 (CRÍTICOS): C5 → C2 → C3 → C4 → C1
 Bloque 2 (ECUADOR): I1 → I2 → I3 → I4 → I6 → I5 → I9
 Bloque 3 (DEUDA TÉCNICA): A3+A4+A5 → A7 → A9 → A11 → A12
 
+## STACK
+- Next.js 14 App Router, TypeScript, Supabase PostgreSQL, Vercel, GitHub
+- CSS: Inline JS styles (`style={{ color: "#fff" }}`). Tailwind SOLO en: NewClientOnboarding, embed/calendario, EmbedIframeSnippet
+- iCal: ELIMINADO del codebase (28-05-2026). Carpeta app/api/ical/ borrada. Descartado del roadmap definitivamente.
+
 ## REGLAS DEL PROYECTO
 - No Tailwind (excepto NewClientOnboarding, embed/calendario, EmbedIframeSnippet)
 - Todo CSS como objetos JS inline
 - No template literals en .tsx
 - createClient siempre dentro de funciones, nunca a nivel módulo
 - Siempre cache: 'no-store' en createClient de rutas API
-- Siempre export const dynamic = 'force-dynamic' en rutas API
+- Siempre export const dynamic = 'force-dynamic' en rutas API y páginas server que fetcheen datos
 - Siempre .is("deleted_at", null) en queries a bookings
 - Git: rama main = producción, rama preview/nueva-pagina-turista = desarrollo
 - Windows PowerShell: usar ; no && para encadenar comandos
 - Comandos git siempre en bloque separado al final
 - Comisión Takai: 10% por reserva confirmada generada por Takai
+
+## PENDIENTES TÉCNICOS RESUELTOS
+- ✅ Auto-deploy Vercel restaurado (webhook GitHub recreado manualmente 28-05-2026)
+- ✅ Admin panel muestra URL completa al generar token (commit 98a94f6)
+- ✅ Deuda técnica A4/A5/A7/A11 resuelta (commit d373b00)
+- ✅ iCal eliminado del codebase (28-05-2026)
