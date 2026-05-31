@@ -155,7 +155,7 @@ export async function POST(req: Request) {
     if (guest_email) {
       fetch((process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET}` },
         body: JSON.stringify({ booking_id: bookingId })
       }).catch(() => {})
     }

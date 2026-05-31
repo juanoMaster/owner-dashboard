@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
           (process.env.NEXT_PUBLIC_APP_URL ?? "") + "/api/emails/reserva-confirmada",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET}` },
             body: JSON.stringify({ booking_id: bookingId }),
           }
         )

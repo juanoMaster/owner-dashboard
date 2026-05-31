@@ -3,6 +3,11 @@ import { createClient } from "@supabase/supabase-js"
 import { getResend, emailNuevaReservaTurista, emailNuevaReservaDuena } from "@/lib/resend"
 
 export async function POST(req: Request) {
+  const authHeader = req.headers.get("authorization")
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
   try {
     const { booking_id } = await req.json()
     if (!booking_id) return NextResponse.json({ error: "booking_id requerido" }, { status: 400 })

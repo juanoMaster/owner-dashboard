@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     // Email reserva confirmada
     fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/api/emails/reserva-confirmada`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET}` },
       body: JSON.stringify({ booking_id })
     }).catch(() => {})
 
