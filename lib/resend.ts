@@ -101,7 +101,7 @@ export function emailNuevaReservaTurista(data: {
   booking_code: string
   has_tinaja: boolean
   tinaja_amount?: number
-  gender: string
+  gender?: string
 }) {
   const pct = data.deposit_amount > 0 ? Math.round((data.deposit_amount / data.total_amount) * 100) : 20
 
