@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("tenant_id")
+    .select("tenant_id, booking_code, total_amount, deposit_amount, check_in, check_out, guest_name, created_at")
     .eq("id", booking_id)
     .is("deleted_at", null)
     .maybeSingle()
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut")
+    .select("bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, transfer_timeout_hours")
     .eq("id", booking.tenant_id)
     .single()
 
@@ -38,11 +38,28 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Propietario no encontrado" }, { status: 404 })
   }
 
+  // Número de WhatsApp al que el turista debe enviar el comprobante
+  const rawFrom = process.env.TWILIO_WHATSAPP_FROM ?? ""
+  const whatsapp_number = rawFrom.replace("whatsapp:", "")
+
   return NextResponse.json({
+    // Datos de la reserva
+    booking_code: booking.booking_code,
+    total_amount: booking.total_amount,
+    deposit_amount: booking.deposit_amount,
+    check_in: booking.check_in,
+    check_out: booking.check_out,
+    guest_name: booking.guest_name,
+    created_at: booking.created_at,
+    // Datos bancarios
     bank_name: tenant.bank_name || null,
     bank_account_type: tenant.bank_account_type || null,
     bank_account_number: tenant.bank_account_number || null,
     bank_account_holder: tenant.bank_account_holder || null,
     bank_rut: tenant.bank_rut || null,
+    // Config de timeout para la cuenta regresiva
+    transfer_timeout_hours: Number(tenant.transfer_timeout_hours) || 12,
+    // WhatsApp donde enviar el comprobante
+    whatsapp_number: whatsapp_number || null,
   })
 }
