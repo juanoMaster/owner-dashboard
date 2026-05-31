@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency")
+      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency, dashboard_token")
       .eq("id", tenant_id)
       .single()
 
@@ -169,7 +169,10 @@ export async function POST(req: Request) {
 
     // WhatsApp al propietario
     if (tenantConfig?.owner_whatsapp) {
-      const ownerMsg = `🏕️ Nueva reserva en ${businessName}!\n👤 ${guest_name} | 📱 ${guest_phone}\n📅 ${check_in} → ${check_out} (${nights} noches)\n💰 ${currency} ${total} | Anticipo: ${currency} ${deposit}\n👉 Revisar en panel.takai.cl`
+      const panelUrl = tenantConfig.dashboard_token
+        ? `https://panel.takai.cl/?token=${tenantConfig.dashboard_token}`
+        : "https://panel.takai.cl"
+      const ownerMsg = `🏡 Nueva reserva en ${cabin.name}\n👤 ${guest_name}\n📅 Check-in: ${check_in} → Check-out: ${check_out}\n💰 Total: ${currency} ${total}\nVer reserva: ${panelUrl}`
       sendWhatsApp({ to: tenantConfig.owner_whatsapp, message: ownerMsg, tenantId: tenant_id }).catch(() => {})
     }
 

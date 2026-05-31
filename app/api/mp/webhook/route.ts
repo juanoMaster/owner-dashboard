@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js"
 import { MercadoPagoConfig, Payment } from "mercadopago"
 import { createHmac } from "crypto"
 import { logAudit } from "@/lib/audit"
+import { sendWhatsApp } from "@/lib/whatsapp"
 
 function verifyMpSignature(secret: string, xSignature: string, xRequestId: string, dataId: string): boolean {
   let ts = ""
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const { data: tenant } = await supabase
       .from("tenants")
-      .select("mp_access_token, mp_webhook_secret")
+      .select("mp_access_token, mp_webhook_secret, owner_whatsapp, dashboard_token, business_name")
       .eq("id", tenantId)
       .single()
 
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
       // Fetch booking data before confirming so we have context for audit and email
       const { data: booking } = await supabase
         .from("bookings")
-        .select("cabin_id, check_in, check_out, total_amount, deposit_amount, guest_name, status")
+        .select("cabin_id, check_in, check_out, total_amount, deposit_amount, guest_name, status, cabins(name)")
         .eq("id", bookingId)
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
@@ -111,6 +112,16 @@ export async function POST(req: NextRequest) {
         },
         performed_by: "mercadopago_webhook",
       })
+
+      // WhatsApp al propietario
+      if (tenant?.owner_whatsapp) {
+        const panelUrl = tenant.dashboard_token
+          ? `https://panel.takai.cl/?token=${tenant.dashboard_token}`
+          : "https://panel.takai.cl"
+        const cabinName = (booking.cabins as any)?.name || "Cabaña"
+        const ownerMsg = `🏡 Nueva reserva en ${cabinName}\n👤 ${booking.guest_name}\n📅 Check-in: ${booking.check_in} → Check-out: ${booking.check_out}\n💰 Total: $${booking.total_amount}\nVer reserva: ${panelUrl}`
+        sendWhatsApp({ to: tenant.owner_whatsapp, message: ownerMsg, tenantId }).catch(() => {})
+      }
 
       try {
         await fetch(
