@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 import { createClient } from "@supabase/supabase-js"
 import { notFound } from "next/navigation"
+import MapaUbicacion from "@/app/components/MapaUbicacion"
 
 type Guidebook = {
   arrival_instructions?: string
@@ -45,7 +46,7 @@ export default async function BienvenidaPage({ params }: { params: { booking_cod
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("guest_name, check_in, check_out, cabin_id, tenant_id, cabins(name), tenants(business_name, guidebook)")
+    .select("guest_name, check_in, check_out, cabin_id, tenant_id, cabins(name), tenants(business_name, guidebook, latitude, longitude)")
     .eq("booking_code", params.booking_code)
     .is("deleted_at", null)
     .maybeSingle()
@@ -55,6 +56,8 @@ export default async function BienvenidaPage({ params }: { params: { booking_cod
   const t = booking.tenants as any
   const businessName: string = t?.business_name || "Cabaña"
   const guidebook: Guidebook = t?.guidebook || {}
+  const tenantLat: number | null = t?.latitude ?? null
+  const tenantLng: number | null = t?.longitude ?? null
   const cabinName: string = (booking.cabins as any)?.name || "Cabaña"
   const guestName: string = booking.guest_name || "Huésped"
 
@@ -98,6 +101,20 @@ export default async function BienvenidaPage({ params }: { params: { booking_cod
           <InfoRow label="Check-in" value={formatDate(booking.check_in)} />
           <InfoRow label="Check-out" value={formatDate(booking.check_out)} />
         </div>
+
+        {tenantLat && tenantLng && (
+          <div style={{ marginBottom: "14px" }}>
+            <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a", marginBottom: "10px", fontFamily: "sans-serif" }}>
+              Cómo llegar
+            </div>
+            <MapaUbicacion
+              latitude={tenantLat}
+              longitude={tenantLng}
+              nombre={businessName}
+              modo="exacto"
+            />
+          </div>
+        )}
 
         {!hasContent && (
           <div style={{ textAlign: "center" as const, padding: "40px 20px", color: "#3a5a38", fontSize: "13px" }}>

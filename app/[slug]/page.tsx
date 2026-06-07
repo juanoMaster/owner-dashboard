@@ -1,6 +1,9 @@
 "use client"
 import { Suspense, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import dynamic from "next/dynamic"
+
+const MapaUbicacion = dynamic(() => import("@/app/components/MapaUbicacion"), { ssr: false })
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
@@ -422,24 +425,12 @@ function SlugInner() {
             <div style={{ fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: GOLD, marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
               Cómo llegar<div style={{ flex: 1, height: "1px", background: "rgba(201,168,76,0.12)" }} />
             </div>
-            <div style={{ borderRadius: "12px", overflow: "hidden", border: "1px solid " + BORDER }}>
-              <iframe
-                src={"https://maps.google.com/maps?q=" + tenant.latitude + "," + tenant.longitude + "&z=15&output=embed"}
-                width="100%"
-                height="300"
-                style={{ border: 0, display: "block" }}
-                loading="lazy"
-              />
-            </div>
-            <div style={{ marginTop: "10px", textAlign: "center" as const }}>
-              <a
-                href={"https://maps.google.com/?q=" + tenant.latitude + "," + tenant.longitude}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "20px", padding: "8px 18px", textDecoration: "none", fontSize: "12px", color: GOLD, fontWeight: 500 }}>
-                Cómo llegar →
-              </a>
-            </div>
+            <MapaUbicacion
+              latitude={tenant.latitude!}
+              longitude={tenant.longitude!}
+              nombre={tenant.business_name}
+              modo="aproximado"
+            />
           </div>
         )}
 

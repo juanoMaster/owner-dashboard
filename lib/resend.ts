@@ -280,8 +280,8 @@ export function emailReservaConfirmada(data: {
     ${data.latitude && data.longitude ? `
     <tr>
       <td style="padding:0 40px 24px;text-align:center;">
-        <a href="https://maps.google.com/?q=${data.latitude},${data.longitude}" style="display:inline-block;background:#1a2332;border:1px solid #1e2d40;border-radius:6px;padding:14px 28px;text-decoration:none;">
-          <p style="margin:0;font-family:${FONT_SANS};font-size:13px;color:${GOLD};font-weight:600;letter-spacing:1px;">📍 Ver ubicación exacta y cómo llegar</p>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${data.latitude},${data.longitude}" style="display:inline-block;background:#1a2332;border:1px solid #1e2d40;border-radius:6px;padding:14px 28px;text-decoration:none;">
+          <p style="margin:0;font-family:${FONT_SANS};font-size:13px;color:${GOLD};font-weight:600;letter-spacing:1px;">📍 Cómo llegar — abrir en Google Maps</p>
         </a>
       </td>
     </tr>

@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react"
 import AuditClient from "./AuditClient"
 import NewClientOnboarding from "./NewClientOnboarding"
+import TenantFormFields, { tenantFormFromData, tenantFormToPayload, type TenantFormState } from "./TenantFormFields"
 import { parseNotes } from "@/lib/parse-notes"
 
 // ── helpers ──────────────────────────────
@@ -676,308 +677,31 @@ function ReservasTab({ bookings, tenantMap, cabinMap }: any) {
 // ══ TENANT MODAL ══════════════════════════
 function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
   const isNew = !data.id
-  const existingCancellationPolicy = (data.page_rules || []).find((r: any) => typeof r === 'object' && r !== null && r.type === 'cancellation')?.text || ""
-  const [form, setForm] = useState({
-    business_name: data.business_name || "",
-    owner_name: data.owner_name || "",
-    owner_whatsapp: data.owner_whatsapp || "",
-    email_owner: data.email_owner || "",
-    email_owner_2: data.email_owner_2 || "",
-    deposit_percent: data.deposit_percent || 20,
-    gender: data.gender || "female",
-    bank_name: data.bank_name || "",
-    bank_account_type: data.bank_account_type || "",
-    bank_account_number: data.bank_account_number || "",
-    bank_account_holder: data.bank_account_holder || "",
-    bank_rut: data.bank_rut || "",
-    mp_access_token: data.mp_access_token || "",
-    mp_enabled: data.mp_enabled ?? false,
-    whatsapp_enabled: data.whatsapp_enabled ?? true,
-    country: data.country || "CL",
-    currency: data.currency || "CLP",
-    location_text: data.location_text || "",
-    location_maps_url: data.location_maps_url || "",
-    tagline: data.tagline || "",
-    instagram_url: data.instagram_url || "",
-    facebook_url: data.facebook_url || "",
-    has_tinaja: data.has_tinaja ?? false,
-    tinaja_price: data.tinaja_price || 0,
-    min_nights: data.min_nights || 2,
-    latitude: data.latitude ?? "",
-    longitude: data.longitude ?? "",
-    activities: (data.activities || []) as Array<{icon: string; name: string}>,
-    page_rules: ((data.page_rules || []) as any[]).filter((r: any) => typeof r === 'string') as string[],
-    extra_services: (data.extra_services || []) as Array<{name: string; price: number}>,
-  })
-  const [cancellationPolicyText, setCancellationPolicyText] = useState(existingCancellationPolicy)
-  const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
-  const [newActIcon, setNewActIcon] = useState("")
-  const [newActName, setNewActName] = useState("")
-  const [newRule, setNewRule] = useState("")
-  const [newSvcName, setNewSvcName] = useState("")
-  const [newSvcPrice, setNewSvcPrice] = useState("")
+  const [form, setForm] = useState<TenantFormState>(() => tenantFormFromData(data))
+  const patch = (updates: Partial<TenantFormState>) => setForm(p => ({ ...p, ...updates }))
+
   return (
     <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={MODAL_BOX}>
         <div style={{ fontFamily: "Georgia,serif", fontSize: "20px", color: "#e8d5a3", marginBottom: "22px" }}>
           {isNew ? "Nuevo cliente" : "Editar cliente"}
         </div>
-        {[
-          { key: "business_name", label: "Nombre del negocio", type: "text" },
-          { key: "owner_name", label: "Nombre propietaria", type: "text" },
-          { key: "owner_whatsapp", label: "WhatsApp propietaria", type: "text" },
-          { key: "deposit_percent", label: "% depósito (default 20)", type: "number" },
-          { key: "min_nights", label: "Noches mínimas (default 2)", type: "number" },
-        ].map(f => (
-          <div key={f.key} style={{ marginBottom: "16px" }}>
-            <label style={LABEL}>{f.label}</label>
-            <input type={f.type} value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
-          </div>
-        ))}
-        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
-          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Contacto y notificaciones</div>
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Email principal del dueño</label>
-          <input type="email" value={form.email_owner} onChange={set("email_owner")} style={INPUT} />
-        </div>
-        <div style={{ marginBottom: "6px" }}>
-          <label style={LABEL}>Email adicional para notificaciones</label>
-          <input type="email" value={form.email_owner_2} onChange={set("email_owner_2")} style={INPUT} />
-        </div>
-        <div style={{ marginBottom: "16px", fontSize: "11px", color: "#5a4870" }}>Ambos emails recibirán notificaciones de nuevas reservas</div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Instagram URL</label>
-          <input type="text" value={form.instagram_url} onChange={set("instagram_url")} placeholder="https://instagram.com/..." style={INPUT} />
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Facebook URL</label>
-          <input type="text" value={form.facebook_url} onChange={set("facebook_url")} placeholder="https://facebook.com/..." style={INPUT} />
-        </div>
-        <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <input type="checkbox" id="has-tinaja" checked={form.has_tinaja}
-            onChange={e => setForm(p => ({ ...p, has_tinaja: e.target.checked }))}
-            style={{ width: "16px", height: "16px", cursor: "pointer" }} />
-          <label htmlFor="has-tinaja" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>Tiene tinaja</label>
-        </div>
-        {form.has_tinaja && (
-          <div style={{ marginBottom: "16px" }}>
-            <label style={LABEL}>Precio tinaja por día ($)</label>
-            <input type="number" value={form.tinaja_price} onChange={set("tinaja_price")} style={INPUT} />
-          </div>
-        )}
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Género</label>
-          <select value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))} style={{ ...INPUT }}>
-            <option value="female">Mujer — Bienvenida</option>
-            <option value="male">Hombre — Bienvenido</option>
-          </select>
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>País (define la moneda)</label>
-          <select value={form.country} onChange={e => {
-            const countryToCurrency: Record<string, string> = { CL: "CLP", EC: "USD", CO: "COP", PE: "PEN", AR: "ARS", MX: "MXN", US: "USD" }
-            setForm(p => ({ ...p, country: e.target.value, currency: countryToCurrency[e.target.value] || "CLP" }))
-          }} style={{ ...INPUT }}>
-            <option value="CL">Chile — CLP ($)</option>
-            <option value="EC">Ecuador — USD ($)</option>
-            <option value="CO">Colombia — COP ($)</option>
-            <option value="PE">Perú — PEN (S/)</option>
-            <option value="AR">Argentina — ARS ($)</option>
-            <option value="MX">México — MXN ($)</option>
-          </select>
-        </div>
-        <div style={{ marginBottom: "16px", background: "#0d0918", border: "1px solid #2a1e38", borderRadius: "8px", padding: "8px 12px", fontSize: "12px", color: "#5a4870" }}>
-          Moneda configurada: <strong style={{ color: "#c8b878" }}>{form.currency}</strong>
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Frase del hero (tagline)</label>
-          <input type="text" value={form.tagline} onChange={set("tagline")}
-            placeholder="Ej: Naturaleza, silencio y tú." style={INPUT} />
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Ubicación (texto visible)</label>
-          <input type="text" value={form.location_text} onChange={set("location_text")}
-            placeholder="Ej: Cacagual, Pichincha · Ecuador" style={INPUT} />
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Link Google Maps</label>
-          <input type="text" value={form.location_maps_url} onChange={set("location_maps_url")}
-            placeholder="https://maps.google.com/..." style={INPUT} />
-        </div>
-        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
-          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Ubicación exacta (mapa embed)</div>
-        </div>
-        <div style={{ display: "flex", gap: "10px", marginBottom: "6px" }}>
-          <div style={{ flex: 1 }}>
-            <label style={LABEL}>Latitud</label>
-            <input type="number" step="any" value={form.latitude} onChange={set("latitude")} placeholder="-39.8142" style={INPUT} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={LABEL}>Longitud</label>
-            <input type="number" step="any" value={form.longitude} onChange={set("longitude")} placeholder="-72.2306" style={INPUT} />
-          </div>
-        </div>
-        <div style={{ marginBottom: "16px", fontSize: "11px", color: "#5a4870" }}>Puedes obtener las coordenadas desde Google Maps → clic derecho en el lugar → copiar lat/lng</div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Actividades cercanas</label>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px", marginBottom: "8px" }}>
-            {form.activities.map((act: any, i: number) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "6px 10px" }}>
-                <span style={{ fontSize: "16px" }}>{act.icon}</span>
-                <span style={{ flex: 1, fontSize: "12px", color: "#c8b8e0" }}>{act.name}</span>
-                <button onClick={() => setForm(p => ({ ...p, activities: p.activities.filter((_: any, j: number) => j !== i) }))}
-                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: "6px" }}>
-            <input placeholder="Emoji" value={newActIcon} onChange={e => setNewActIcon(e.target.value)}
-              style={{ ...INPUT, width: "60px", textAlign: "center" as const }} />
-            <input placeholder="Nombre actividad" value={newActName} onChange={e => setNewActName(e.target.value)}
-              style={{ ...INPUT, flex: 1 }} />
-            <button onClick={() => {
-              if (!newActName.trim()) return
-              setForm(p => ({ ...p, activities: [...p.activities, { icon: newActIcon || "📍", name: newActName.trim() }] }))
-              setNewActIcon(""); setNewActName("")
-            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
-              + Agregar
-            </button>
-          </div>
-        </div>
-        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
-          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Políticas</div>
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Política de cancelación/devolución</label>
-          <textarea
-            value={cancellationPolicyText}
-            onChange={e => setCancellationPolicyText(e.target.value)}
-            placeholder="Ej: Cancelaciones con más de 7 días: reembolso del 80%. Cancelaciones con menos de 48 hs: sin reembolso."
-            style={{ ...INPUT, minHeight: "80px", resize: "vertical" as const }}
-          />
-        </div>
-        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "14px", marginBottom: "4px" }}>
-          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Servicios extras</div>
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "10px" }}>
-            {form.extra_services.map((svc: any, i: number) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "7px 10px" }}>
-                <span style={{ flex: 1, fontSize: "13px", color: "#c8b8e0" }}>{svc.name}</span>
-                <span style={{ fontSize: "13px", color: "#c8b878" }}>{"$" + Number(svc.price).toLocaleString("es-CL")}</span>
-                <button onClick={() => setForm(p => ({ ...p, extra_services: p.extra_services.filter((_: any, j: number) => j !== i) }))}
-                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <input placeholder="Nombre (ej: Leña)" value={newSvcName} onChange={e => setNewSvcName(e.target.value)}
-              style={{ ...INPUT, flex: 2 }} />
-            <input placeholder="Precio" type="number" value={newSvcPrice} onChange={e => setNewSvcPrice(e.target.value)}
-              style={{ ...INPUT, flex: 1 }} />
-            <button onClick={() => {
-              if (!newSvcName.trim() || !newSvcPrice) return
-              setForm(p => ({ ...p, extra_services: [...p.extra_services, { name: newSvcName.trim(), price: Number(newSvcPrice) }] }))
-              setNewSvcName(""); setNewSvcPrice("")
-            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
-              + Agregar
-            </button>
-          </div>
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <label style={LABEL}>Normas del lugar</label>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px", marginBottom: "8px" }}>
-            {form.page_rules.map((rule: string, i: number) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "6px 10px" }}>
-                <span style={{ flex: 1, fontSize: "12px", color: "#c8b8e0" }}>{rule}</span>
-                <button onClick={() => setForm(p => ({ ...p, page_rules: p.page_rules.filter((_: any, j: number) => j !== i) }))}
-                  style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "16px", padding: "0 4px" }}>×</button>
-              </div>
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: "6px" }}>
-            <input placeholder="Ej: No fumar adentro" value={newRule} onChange={e => setNewRule(e.target.value)}
-              style={{ ...INPUT, flex: 1 }} />
-            <button onClick={() => {
-              if (!newRule.trim()) return
-              setForm(p => ({ ...p, page_rules: [...p.page_rules, newRule.trim()] }))
-              setNewRule("")
-            }} style={{ background: "#7a5a98", border: "none", borderRadius: "8px", color: "white", fontSize: "12px", padding: "0 12px", cursor: "pointer", fontFamily: "sans-serif", whiteSpace: "nowrap" as const }}>
-              + Agregar
-            </button>
-          </div>
-        </div>
-        <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <input
-            type="checkbox"
-            id="wa-enabled"
-            checked={form.whatsapp_enabled}
-            onChange={e => setForm(p => ({ ...p, whatsapp_enabled: e.target.checked }))}
-            style={{ width: "16px", height: "16px", cursor: "pointer" }}
-          />
-          <label htmlFor="wa-enabled" style={{ ...LABEL, marginBottom: 0, cursor: "pointer" }}>
-            Notificaciones WhatsApp habilitadas
-          </label>
-        </div>
-        <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
-          <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Datos bancarios</div>
-        </div>
-        {[
-          { key: "bank_name", label: "Nombre del banco" },
-          { key: "bank_account_type", label: "Tipo de cuenta" },
-          { key: "bank_account_number", label: "Número de cuenta" },
-          { key: "bank_account_holder", label: "Titular de la cuenta" },
-          { key: "bank_rut", label: "RUT titular" },
-        ].map(f => (
-          <div key={f.key} style={{ marginBottom: "16px" }}>
-            <label style={LABEL}>{f.label}</label>
-            <input type="text" value={(form as any)[f.key]} onChange={set(f.key)} style={INPUT} />
-          </div>
-        ))}
-        {!isNew && (
-          <>
-            <div style={{ borderTop: "1px solid #2a1e38", paddingTop: "16px", marginBottom: "4px" }}>
-              <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a4870", marginBottom: "14px" }}>Mercado Pago</div>
-            </div>
-            <div style={{ marginBottom: "16px" }}>
-              <label style={LABEL}>Access Token</label>
-              <input type="text" value={form.mp_access_token} onChange={e => setForm(p => ({ ...p, mp_access_token: e.target.value }))} placeholder="APP_USR-..." style={INPUT} />
-            </div>
-            <div style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
-              <input
-                type="checkbox"
-                id="mp-enabled"
-                checked={form.mp_enabled}
-                disabled={!form.mp_access_token.trim()}
-                onChange={e => setForm(p => ({ ...p, mp_enabled: e.target.checked }))}
-                style={{ width: "16px", height: "16px", cursor: form.mp_access_token.trim() ? "pointer" : "not-allowed" }}
-              />
-              <label htmlFor="mp-enabled" style={{ ...LABEL, marginBottom: 0, cursor: form.mp_access_token.trim() ? "pointer" : "not-allowed", opacity: form.mp_access_token.trim() ? 1 : 0.5 }}>
-                Activar pago con Mercado Pago
-              </label>
-            </div>
-            <button
-              onClick={() => onSaveMp({ id: data.id, mp_access_token: form.mp_access_token, mp_enabled: form.mp_enabled })}
-              disabled={saving}
-              style={{ width: "100%", padding: "10px", background: "#009ee3", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif", marginBottom: "16px", opacity: saving ? 0.8 : 1 }}
-            >
-              {saving ? "Guardando..." : "Guardar configuración MP"}
-            </button>
-          </>
-        )}
-        <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-          <button onClick={() => {
-            const finalPageRules = [
-              ...(cancellationPolicyText.trim() ? [{ type: "cancellation", text: cancellationPolicyText.trim() }] : []),
-              ...form.page_rules,
-            ]
-            onSave({ action: isNew ? "create" : "update", id: data.id, ...form, page_rules: finalPageRules })
-          }} disabled={saving}
+        <TenantFormFields
+          value={form}
+          onChange={patch}
+          showMpConfig={!isNew}
+          onSaveMp={isNew ? undefined : () => onSaveMp({ id: data.id, mp_access_token: form.mp_access_token, mp_enabled: form.mp_enabled })}
+          saving={saving}
+        />
+        <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+          <button
+            onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...tenantFormToPayload(form) })}
+            disabled={saving}
             style={{ flex: 1, padding: "12px", background: "#7a5a98", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
             {saving ? "Guardando..." : "Guardar"}
           </button>
-          <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid #2a1e38", borderRadius: "10px", color: "#5a4870", fontSize: "13px", cursor: "pointer", fontFamily: "sans-serif" }}>
+          <button onClick={onClose}
+            style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid #2a1e38", borderRadius: "10px", color: "#5a4870", fontSize: "13px", cursor: "pointer", fontFamily: "sans-serif" }}>
             Cancelar
           </button>
         </div>
@@ -1131,10 +855,15 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
     description: data.description || "",
     extras: (data.extras || []) as Array<{name: string; price: number}>,
     pricing_tiers: (data?.pricing_tiers || []) as Array<{min_guests: number; max_guests: number; price_per_night: number}>,
+    season_prices: (data?.season_prices || []) as Array<{name: string; start_date: string; end_date: string; price_per_night: number}>,
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   const [newExtraName, setNewExtraName] = useState("")
   const [newExtraPrice, setNewExtraPrice] = useState("")
+  const [newSeasonName, setNewSeasonName] = useState("")
+  const [newSeasonStart, setNewSeasonStart] = useState("")
+  const [newSeasonEnd, setNewSeasonEnd] = useState("")
+  const [newSeasonPrice, setNewSeasonPrice] = useState("")
   return (
     <div style={MODAL_BG} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={MODAL_BOX}>
@@ -1231,6 +960,42 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
           <button onClick={() => setForm(p => ({ ...p, pricing_tiers: [...p.pricing_tiers, { min_guests: 1, max_guests: 2, price_per_night: 0 }] }))}
             style={{ background: "transparent", border: "1px solid #2a1e38", borderRadius: "8px", color: "#7a5a98", fontSize: "12px", padding: "8px 16px", cursor: "pointer", fontFamily: "sans-serif" }}>
             + Agregar tramo
+          </button>
+        </div>
+        <div style={{ marginBottom: "20px", borderTop: "1px solid #1a0e2a", paddingTop: "20px" }}>
+          <label style={LABEL}>PRECIOS POR TEMPORADA (OPCIONAL)</label>
+          <div style={{ fontSize: "11px", color: "#5a4870", marginBottom: "10px" }}>Definen precios específicos por rango de fechas. Tienen prioridad sobre el precio base.</div>
+          {form.season_prices.map((sp: any, i: number) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px", background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", padding: "7px 10px" }}>
+              <span style={{ flex: 1, fontSize: "12px", color: "#c8b8e0" }}>{sp.name} ({sp.start_date} → {sp.end_date}) — ${Number(sp.price_per_night).toLocaleString("es-CL")}/noche</span>
+              <button onClick={() => setForm(p => ({ ...p, season_prices: p.season_prices.filter((_: any, j: number) => j !== i) }))}
+                style={{ background: "transparent", border: "none", color: "#e63946", cursor: "pointer", fontSize: "18px", padding: "0 4px", flexShrink: 0 }}>×</button>
+            </div>
+          ))}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "8px" }}>
+            <div>
+              <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Nombre temporada</div>
+              <input value={newSeasonName} onChange={e => setNewSeasonName(e.target.value)} placeholder="Temporada alta" style={INPUT} />
+            </div>
+            <div>
+              <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Precio/noche</div>
+              <input type="number" value={newSeasonPrice} onChange={e => setNewSeasonPrice(e.target.value)} placeholder="0" style={INPUT} />
+            </div>
+            <div>
+              <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Fecha inicio</div>
+              <input type="date" value={newSeasonStart} onChange={e => setNewSeasonStart(e.target.value)} style={INPUT} />
+            </div>
+            <div>
+              <div style={{ fontSize: "10px", color: "#5a4870", marginBottom: "4px" }}>Fecha fin</div>
+              <input type="date" value={newSeasonEnd} onChange={e => setNewSeasonEnd(e.target.value)} style={INPUT} />
+            </div>
+          </div>
+          <button onClick={() => {
+            if (!newSeasonName.trim() || !newSeasonStart || !newSeasonEnd || !newSeasonPrice) return
+            setForm(p => ({ ...p, season_prices: [...p.season_prices, { name: newSeasonName.trim(), start_date: newSeasonStart, end_date: newSeasonEnd, price_per_night: Number(newSeasonPrice) }] }))
+            setNewSeasonName(""); setNewSeasonStart(""); setNewSeasonEnd(""); setNewSeasonPrice("")
+          }} style={{ background: "transparent", border: "1px solid #2a1e38", borderRadius: "8px", color: "#7a5a98", fontSize: "12px", padding: "8px 16px", cursor: "pointer", fontFamily: "sans-serif" }}>
+            + Agregar temporada
           </button>
         </div>
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>

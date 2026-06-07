@@ -1,25 +1,33 @@
 "use client"
 
 import { useCallback, useState } from "react"
+import TenantFormFields, {
+  defaultTenantForm,
+  tenantFormToPayload,
+  type TenantFormState,
+} from "./TenantFormFields"
 
 const PANEL_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
 const RESERVAS_BASE = "https://reservas.takai.cl"
 
-const BANKS = [
-  "BancoEstado",
-  "Banco de Chile",
-  "Santander",
-  "BCI",
-  "Scotiabank",
-  "Itaú",
-  "Falabella",
-] as const
+type Extra = { name: string; price: string }
+type PricingTier = { min_guests: string; max_guests: string; price_per_night: string }
+type SeasonPrice = { name: string; start_date: string; end_date: string; price_per_night: string }
 
-const ACCOUNT_TYPES = ["Cuenta RUT", "Cuenta Vista", "Cuenta Corriente"] as const
-
-type CabinRow = { name: string; base_price_night: string; capacity: string; has_tinaja: boolean; tinaja_price: string; extra_person_price: string }
-type ExtraService = { name: string; price: string }
-type ActivityItem = string
+type CabinRow = {
+  name: string
+  base_price_night: string
+  capacity: string
+  has_tinaja: boolean
+  tinaja_price: string
+  extra_person_price: string
+  cleaning_fee: string
+  description: string
+  amenities: string
+  extras: Extra[]
+  pricing_tiers: PricingTier[]
+  season_prices: SeasonPrice[]
+}
 
 type OnboardResult = {
   token: string
@@ -36,36 +44,13 @@ type Props = {
   onCreated: (data: OnboardResult) => void
 }
 
-function Toggle({
-  checked,
-  onChange,
-  label,
-  id,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-  id: string
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5">
-      <label htmlFor={id} className="text-sm text-[#c8b8e0]">
-        {label}
-      </label>
-      <button
-        type="button"
-        id={id}
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? "bg-[#7a5a98]" : "bg-[#2a1e38]"}`}
-      >
-        <span
-          className={`absolute top-1 left-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`}
-        />
-      </button>
-    </div>
-  )
+function defaultCabin(): CabinRow {
+  return {
+    name: "", base_price_night: "", capacity: "4",
+    has_tinaja: false, tinaja_price: "30000", extra_person_price: "0",
+    cleaning_fee: "0", description: "", amenities: "",
+    extras: [], pricing_tiers: [], season_prices: [],
+  }
 }
 
 function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
@@ -77,74 +62,253 @@ function FieldLabel({ children, required }: { children: React.ReactNode; require
   )
 }
 
+const INP = "w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
+
+function CabinRowForm({
+  index,
+  cabin,
+  canRemove,
+  onChange,
+  onRemove,
+}: {
+  index: number
+  cabin: CabinRow
+  canRemove: boolean
+  onChange: (updates: Partial<CabinRow>) => void
+  onRemove: () => void
+}) {
+  const [newExtraName, setNewExtraName] = useState("")
+  const [newExtraPrice, setNewExtraPrice] = useState("")
+  const [newTierMin, setNewTierMin] = useState("")
+  const [newTierMax, setNewTierMax] = useState("")
+  const [newTierPrice, setNewTierPrice] = useState("")
+  const [newSeasonName, setNewSeasonName] = useState("")
+  const [newSeasonStart, setNewSeasonStart] = useState("")
+  const [newSeasonEnd, setNewSeasonEnd] = useState("")
+  const [newSeasonPrice, setNewSeasonPrice] = useState("")
+
+  return (
+    <div className="rounded-xl border border-[#2a1e38] bg-[#080610]/50 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-[#9a78c8]">Cabaña {index + 1}</span>
+        {canRemove && (
+          <button type="button" onClick={onRemove} className="text-xs text-red-400/90 hover:underline">Quitar</button>
+        )}
+      </div>
+
+      {/* Básicos */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <FieldLabel required>Nombre</FieldLabel>
+          <input required value={cabin.name} onChange={e => onChange({ name: e.target.value })} className={INP} />
+        </div>
+        <div>
+          <FieldLabel required>Precio por noche ($)</FieldLabel>
+          <input type="number" required min={0} value={cabin.base_price_night}
+            onChange={e => onChange({ base_price_night: e.target.value })} className={INP} />
+        </div>
+        <div>
+          <FieldLabel required>Capacidad (personas)</FieldLabel>
+          <input type="number" required min={1} value={cabin.capacity}
+            onChange={e => onChange({ capacity: e.target.value })} className={INP} />
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <FieldLabel>Tarifa de limpieza ($)</FieldLabel>
+          <input type="number" min={0} value={cabin.cleaning_fee}
+            onChange={e => onChange({ cleaning_fee: e.target.value })} className={INP} />
+        </div>
+        <div>
+          <FieldLabel>Precio por persona extra ($)</FieldLabel>
+          <input type="number" min={0} value={cabin.extra_person_price}
+            onChange={e => onChange({ extra_person_price: e.target.value })} className={INP} />
+          <p className="mt-1 text-[11px] text-[#5a4870]">Cobro adicional por persona sobre la capacidad</p>
+        </div>
+      </div>
+
+      {/* Tinaja */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 flex-1 min-w-[200px]">
+          <label className="text-sm text-[#c8b8e0]">¿Tiene tinaja?</label>
+          <button type="button" role="switch" aria-checked={cabin.has_tinaja}
+            onClick={() => onChange({ has_tinaja: !cabin.has_tinaja })}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${cabin.has_tinaja ? "bg-[#7a5a98]" : "bg-[#2a1e38]"}`}>
+            <span className={`absolute top-1 left-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${cabin.has_tinaja ? "translate-x-5" : "translate-x-0"}`} />
+          </button>
+        </div>
+        {cabin.has_tinaja && (
+          <div className="flex-1 min-w-[140px]">
+            <FieldLabel>Precio tinaja/día ($)</FieldLabel>
+            <input type="number" min={0} step={1000} value={cabin.tinaja_price}
+              onChange={e => onChange({ tinaja_price: e.target.value })} className={INP} />
+          </div>
+        )}
+      </div>
+
+      {/* Descripción */}
+      <div>
+        <FieldLabel>Descripción</FieldLabel>
+        <textarea value={cabin.description} onChange={e => onChange({ description: e.target.value })}
+          rows={2} placeholder="Describe la cabaña, sus características, vistas, etc."
+          className={INP + " resize-y"} />
+      </div>
+
+      {/* Amenidades */}
+      <div>
+        <FieldLabel>Amenidades (una por línea)</FieldLabel>
+        <textarea value={cabin.amenities} onChange={e => onChange({ amenities: e.target.value })}
+          rows={3} placeholder={"Agua caliente\nVista al lago\nCama king"}
+          className={INP + " resize-y"} />
+      </div>
+
+      {/* Extras con precio */}
+      <div>
+        <FieldLabel>Extras con precio (opcional)</FieldLabel>
+        <div className="space-y-1 mb-2">
+          {cabin.extras.map((ex, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-1.5">
+              <span className="flex-1 text-sm text-[#c8b8e0]">{ex.name}</span>
+              <span className="text-sm text-[#c8b878]">${Number(ex.price).toLocaleString("es-CL")}</span>
+              <button type="button" onClick={() => onChange({ extras: cabin.extras.filter((_, j) => j !== i) })}
+                className="text-red-400/90 text-base leading-none px-1">×</button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input value={newExtraName} onChange={e => setNewExtraName(e.target.value)} placeholder="Nombre" className={INP + " flex-[2]"} />
+          <input type="number" value={newExtraPrice} onChange={e => setNewExtraPrice(e.target.value)} placeholder="Precio" className={INP + " flex-1"} />
+          <button type="button"
+            className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white shrink-0"
+            onClick={() => {
+              if (!newExtraName.trim()) return
+              onChange({ extras: [...cabin.extras, { name: newExtraName.trim(), price: newExtraPrice }] })
+              setNewExtraName(""); setNewExtraPrice("")
+            }}>+ Agregar</button>
+        </div>
+      </div>
+
+      {/* Pricing tiers */}
+      <div>
+        <FieldLabel>Precios por ocupación (opcional)</FieldLabel>
+        <p className="mb-2 text-[11px] text-[#5a4870]">Si el precio varía según cuántas personas van, configúralo aquí.</p>
+        <div className="space-y-1 mb-2">
+          {cabin.pricing_tiers.map((tier, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-1.5 text-sm text-[#c8b8e0]">
+              <span className="flex-1">{tier.min_guests}–{tier.max_guests} pax → ${Number(tier.price_per_night).toLocaleString("es-CL")}/noche</span>
+              <button type="button" onClick={() => onChange({ pricing_tiers: cabin.pricing_tiers.filter((_, j) => j !== i) })}
+                className="text-red-400/90 text-base leading-none px-1">×</button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <div className="text-[10px] text-[#5a4870] mb-1">Desde</div>
+            <input type="number" value={newTierMin} onChange={e => setNewTierMin(e.target.value)} placeholder="1" className={INP} />
+          </div>
+          <div className="flex-1">
+            <div className="text-[10px] text-[#5a4870] mb-1">Hasta</div>
+            <input type="number" value={newTierMax} onChange={e => setNewTierMax(e.target.value)} placeholder="4" className={INP} />
+          </div>
+          <div className="flex-[2]">
+            <div className="text-[10px] text-[#5a4870] mb-1">$/noche</div>
+            <input type="number" value={newTierPrice} onChange={e => setNewTierPrice(e.target.value)} placeholder="0" className={INP} />
+          </div>
+          <div className="flex items-end">
+            <button type="button"
+              className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white"
+              onClick={() => {
+                if (!newTierMin || !newTierMax || !newTierPrice) return
+                onChange({ pricing_tiers: [...cabin.pricing_tiers, { min_guests: newTierMin, max_guests: newTierMax, price_per_night: newTierPrice }] })
+                setNewTierMin(""); setNewTierMax(""); setNewTierPrice("")
+              }}>+</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Season prices */}
+      <div>
+        <FieldLabel>Precios por temporada (opcional)</FieldLabel>
+        <p className="mb-2 text-[11px] text-[#5a4870]">Define precios específicos para temporadas. Tienen prioridad sobre el precio base.</p>
+        <div className="space-y-1 mb-2">
+          {cabin.season_prices.map((sp, i) => (
+            <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-1.5 text-sm text-[#c8b8e0]">
+              <span className="flex-1">{sp.name} ({sp.start_date} → {sp.end_date}) → ${Number(sp.price_per_night).toLocaleString("es-CL")}/noche</span>
+              <button type="button" onClick={() => onChange({ season_prices: cabin.season_prices.filter((_, j) => j !== i) })}
+                className="text-red-400/90 text-base leading-none px-1">×</button>
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div>
+            <div className="text-[10px] text-[#5a4870] mb-1">Nombre de la temporada</div>
+            <input value={newSeasonName} onChange={e => setNewSeasonName(e.target.value)} placeholder="Ej: Temporada alta" className={INP} />
+          </div>
+          <div>
+            <div className="text-[10px] text-[#5a4870] mb-1">Precio/noche ($)</div>
+            <input type="number" value={newSeasonPrice} onChange={e => setNewSeasonPrice(e.target.value)} placeholder="0" className={INP} />
+          </div>
+          <div>
+            <div className="text-[10px] text-[#5a4870] mb-1">Fecha inicio</div>
+            <input type="date" value={newSeasonStart} onChange={e => setNewSeasonStart(e.target.value)} className={INP} />
+          </div>
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <div className="text-[10px] text-[#5a4870] mb-1">Fecha fin</div>
+              <input type="date" value={newSeasonEnd} onChange={e => setNewSeasonEnd(e.target.value)} className={INP} />
+            </div>
+            <button type="button"
+              className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white shrink-0"
+              onClick={() => {
+                if (!newSeasonName.trim() || !newSeasonStart || !newSeasonEnd || !newSeasonPrice) return
+                onChange({ season_prices: [...cabin.season_prices, { name: newSeasonName.trim(), start_date: newSeasonStart, end_date: newSeasonEnd, price_per_night: newSeasonPrice }] })
+                setNewSeasonName(""); setNewSeasonStart(""); setNewSeasonEnd(""); setNewSeasonPrice("")
+              }}>+ Agregar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function NewClientOnboarding({ adminToken, onClose, onCreated }: Props) {
   const [phase, setPhase] = useState<"form" | "success">("form")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<OnboardResult | null>(null)
-
-  const [business_name, setBusinessName] = useState("")
-  const [email_owner, setEmailOwner] = useState("")
-  const [owner_whatsapp, setOwnerWhatsapp] = useState("")
-  const [gender, setGender] = useState<"female" | "male">("female")
-  const [has_tinaja, setHasTinaja] = useState(true)
-  const [accepts_pets, setAcceptsPets] = useState(false)
-  const [check_in_time, setCheckInTime] = useState("14:00")
-  const [check_out_time, setCheckOutTime] = useState("12:00")
-  const [min_nights, setMinNights] = useState("2")
-  const [advance_percentage, setAdvancePercentage] = useState("20")
-  const [bank_name, setBankName] = useState("")
-  const [bank_account_type, setBankAccountType] = useState("")
-  const [bank_account_number, setBankAccountNumber] = useState("")
-  const [bank_rut, setBankRut] = useState("")
-  const [instagram_url, setInstagramUrl] = useState("")
-  const [facebook_url, setFacebookUrl] = useState("")
-  const [latitude, setLatitude] = useState("")
-  const [longitude, setLongitude] = useState("")
-  const [email_owner_2, setEmailOwner2] = useState("")
-  const [cancellation_policy, setCancellationPolicy] = useState("")
-  const [extra_services, setExtraServices] = useState<ExtraService[]>([])
-  const [activities_list, setActivitiesList] = useState<ActivityItem[]>([])
-  const [newSvcName, setNewSvcName] = useState("")
-  const [newSvcPrice, setNewSvcPrice] = useState("")
-  const [newActivity, setNewActivity] = useState("")
-  const [cabins, setCabins] = useState<CabinRow[]>([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000", extra_person_price: "0" }])
-
   const [copiedPanel, setCopiedPanel] = useState(false)
   const [copiedPublic, setCopiedPublic] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
   const [copiedIframe, setCopiedIframe] = useState(false)
+
+  const [tenant, setTenant] = useState<TenantFormState>(defaultTenantForm)
+  const [cabins, setCabins] = useState<CabinRow[]>([defaultCabin()])
+
+  const patchTenant = useCallback((updates: Partial<TenantFormState>) => {
+    setTenant(prev => ({ ...prev, ...updates }))
+  }, [])
 
   const copyFeedback = useCallback((setter: (v: boolean) => void) => {
     setter(true)
     window.setTimeout(() => setter(false), 2000)
   }, [])
 
-  const addCabinRow = () => {
-    setCabins((c) => [...c, { name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000", extra_person_price: "0" }])
+  const updateCabin = (index: number, updates: Partial<CabinRow>) => {
+    setCabins(rows => rows.map((row, i) => i === index ? { ...row, ...updates } : row))
   }
 
-  const removeCabinRow = (index: number) => {
-    setCabins((c) => (c.length <= 1 ? c : c.filter((_, i) => i !== index)))
-  }
-
-  const updateCabin = (index: number, field: keyof CabinRow, value: string | boolean) => {
-    setCabins((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
-  }
-
-  const validateClient = (): string | null => {
-    if (business_name.trim().length < 2) return "Indica el nombre del negocio (mín. 2 caracteres)."
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_owner.trim())) return "Email del dueño no válido."
-    if (!bank_name) return "Selecciona un banco."
-    if (!bank_account_type) return "Selecciona el tipo de cuenta."
-    if (!bank_account_number.trim()) return "Indica el número de cuenta."
-    if (!bank_rut.trim()) return "Indica el RUT del titular."
+  const validate = (): string | null => {
+    if (tenant.business_name.trim().length < 2) return "Indica el nombre del negocio (mín. 2 caracteres)."
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tenant.email_owner.trim())) return "Email del dueño no válido."
+    if (!tenant.bank_name) return "Selecciona un banco."
+    if (!tenant.bank_account_type) return "Selecciona el tipo de cuenta."
+    if (!tenant.bank_account_number.trim()) return "Indica el número de cuenta."
+    if (!tenant.bank_rut.trim()) return "Indica el RUT del titular."
     for (const c of cabins) {
       if (!c.name.trim()) return "Todas las cabañas deben tener nombre."
-      const p = Number(c.base_price_night)
-      if (!Number.isFinite(p) || p < 0) return "Precio por noche inválido."
-      const cap = parseInt(c.capacity, 10)
-      if (!Number.isFinite(cap) || cap < 1) return "Capacidad inválida (mín. 1)."
+      if (!Number.isFinite(Number(c.base_price_night)) || Number(c.base_price_night) < 0) return "Precio por noche inválido."
+      if (!Number.isFinite(parseInt(c.capacity, 10)) || parseInt(c.capacity, 10) < 1) return "Capacidad inválida (mín. 1)."
     }
     return null
   }
@@ -152,46 +316,38 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    const v = validateClient()
-    if (v) {
-      setError(v)
-      return
-    }
+    const v = validate()
+    if (v) { setError(v); return }
     setSaving(true)
     try {
+      const payload = tenantFormToPayload(tenant)
       const res = await fetch("/api/admin/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
         body: JSON.stringify({
-          business_name: business_name.trim(),
-          email_owner: email_owner.trim(),
-          email_owner_2: email_owner_2.trim() || null,
-          owner_whatsapp: owner_whatsapp.trim() || null,
-          gender,
-          has_tinaja,
-          accepts_pets,
-          check_in_time,
-          check_out_time,
-          min_nights: parseInt(min_nights, 10) || 2,
-          advance_percentage: parseInt(advance_percentage, 10) || 20,
-          bank_name,
-          bank_account_type,
-          bank_account_number: bank_account_number.trim(),
-          bank_rut: bank_rut.trim(),
-          instagram_url: instagram_url.trim() || null,
-          facebook_url: facebook_url.trim() || null,
-          latitude: latitude.trim() ? Number(latitude) : null,
-          longitude: longitude.trim() ? Number(longitude) : null,
-          extra_services: extra_services.filter(s => s.name.trim()).map(s => ({ name: s.name.trim(), price: Number(s.price) || 0 })),
-          activities: activities_list.filter(a => a.trim()).map(a => ({ icon: "📍", name: a.trim() })),
-          page_rules: cancellation_policy.trim() ? [{ type: "cancellation", text: cancellation_policy.trim() }] : [],
-          cabins: cabins.map((c) => ({
+          ...payload,
+          cabins: cabins.map(c => ({
             name: c.name.trim(),
             base_price_night: Number(c.base_price_night),
             capacity: parseInt(c.capacity, 10),
             has_tinaja: c.has_tinaja,
-            tinaja_price: Number(c.tinaja_price) || 30000,
+            tinaja_price: Number(c.tinaja_price) || 0,
             extra_person_price: Number(c.extra_person_price) || 0,
+            cleaning_fee: Number(c.cleaning_fee) || 0,
+            description: c.description.trim() || null,
+            amenities: c.amenities.trim() || null,
+            extras: c.extras.map(ex => ({ name: ex.name, price: Number(ex.price) || 0 })),
+            pricing_tiers: c.pricing_tiers.map(t => ({
+              min_guests: Number(t.min_guests),
+              max_guests: Number(t.max_guests),
+              price_per_night: Number(t.price_per_night),
+            })),
+            season_prices: c.season_prices.map(sp => ({
+              name: sp.name,
+              start_date: sp.start_date,
+              end_date: sp.end_date,
+              price_per_night: Number(sp.price_per_night),
+            })),
           })),
         }),
       })
@@ -201,9 +357,8 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
         setSaving(false)
         return
       }
-      const payload = data as OnboardResult & { success?: boolean }
-      setResult(payload)
-      onCreated(payload)
+      setResult(data as OnboardResult)
+      onCreated(data as OnboardResult)
       setPhase("success")
     } catch {
       setError("No se pudo conectar con el servidor.")
@@ -214,29 +369,8 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const resetForm = () => {
     setPhase("form")
     setResult(null)
-    setBusinessName("")
-    setEmailOwner("")
-    setOwnerWhatsapp("")
-    setGender("female")
-    setHasTinaja(true)
-    setAcceptsPets(false)
-    setCheckInTime("14:00")
-    setCheckOutTime("12:00")
-    setMinNights("2")
-    setAdvancePercentage("20")
-    setBankName("")
-    setBankAccountType("")
-    setBankAccountNumber("")
-    setBankRut("")
-    setInstagramUrl("")
-    setFacebookUrl("")
-    setLatitude("")
-    setLongitude("")
-    setEmailOwner2("")
-    setCancellationPolicy("")
-    setExtraServices([])
-    setActivitiesList([])
-    setCabins([{ name: "", base_price_night: "", capacity: "4", has_tinaja: true, tinaja_price: "30000", extra_person_price: "0" }])
+    setTenant(defaultTenantForm())
+    setCabins([defaultCabin()])
     setError(null)
   }
 
@@ -249,35 +383,24 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const iframeCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" title="Calendario ${slug}"></iframe>`
 
   const copy = async (text: string, feedback: (v: boolean) => void) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      copyFeedback(feedback)
-    } catch {
-      /* ignore */
-    }
+    try { await navigator.clipboard.writeText(text); copyFeedback(feedback) } catch { /* ignore */ }
   }
 
   return (
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
         className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#2a1e38] bg-[#0d0918] shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#2a1e38] bg-[#0d0918]/95 px-5 py-4 backdrop-blur-sm">
           <h2 className="font-serif text-xl text-[#e8d5a3]">
             {phase === "form" ? "Nuevo cliente" : "Cliente creado"}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-[#5a4870] transition hover:bg-[#1a1428] hover:text-[#c8b8e0]"
-            aria-label="Cerrar"
-          >
+          <button type="button" onClick={onClose}
+            className="rounded-lg p-2 text-[#5a4870] transition hover:bg-[#1a1428] hover:text-[#c8b8e0]" aria-label="Cerrar">
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
@@ -288,515 +411,88 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
           <div className="space-y-5 p-6">
             <div className="rounded-xl border border-emerald-900/50 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-100/95">
               <p className="font-semibold text-emerald-200">¡Cliente registrado correctamente!</p>
-              <p className="mt-1 text-emerald-100/80">
-                Negocio: <span className="font-medium text-white">{biz}</span>
-              </p>
+              <p className="mt-1 text-emerald-100/80">Negocio: <span className="font-medium text-white">{biz}</span></p>
             </div>
-
             <p className="rounded-lg border border-amber-900/40 bg-amber-950/40 px-4 py-3 text-sm text-amber-100/90">
               Guarda el link del panel ahora. El token solo se muestra una vez.
             </p>
-
             <div className="space-y-4">
-              <div>
-                <FieldLabel>Link del panel del dueño</FieldLabel>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                  <div className="min-w-0 flex-1 break-all rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 font-mono text-[11px] text-[#c8b8e0]">
-                    {panelUrl}
+              {[
+                { label: "Link del panel del dueño", url: panelUrl, copied: copiedPanel, setter: setCopiedPanel },
+                { label: "Página pública", url: publicUrl, copied: copiedPublic, setter: setCopiedPublic },
+                { label: "Calendario embebible (URL)", url: embedUrl, copied: copiedEmbed, setter: setCopiedEmbed },
+              ].map(({ label, url, copied, setter }) => (
+                <div key={label}>
+                  <FieldLabel>{label}</FieldLabel>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                    <div className="min-w-0 flex-1 break-all rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 font-mono text-[11px] text-[#c8b8e0]">{url}</div>
+                    <button type="button" onClick={() => copy(url, setter)}
+                      className="shrink-0 rounded-lg border border-[#7a5a98]/50 bg-[#1a1428] px-4 py-2 text-xs font-semibold text-[#c8b878] transition hover:bg-[#241a32]">
+                      {copied ? "¡Copiado!" : "Copiar"}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => copy(panelUrl, setCopiedPanel)}
-                    className="shrink-0 rounded-lg border border-[#7a5a98]/50 bg-[#1a1428] px-4 py-2 text-xs font-semibold text-[#c8b878] transition hover:bg-[#241a32]"
-                  >
-                    {copiedPanel ? "¡Copiado!" : "Copiar"}
-                  </button>
                 </div>
-              </div>
-
-              <div>
-                <FieldLabel>Página pública</FieldLabel>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                  <div className="min-w-0 flex-1 break-all rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 font-mono text-[11px] text-[#c8b8e0]">
-                    {publicUrl}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => copy(publicUrl, setCopiedPublic)}
-                    className="shrink-0 rounded-lg border border-[#7a5a98]/50 bg-[#1a1428] px-4 py-2 text-xs font-semibold text-[#c8b878] transition hover:bg-[#241a32]"
-                  >
-                    {copiedPublic ? "¡Copiado!" : "Copiar"}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <FieldLabel>Calendario embebible (URL)</FieldLabel>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                  <div className="min-w-0 flex-1 break-all rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 font-mono text-[11px] text-[#c8b8e0]">
-                    {embedUrl}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => copy(embedUrl, setCopiedEmbed)}
-                    className="shrink-0 rounded-lg border border-[#7a5a98]/50 bg-[#1a1428] px-4 py-2 text-xs font-semibold text-[#c8b878] transition hover:bg-[#241a32]"
-                  >
-                    {copiedEmbed ? "¡Copiado!" : "Copiar"}
-                  </button>
-                </div>
-              </div>
-
+              ))}
               <div>
                 <FieldLabel>Código iframe</FieldLabel>
-                <pre className="mb-2 max-h-32 overflow-auto rounded-lg border border-[#2a1e38] bg-[#080610] p-3 text-[11px] leading-relaxed text-[#a898c8]">
-                  {iframeCode}
-                </pre>
-                <button
-                  type="button"
-                  onClick={() => copy(iframeCode, setCopiedIframe)}
-                  className="rounded-lg border border-[#7a5a98]/50 bg-[#1a1428] px-4 py-2 text-xs font-semibold text-[#c8b878] transition hover:bg-[#241a32]"
-                >
+                <pre className="mb-2 max-h-32 overflow-auto rounded-lg border border-[#2a1e38] bg-[#080610] p-3 text-[11px] leading-relaxed text-[#a898c8]">{iframeCode}</pre>
+                <button type="button" onClick={() => copy(iframeCode, setCopiedIframe)}
+                  className="rounded-lg border border-[#7a5a98]/50 bg-[#1a1428] px-4 py-2 text-xs font-semibold text-[#c8b878] transition hover:bg-[#241a32]">
                   {copiedIframe ? "¡Copiado!" : "Copiar código"}
                 </button>
               </div>
             </div>
-
             <div className="flex flex-wrap gap-3 pt-2">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-xl bg-[#7a5a98] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-              >
+              <button type="button" onClick={resetForm}
+                className="rounded-xl bg-[#7a5a98] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90">
                 Crear otro cliente
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl border border-[#2a1e38] px-5 py-3 text-sm font-medium text-[#5a4870] transition hover:bg-[#1a1428] hover:text-[#c8b8e0]"
-              >
+              <button type="button" onClick={onClose}
+                className="rounded-xl border border-[#2a1e38] px-5 py-3 text-sm font-medium text-[#5a4870] transition hover:bg-[#1a1428] hover:text-[#c8b8e0]">
                 Cerrar
               </button>
             </div>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-8 p-6 pb-8">
-            {error ? (
+            {error && (
               <div className="rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-200">{error}</div>
-            ) : null}
+            )}
 
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Datos del negocio</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Nombre del negocio</FieldLabel>
-                  <input
-                    required
-                    value={business_name}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none ring-[#7a5a98]/0 transition focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Teléfono WhatsApp</FieldLabel>
-                  <input
-                    value={owner_whatsapp}
-                    onChange={(e) => setOwnerWhatsapp(e.target.value)}
-                    placeholder="+56 9 ..."
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel required>Género del dueño</FieldLabel>
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value as "female" | "male")}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  >
-                    <option value="female">Femenino (Estimada)</option>
-                    <option value="male">Masculino (Estimado)</option>
-                  </select>
-                </div>
-              </div>
-            </section>
+            {/* ── Datos del tenant ── */}
+            <TenantFormFields value={tenant} onChange={patchTenant} showMpConfig={false} />
 
+            {/* ── Cabañas ── */}
             <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Configuración de reservas</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Toggle id="tinaja" checked={has_tinaja} onChange={setHasTinaja} label="¿Tiene tinaja?" />
-                <Toggle id="mascotas" checked={accepts_pets} onChange={setAcceptsPets} label="¿Acepta mascotas?" />
-                <div>
-                  <FieldLabel>Check-in (hora)</FieldLabel>
-                  <input
-                    type="time"
-                    value={check_in_time}
-                    onChange={(e) => setCheckInTime(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Check-out (hora)</FieldLabel>
-                  <input
-                    type="time"
-                    value={check_out_time}
-                    onChange={(e) => setCheckOutTime(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Estadía mínima (noches)</FieldLabel>
-                  <input
-                    type="number"
-                    min={1}
-                    max={365}
-                    value={min_nights}
-                    onChange={(e) => setMinNights(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Porcentaje de adelanto (%)</FieldLabel>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={advance_percentage}
-                    onChange={(e) => setAdvancePercentage(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Datos bancarios</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Banco</FieldLabel>
-                  <select
-                    required
-                    value={bank_name}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  >
-                    <option value="">Selecciona…</option>
-                    {BANKS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Tipo de cuenta</FieldLabel>
-                  <select
-                    required
-                    value={bank_account_type}
-                    onChange={(e) => setBankAccountType(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  >
-                    <option value="">Selecciona…</option>
-                    {ACCOUNT_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <FieldLabel required>Número de cuenta</FieldLabel>
-                  <input
-                    required
-                    value={bank_account_number}
-                    onChange={(e) => setBankAccountNumber(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel required>RUT del titular</FieldLabel>
-                  <input
-                    required
-                    value={bank_rut}
-                    onChange={(e) => setBankRut(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Contacto y notificaciones</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Email del dueño</FieldLabel>
-                  <input
-                    type="email"
-                    required
-                    value={email_owner}
-                    onChange={(e) => setEmailOwner(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel>Email adicional para notificaciones</FieldLabel>
-                  <input
-                    type="email"
-                    value={email_owner_2}
-                    onChange={(e) => setEmailOwner2(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                  <p className="mt-1 text-[11px] text-[#5a4870]">Ambos emails recibirán notificaciones de nuevas reservas</p>
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel>Instagram URL</FieldLabel>
-                  <input
-                    value={instagram_url}
-                    onChange={(e) => setInstagramUrl(e.target.value)}
-                    placeholder="https://instagram.com/..."
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel>Facebook URL</FieldLabel>
-                  <input
-                    value={facebook_url}
-                    onChange={(e) => setFacebookUrl(e.target.value)}
-                    placeholder="https://facebook.com/..."
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Ubicación exacta (mapa embed)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <FieldLabel>Latitud</FieldLabel>
-                  <input
-                    type="number"
-                    step="any"
-                    value={latitude}
-                    onChange={(e) => setLatitude(e.target.value)}
-                    placeholder="-39.8142"
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Longitud</FieldLabel>
-                  <input
-                    type="number"
-                    step="any"
-                    value={longitude}
-                    onChange={(e) => setLongitude(e.target.value)}
-                    placeholder="-72.2306"
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <p className="sm:col-span-2 text-[11px] text-[#5a4870]">Puedes obtener las coordenadas desde Google Maps → clic derecho en el lugar → copiar lat/lng</p>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Políticas</h3>
-              <div>
-                <FieldLabel>Política de cancelación/devolución</FieldLabel>
-                <textarea
-                  value={cancellation_policy}
-                  onChange={(e) => setCancellationPolicy(e.target.value)}
-                  placeholder="Ej: Cancelaciones con más de 7 días: reembolso del 80%. Con menos de 48 hs: sin reembolso."
-                  rows={3}
-                  className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30 resize-y"
-                />
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Servicios extras (opcional)</h3>
-              <div className="space-y-2">
-                {extra_services.map((svc, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2">
-                    <span className="flex-1 text-sm text-[#c8b8e0]">{svc.name}</span>
-                    <span className="text-sm text-[#c8b878]">${Number(svc.price).toLocaleString("es-CL")}</span>
-                    <button type="button" onClick={() => setExtraServices(s => s.filter((_, j) => j !== i))}
-                      className="text-red-400/90 hover:text-red-400 text-base leading-none px-1">×</button>
-                  </div>
-                ))}
-                <div className="flex gap-2">
-                  <input
-                    value={newSvcName}
-                    onChange={e => setNewSvcName(e.target.value)}
-                    placeholder="Nombre (ej: Leña)"
-                    className="flex-[2] rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                  <input
-                    type="number"
-                    value={newSvcPrice}
-                    onChange={e => setNewSvcPrice(e.target.value)}
-                    placeholder="Precio"
-                    className="flex-1 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newSvcName.trim()) return
-                      setExtraServices(s => [...s, { name: newSvcName.trim(), price: newSvcPrice }])
-                      setNewSvcName(""); setNewSvcPrice("")
-                    }}
-                    className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white shrink-0"
-                  >
-                    + Agregar
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Atractivos cercanos (opcional)</h3>
-              <div className="space-y-2">
-                {activities_list.map((act, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2">
-                    <span className="text-base">📍</span>
-                    <span className="flex-1 text-sm text-[#c8b8e0]">{act}</span>
-                    <button type="button" onClick={() => setActivitiesList(a => a.filter((_, j) => j !== i))}
-                      className="text-red-400/90 hover:text-red-400 text-base leading-none px-1">×</button>
-                  </div>
-                ))}
-                <div className="flex gap-2">
-                  <input
-                    value={newActivity}
-                    onChange={e => setNewActivity(e.target.value)}
-                    placeholder="Ej: Lago Calafquén a 500m"
-                    className="flex-1 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newActivity.trim()) return
-                      setActivitiesList(a => [...a, newActivity.trim()])
-                      setNewActivity("")
-                    }}
-                    className="rounded-lg bg-[#7a5a98] px-3 py-2 text-xs font-semibold text-white shrink-0"
-                  >
-                    + Agregar
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Cabañas (mínimo 1)</h3>
+              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">
+                Cabañas (mínimo 1)
+              </h3>
               <div className="space-y-4">
-                {cabins.map((row, index) => (
-                  <div
+                {cabins.map((cabin, index) => (
+                  <CabinRowForm
                     key={index}
-                    className="rounded-xl border border-[#2a1e38] bg-[#080610]/50 p-4"
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-xs font-medium text-[#9a78c8]">Cabaña {index + 1}</span>
-                      {cabins.length > 1 ? (
-                        <button
-                          type="button"
-                          onClick={() => removeCabinRow(index)}
-                          className="text-xs text-red-400/90 hover:underline"
-                        >
-                          Quitar
-                        </button>
-                      ) : null}
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <div className="sm:col-span-1">
-                        <FieldLabel required>Nombre</FieldLabel>
-                        <input
-                          required
-                          value={row.name}
-                          onChange={(e) => updateCabin(index, "name", e.target.value)}
-                          className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel required>Precio por noche ($)</FieldLabel>
-                        <input
-                          type="number"
-                          required
-                          min={0}
-                          step={1}
-                          value={row.base_price_night}
-                          onChange={(e) => updateCabin(index, "base_price_night", e.target.value)}
-                          className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                        />
-                      </div>
-                      <div>
-                        <FieldLabel required>Capacidad (personas)</FieldLabel>
-                        <input
-                          type="number"
-                          required
-                          min={1}
-                          value={row.capacity}
-                          onChange={(e) => updateCabin(index, "capacity", e.target.value)}
-                          className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <FieldLabel>Precio por persona extra ($)</FieldLabel>
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={row.extra_person_price}
-                          onChange={(e) => updateCabin(index, "extra_person_price", e.target.value)}
-                          className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                        />
-                        <p className="mt-1 text-[11px] text-[#5a4870]">Cobro adicional por persona sobre la capacidad máxima</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-end gap-3">
-                      <Toggle
-                        id={"tinaja-" + index}
-                        checked={row.has_tinaja}
-                        onChange={(v) => updateCabin(index, "has_tinaja", v)}
-                        label="¿Tiene tinaja?"
-                      />
-                      {row.has_tinaja && (
-                        <div className="flex-1 min-w-[140px]">
-                          <FieldLabel>Precio tinaja/día ($)</FieldLabel>
-                          <input
-                            type="number"
-                            min={0}
-                            step={1000}
-                            value={row.tinaja_price}
-                            onChange={(e) => updateCabin(index, "tinaja_price", e.target.value)}
-                            className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    index={index}
+                    cabin={cabin}
+                    canRemove={cabins.length > 1}
+                    onChange={updates => updateCabin(index, updates)}
+                    onRemove={() => setCabins(c => c.filter((_, i) => i !== index))}
+                  />
                 ))}
-                <button
-                  type="button"
-                  onClick={addCabinRow}
-                  className="w-full rounded-lg border border-dashed border-[#7a5a98]/40 py-3 text-sm font-medium text-[#9a78c8] transition hover:border-[#7a5a98]/70 hover:bg-[#1a1428]/50"
-                >
+                <button type="button"
+                  onClick={() => setCabins(c => [...c, defaultCabin()])}
+                  className="w-full rounded-lg border border-dashed border-[#7a5a98]/40 py-3 text-sm font-medium text-[#9a78c8] transition hover:border-[#7a5a98]/70 hover:bg-[#1a1428]/50">
                   + Agregar otra cabaña
                 </button>
               </div>
             </section>
 
             <div className="flex flex-wrap gap-3 border-t border-[#2a1e38] pt-6">
-              <button
-                type="submit"
-                disabled={saving}
-                className="rounded-xl bg-[#7a5a98] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              <button type="submit" disabled={saving}
+                className="rounded-xl bg-[#7a5a98] px-6 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
                 {saving ? "Creando…" : "Crear cliente"}
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl border border-[#2a1e38] px-6 py-3 text-sm font-medium text-[#5a4870] transition hover:bg-[#1a1428] hover:text-[#c8b8e0]"
-              >
+              <button type="button" onClick={onClose}
+                className="rounded-xl border border-[#2a1e38] px-6 py-3 text-sm font-medium text-[#5a4870] transition hover:bg-[#1a1428] hover:text-[#c8b8e0]">
                 Cancelar
               </button>
             </div>

@@ -34,6 +34,8 @@ export async function POST(req: Request) {
       const slug = body.slug ||
         (body.business_name as string)?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") ||
         null
+      const gp = (body.guidebook_patch && typeof body.guidebook_patch === "object") ? body.guidebook_patch as Record<string, unknown> : {}
+      const initialGuidebook = Object.fromEntries(Object.entries(gp).filter(([, v]) => v != null && v !== ""))
       const { data, error } = await supabase.from("tenants").insert([{
         business_name: body.business_name,
         owner_name: body.owner_name,
@@ -63,12 +65,21 @@ export async function POST(req: Request) {
         longitude: body.longitude ? Number(body.longitude) : null,
         email_owner_2: body.email_owner_2 || null,
         extra_services: body.extra_services || [],
+        guidebook: Object.keys(initialGuidebook).length > 0 ? initialGuidebook : null,
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })
     }
     if (action === "update") {
+      const gp = (body.guidebook_patch && typeof body.guidebook_patch === "object") ? body.guidebook_patch as Record<string, unknown> : null
+      let guidebook: Record<string, unknown> | undefined
+      if (gp) {
+        const { data: curr } = await supabase.from("tenants").select("guidebook").eq("id", id).single()
+        const existing = (curr?.guidebook && typeof curr.guidebook === "object") ? curr.guidebook as Record<string, unknown> : {}
+        const filtered = Object.fromEntries(Object.entries(gp).filter(([, v]) => v != null && v !== ""))
+        guidebook = { ...existing, ...filtered }
+      }
       const { data, error } = await supabase.from("tenants").update({
         business_name: body.business_name,
         owner_name: body.owner_name,
@@ -98,6 +109,7 @@ export async function POST(req: Request) {
         email_owner_2: body.email_owner_2 || null,
         extra_services: body.extra_services || [],
         whatsapp_enabled: body.whatsapp_enabled ?? true,
+        ...(guidebook !== undefined ? { guidebook } : {}),
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })

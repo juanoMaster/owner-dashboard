@@ -20,6 +20,7 @@ export async function POST(req: Request) {
         amenities: body.amenities || null,
         description: body.description || null,
         pricing_tiers: body.pricing_tiers ?? [],
+        season_prices: body.season_prices ?? [],
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
         amenities: body.amenities || null,
         description: body.description || null,
         pricing_tiers: body.pricing_tiers ?? [],
+        season_prices: body.season_prices ?? [],
       }).eq("id", id)
       if (body.tenant_id) q.eq("tenant_id", body.tenant_id)
       const { data, error } = await q.select().single()
