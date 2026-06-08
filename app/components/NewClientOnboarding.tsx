@@ -1,21 +1,10 @@
 "use client"
 
 import { useCallback, useState } from "react"
+import TenantFormFields, { defaultTenantForm, tenantFormToPayload, type TenantFormState } from "./TenantFormFields"
 
 const PANEL_BASE = "https://panel.takai.cl"
 const CLIENT_DOMAIN_SUFFIX = ".takai.cl"
-
-const BANKS = [
-  "BancoEstado",
-  "Banco de Chile",
-  "Santander",
-  "BCI",
-  "Scotiabank",
-  "Itaú",
-  "Falabella",
-] as const
-
-const ACCOUNT_TYPES = ["Cuenta RUT", "Cuenta Vista", "Cuenta Corriente"] as const
 
 type CabinRow = { name: string; base_price_night: string; capacity: string }
 
@@ -34,38 +23,6 @@ type Props = {
   onCreated: (data: OnboardResult) => void
 }
 
-function Toggle({
-  checked,
-  onChange,
-  label,
-  id,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-  id: string
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5">
-      <label htmlFor={id} className="text-sm text-[#c8b8e0]">
-        {label}
-      </label>
-      <button
-        type="button"
-        id={id}
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? "bg-[#7a5a98]" : "bg-[#2a1e38]"}`}
-      >
-        <span
-          className={`absolute top-1 left-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`}
-        />
-      </button>
-    </div>
-  )
-}
-
 function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
     <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-[#5a4870]">
@@ -81,22 +38,8 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<OnboardResult | null>(null)
 
-  const [business_name, setBusinessName] = useState("")
-  const [email_owner, setEmailOwner] = useState("")
-  const [owner_whatsapp, setOwnerWhatsapp] = useState("")
-  const [gender, setGender] = useState<"female" | "male">("female")
-  const [has_tinaja, setHasTinaja] = useState(true)
-  const [accepts_pets, setAcceptsPets] = useState(false)
-  const [check_in_time, setCheckInTime] = useState("14:00")
-  const [check_out_time, setCheckOutTime] = useState("12:00")
-  const [min_nights, setMinNights] = useState("2")
-  const [advance_percentage, setAdvancePercentage] = useState("20")
-  const [bank_name, setBankName] = useState("")
-  const [bank_account_type, setBankAccountType] = useState("")
-  const [bank_account_number, setBankAccountNumber] = useState("")
-  const [bank_rut, setBankRut] = useState("")
-  const [instagram_url, setInstagramUrl] = useState("")
-  const [facebook_url, setFacebookUrl] = useState("")
+  const [tenant, setTenant] = useState<TenantFormState>(defaultTenantForm)
+  const patchTenant = (updates: Partial<TenantFormState>) => setTenant(p => ({ ...p, ...updates }))
   const [cabins, setCabins] = useState<CabinRow[]>([{ name: "", base_price_night: "", capacity: "4" }])
 
   const [copiedPanel, setCopiedPanel] = useState(false)
@@ -122,12 +65,12 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   }
 
   const validateClient = (): string | null => {
-    if (business_name.trim().length < 2) return "Indica el nombre del negocio (mín. 2 caracteres)."
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_owner.trim())) return "Email del dueño no válido."
-    if (!bank_name) return "Selecciona un banco."
-    if (!bank_account_type) return "Selecciona el tipo de cuenta."
-    if (!bank_account_number.trim()) return "Indica el número de cuenta."
-    if (!bank_rut.trim()) return "Indica el RUT del titular."
+    if (tenant.business_name.trim().length < 2) return "Indica el nombre del negocio (mín. 2 caracteres)."
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tenant.email_owner.trim())) return "Email del dueño no válido."
+    if (!tenant.bank_name) return "Selecciona un banco."
+    if (!tenant.bank_account_type) return "Selecciona el tipo de cuenta."
+    if (!tenant.bank_account_number.trim()) return "Indica el número de cuenta."
+    if (!tenant.bank_rut.trim()) return "Indica el RUT del titular."
     for (const c of cabins) {
       if (!c.name.trim()) return "Todas las cabañas deben tener nombre."
       const p = Number(c.base_price_night)
@@ -148,26 +91,12 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
     }
     setSaving(true)
     try {
+      const tenantPayload = tenantFormToPayload(tenant)
       const res = await fetch("/api/admin/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
         body: JSON.stringify({
-          business_name: business_name.trim(),
-          email_owner: email_owner.trim(),
-          owner_whatsapp: owner_whatsapp.trim() || null,
-          gender,
-          has_tinaja,
-          accepts_pets,
-          check_in_time,
-          check_out_time,
-          min_nights: parseInt(min_nights, 10) || 2,
-          advance_percentage: parseInt(advance_percentage, 10) || 20,
-          bank_name,
-          bank_account_type,
-          bank_account_number: bank_account_number.trim(),
-          bank_rut: bank_rut.trim(),
-          instagram_url: instagram_url.trim() || null,
-          facebook_url: facebook_url.trim() || null,
+          ...tenantPayload,
           cabins: cabins.map((c) => ({
             name: c.name.trim(),
             base_price_night: Number(c.base_price_night),
@@ -194,22 +123,7 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
   const resetForm = () => {
     setPhase("form")
     setResult(null)
-    setBusinessName("")
-    setEmailOwner("")
-    setOwnerWhatsapp("")
-    setGender("female")
-    setHasTinaja(true)
-    setAcceptsPets(false)
-    setCheckInTime("14:00")
-    setCheckOutTime("12:00")
-    setMinNights("2")
-    setAdvancePercentage("20")
-    setBankName("")
-    setBankAccountType("")
-    setBankAccountNumber("")
-    setBankRut("")
-    setInstagramUrl("")
-    setFacebookUrl("")
+    setTenant(defaultTenantForm())
     setCabins([{ name: "", base_price_night: "", capacity: "4" }])
     setError(null)
   }
@@ -358,178 +272,7 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
               <div className="rounded-lg border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-200">{error}</div>
             ) : null}
 
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Datos del negocio</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Nombre del negocio</FieldLabel>
-                  <input
-                    required
-                    value={business_name}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none ring-[#7a5a98]/0 transition focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Email del dueño</FieldLabel>
-                  <input
-                    type="email"
-                    required
-                    value={email_owner}
-                    onChange={(e) => setEmailOwner(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Teléfono WhatsApp</FieldLabel>
-                  <input
-                    value={owner_whatsapp}
-                    onChange={(e) => setOwnerWhatsapp(e.target.value)}
-                    placeholder="+56 9 ..."
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel required>Género del dueño</FieldLabel>
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value as "female" | "male")}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  >
-                    <option value="female">Femenino (Estimada)</option>
-                    <option value="male">Masculino (Estimado)</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Configuración de reservas</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Toggle id="tinaja" checked={has_tinaja} onChange={setHasTinaja} label="¿Tiene tinaja?" />
-                <Toggle id="mascotas" checked={accepts_pets} onChange={setAcceptsPets} label="¿Acepta mascotas?" />
-                <div>
-                  <FieldLabel>Check-in (hora)</FieldLabel>
-                  <input
-                    type="time"
-                    value={check_in_time}
-                    onChange={(e) => setCheckInTime(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Check-out (hora)</FieldLabel>
-                  <input
-                    type="time"
-                    value={check_out_time}
-                    onChange={(e) => setCheckOutTime(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Estadía mínima (noches)</FieldLabel>
-                  <input
-                    type="number"
-                    min={1}
-                    max={365}
-                    value={min_nights}
-                    onChange={(e) => setMinNights(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel>Porcentaje de adelanto (%)</FieldLabel>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={advance_percentage}
-                    onChange={(e) => setAdvancePercentage(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Datos bancarios</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Banco</FieldLabel>
-                  <select
-                    required
-                    value={bank_name}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  >
-                    <option value="">Selecciona…</option>
-                    {BANKS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel required>Tipo de cuenta</FieldLabel>
-                  <select
-                    required
-                    value={bank_account_type}
-                    onChange={(e) => setBankAccountType(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  >
-                    <option value="">Selecciona…</option>
-                    {ACCOUNT_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <FieldLabel required>Número de cuenta</FieldLabel>
-                  <input
-                    required
-                    value={bank_account_number}
-                    onChange={(e) => setBankAccountNumber(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div>
-                  <FieldLabel required>RUT del titular</FieldLabel>
-                  <input
-                    required
-                    value={bank_rut}
-                    onChange={(e) => setBankRut(e.target.value)}
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Redes sociales (opcional)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <FieldLabel>Instagram URL</FieldLabel>
-                  <input
-                    value={instagram_url}
-                    onChange={(e) => setInstagramUrl(e.target.value)}
-                    placeholder="https://instagram.com/..."
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <FieldLabel>Facebook URL</FieldLabel>
-                  <input
-                    value={facebook_url}
-                    onChange={(e) => setFacebookUrl(e.target.value)}
-                    placeholder="https://facebook.com/..."
-                    className="w-full rounded-lg border border-[#2a1e38] bg-[#080610] px-3 py-2.5 text-sm text-[#c8b8e0] outline-none focus:border-[#7a5a98]/60 focus:ring-2 focus:ring-[#7a5a98]/30"
-                  />
-                </div>
-              </div>
-            </section>
+            <TenantFormFields value={tenant} onChange={patchTenant} showMpConfig={false} />
 
             <section>
               <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7a5a98]">Cabañas (mínimo 1)</h3>
