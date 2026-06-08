@@ -32,6 +32,7 @@ export type TenantFormState = {
   bank_account_holder: string
   bank_rut: string
   tagline: string
+  template: string
   location_text: string
   location_maps_url: string
   instagram_url: string
@@ -56,7 +57,8 @@ export function defaultTenantForm(): TenantFormState {
     has_tinaja: false, tinaja_price: "0", whatsapp_enabled: true,
     bank_name: "", bank_account_type: "", bank_account_number: "",
     bank_account_holder: "", bank_rut: "",
-    tagline: "", location_text: "", location_maps_url: "",
+    tagline: "", template: "clasico",
+    location_text: "", location_maps_url: "",
     instagram_url: "", facebook_url: "", latitude: "", longitude: "",
     activities: [], extra_services: [],
     cancellation_policy: "", page_rules: [],
@@ -95,6 +97,7 @@ export function tenantFormFromData(d: Record<string, unknown>): TenantFormState 
     bank_account_holder: String(d.bank_account_holder ?? ""),
     bank_rut: String(d.bank_rut ?? ""),
     tagline: String(d.tagline ?? ""),
+    template: String(d.template ?? "clasico"),
     location_text: String(d.location_text ?? ""),
     location_maps_url: String(d.location_maps_url ?? ""),
     instagram_url: String(d.instagram_url ?? ""),
@@ -137,6 +140,7 @@ export function tenantFormToPayload(f: TenantFormState): Record<string, unknown>
     bank_account_holder: f.bank_account_holder.trim() || null,
     bank_rut: f.bank_rut.trim(),
     tagline: f.tagline.trim() || null,
+    template: f.template || "clasico",
     location_text: f.location_text.trim() || null,
     location_maps_url: f.location_maps_url.trim() || null,
     instagram_url: f.instagram_url.trim() || null,
@@ -179,9 +183,9 @@ function Tog({
       <button
         type="button" id={id} role="switch" aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? "bg-[#7a5a98]" : "bg-[#2a1e38]"}`}
+        className={"relative h-7 w-12 shrink-0 rounded-full transition-colors " + (checked ? "bg-[#7a5a98]" : "bg-[#2a1e38]")}
       >
-        <span className={`absolute top-1 left-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`} />
+        <span className={"absolute top-1 left-1 h-5 w-5 rounded-full bg-white shadow transition-transform " + (checked ? "translate-x-5" : "translate-x-0")} />
       </button>
     </div>
   )
@@ -235,6 +239,14 @@ export default function TenantFormFields({
           <div className="sm:col-span-2">
             <Lbl>Frase del hero (tagline)</Lbl>
             <input value={value.tagline} onChange={set("tagline")} placeholder="Ej: Naturaleza, silencio y tú." className={CLS.inp} />
+          </div>
+          <div className="sm:col-span-2">
+            <Lbl>Plantilla visual</Lbl>
+            <select value={value.template} onChange={set("template")} className={CLS.inp}>
+              <option value="clasico">Clásico (actual)</option>
+              <option value="moderno">Moderno</option>
+              <option value="rural">Rural / Naturaleza</option>
+            </select>
           </div>
         </div>
       </section>

@@ -66,6 +66,7 @@ export async function POST(req: Request) {
         email_owner_2: body.email_owner_2 || null,
         extra_services: body.extra_services || [],
         guidebook: Object.keys(initialGuidebook).length > 0 ? initialGuidebook : null,
+        template: body.template || "clasico",
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -110,6 +111,7 @@ export async function POST(req: Request) {
         extra_services: body.extra_services || [],
         whatsapp_enabled: body.whatsapp_enabled ?? true,
         ...(guidebook !== undefined ? { guidebook } : {}),
+        template: body.template || "clasico",
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })

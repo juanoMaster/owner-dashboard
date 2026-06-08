@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified, currency, location_text, location_maps_url, tagline, activities, page_rules, latitude, longitude, extra_services")
+    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified, currency, location_text, location_maps_url, tagline, activities, page_rules, latitude, longitude, extra_services, template")
     .eq("slug", params.slug)
     .eq("active", true)
     .maybeSingle()
@@ -46,6 +46,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       latitude: tenant.latitude ?? null,
       longitude: tenant.longitude ?? null,
       extra_services: tenant.extra_services || [],
+      template: tenant.template || "clasico",
     },
     cabins: cabins || [],
   })
