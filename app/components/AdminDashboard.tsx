@@ -673,6 +673,7 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
     location_text: data.location_text || "",
     location_maps_url: data.location_maps_url || "",
     tagline: data.tagline || "",
+    template: data.template || "clasico",
     activities: (data.activities || []) as Array<{icon: string; name: string}>,
     page_rules: (data.page_rules || []) as string[],
   })
@@ -725,6 +726,14 @@ function TenantModal({ data, saving, onSave, onSaveMp, onClose }: any) {
           <label style={LABEL}>Frase del hero (tagline)</label>
           <input type="text" value={form.tagline} onChange={set("tagline")}
             placeholder="Ej: Naturaleza, silencio y tú." style={INPUT} />
+        </div>
+        <div style={{ marginBottom: "16px" }}>
+          <label style={LABEL}>Plantilla visual</label>
+          <select value={form.template} onChange={e => setForm(p => ({ ...p, template: e.target.value }))} style={{ ...INPUT }}>
+            <option value="clasico">Clásico (actual)</option>
+            <option value="moderno">Moderno</option>
+            <option value="rural">Rural / Naturaleza</option>
+          </select>
         </div>
         <div style={{ marginBottom: "16px" }}>
           <label style={LABEL}>Ubicación (texto visible)</label>

@@ -53,6 +53,7 @@ export async function POST(req: Request) {
         tagline: body.tagline || null,
         activities: body.activities || [],
         page_rules: body.page_rules || [],
+        template: body.template || "clasico",
         active: true,
       }]).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
         tagline: body.tagline || null,
         activities: body.activities || [],
         page_rules: body.page_rules || [],
+        template: body.template || "clasico",
       }).eq("id", id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, tenant: data })
