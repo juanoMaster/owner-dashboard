@@ -1,24 +1,21 @@
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import { createHash } from "crypto"
 
 export async function GET(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
   const { searchParams } = new URL(req.url)
   const cabinId = searchParams.get("cabin_id")
   const token = searchParams.get("token")
   if (!cabinId) return NextResponse.json({ error: "cabin_id es requerido" }, { status: 400 })
 
-  // Verificar token del propietario (sin él, solo se devuelven fechas bloqueadas, sin datos de huéspedes)
+  // Lookup inicial sin tenant conocido → admin
+  const supabaseAdmin = getSupabaseAdmin()
+
   let authenticatedTenantId: string | null = null
   if (token) {
     const tokenHash = createHash("sha256").update(token).digest("hex")
-    const { data: link } = await supabase
+    const { data: link } = await supabaseAdmin
       .from("dashboard_links")
       .select("tenant_id")
       .eq("token_hash", tokenHash)
@@ -27,13 +24,18 @@ export async function GET(req: Request) {
     if (link) authenticatedTenantId = link.tenant_id
   }
 
-  const { data: cabin } = await supabase
+  const { data: cabin } = await supabaseAdmin
     .from("cabins")
     .select("name, tenant_id, base_price_night, capacity")
     .eq("id", cabinId)
     .maybeSingle()
 
   const isOwner = authenticatedTenantId !== null && authenticatedTenantId === cabin?.tenant_id
+
+  // Tenant conocido → cliente con contexto de sesión para queries siguientes
+  const supabase = cabin?.tenant_id
+    ? await getSupabaseForTenant(cabin.tenant_id)
+    : supabaseAdmin
 
   const { data: tenant } = (isOwner && cabin?.tenant_id)
     ? await supabase.from("tenants").select("business_name, currency").eq("id", cabin.tenant_id).maybeSingle()
@@ -87,20 +89,17 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
   try {
     const { start_date, end_date, cabin_id, token } = await req.json()
     if (!start_date || !end_date || !cabin_id || !token) {
       return NextResponse.json({ error: "start_date, end_date, cabin_id y token son requeridos" }, { status: 400 })
     }
 
+    // Lookup inicial sin tenant conocido → admin
+    const supabaseAdmin = getSupabaseAdmin()
     const tokenHash = createHash("sha256").update(token).digest("hex")
 
-    const { data: link } = await supabase
+    const { data: link } = await supabaseAdmin
       .from("dashboard_links")
       .select("tenant_id")
       .eq("token_hash", tokenHash)
@@ -109,7 +108,7 @@ export async function POST(req: Request) {
 
     if (!link) return NextResponse.json({ error: "Token inválido o inactivo" }, { status: 401 })
 
-    const { data: cabin } = await supabase
+    const { data: cabin } = await supabaseAdmin
       .from("cabins")
       .select("tenant_id")
       .eq("id", cabin_id)
@@ -120,6 +119,9 @@ export async function POST(req: Request) {
     if (link.tenant_id !== cabin.tenant_id) {
       return NextResponse.json({ error: "Sin autorización para esta cabaña" }, { status: 401 })
     }
+
+    // Tenant conocido → cliente con contexto de sesión
+    const supabase = await getSupabaseForTenant(cabin.tenant_id)
 
     const { error } = await supabase.from("calendar_blocks").insert([{
       start_date,

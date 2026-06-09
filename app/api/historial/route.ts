@@ -1,20 +1,18 @@
 export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import crypto from "crypto"
 
 export async function GET(req: NextRequest) {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
   try {
     const { searchParams } = new URL(req.url)
     const token = searchParams.get("token")
     if (!token) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 })
     }
+
+    // Lookup inicial sin tenant conocido → admin
+    const supabaseAdmin = getSupabaseAdmin()
     const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
     const { data: link, error: linkError } = await supabaseAdmin
       .from("dashboard_links")
@@ -31,14 +29,17 @@ export async function GET(req: NextRequest) {
 
     const tenantId = link.tenant_id
 
+    // Tenant conocido → cliente con contexto de sesión
+    const supabase = await getSupabaseForTenant(tenantId)
+
     const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
-      supabaseAdmin
+      supabase
         .from("tenants")
         .select("business_name, owner_name, currency")
         .eq("id", tenantId)
         .maybeSingle(),
-      supabaseAdmin.from("cabins").select("id, name").eq("tenant_id", tenantId),
-      supabaseAdmin
+      supabase.from("cabins").select("id, name").eq("tenant_id", tenantId),
+      supabase
         .from("bookings")
         .select(
           "id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, status, notes, created_at, deleted_at, deleted_by"

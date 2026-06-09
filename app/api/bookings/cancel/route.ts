@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { getResend, emailReservaCancelada, sendErrorAlert } from "@/lib/resend"
 import { createHash } from "crypto"
 import { sendWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
   try {
     const body = await req.json()
     const { booking_id, tenant_id, performed_by } = body
@@ -20,8 +15,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "booking_id, tenant_id y token son requeridos" }, { status: 400 })
     }
 
+    // Lookup inicial: validar token → tenant
+    const supabaseAdmin = getSupabaseAdmin()
     const tokenHash = createHash("sha256").update(token).digest("hex")
-    const { data: link } = await supabase
+    const { data: link } = await supabaseAdmin
       .from("dashboard_links")
       .select("tenant_id")
       .eq("token_hash", tokenHash)
@@ -31,6 +28,10 @@ export async function POST(req: Request) {
     if (!link || link.tenant_id !== tenant_id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
+
+    // Tenant conocido → cliente con contexto de sesión
+    const supabase = await getSupabaseForTenant(tenant_id)
+
     const { data: booking, error: fetchErr } = await supabase
       .from("bookings")
       .select("cabin_id, check_in, check_out, total_amount, notes, status, deleted_at, guest_email, guest_name, guest_phone, booking_code, cabins(name), tenants(business_name, owner_name)")
@@ -89,7 +90,6 @@ export async function POST(req: Request) {
       } catch (_) {}
     }
 
-    // WhatsApp al huésped
     if (booking.guest_phone && booking.booking_code) {
       const t = booking.tenants as any
       const msg = `❌ Tu reserva ${booking.booking_code} en ${t?.business_name || ""} fue cancelada.\nSi tienes dudas, contacta directamente al propietario.`

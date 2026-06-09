@@ -1,22 +1,20 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import crypto from "crypto"
 import { sendErrorAlert } from "@/lib/resend"
 
 export async function GET(req: NextRequest) {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
   try {
     const { searchParams } = new URL(req.url)
     const token = searchParams.get("token")
     if (!token) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 })
     }
+
+    // Lookup inicial sin tenant conocido → admin
+    const supabaseAdmin = getSupabaseAdmin()
     const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
     const { data: link, error: linkError } = await supabaseAdmin
       .from("dashboard_links")
@@ -42,18 +40,21 @@ export async function GET(req: NextRequest) {
       .eq("id", link.id)
       .then(() => {})
 
+    // Tenant conocido → cliente con contexto de sesión
+    const supabase = await getSupabaseForTenant(tenantId)
+
     const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
-      supabaseAdmin
+      supabase
         .from("tenants")
         .select("owner_name, business_name, slug, deposit_percent, currency, guidebook, google_review_url")
         .eq("id", tenantId)
         .maybeSingle(),
-      supabaseAdmin
+      supabase
         .from("cabins")
         .select("id, name, capacity, base_price_night, description, cleaning_fee, photos, pricing_tiers, has_tinaja, tinaja_price, season_prices")
         .eq("tenant_id", tenantId)
         .eq("active", true),
-      supabaseAdmin
+      supabase
         .from("bookings")
         .select(
           "id, cabin_id, check_in, check_out, nights, total_amount, deposit_amount, balance_amount, notes, status, guest_name, guest_email, guest_phone, booking_code, created_at"
@@ -92,4 +93,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Server crash" }, { status: 500 })
   }
 }
-

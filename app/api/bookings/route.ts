@@ -1,18 +1,12 @@
 import { sendErrorAlert } from "@/lib/resend"
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { generateBookingCode } from "@/lib/booking-code"
 import { getPriceForDates } from "@/lib/pricing"
 import { sendWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
-
   let cabin_id: string | undefined
   let check_in: string | undefined
   let check_out: string | undefined
@@ -28,7 +22,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Faltan campos obligatorios" }, { status: 400 })
     }
 
-    const { data: cabin, error: cabinError } = await supabase
+    // Lookup inicial sin tenant conocido → admin
+    const supabaseAdmin = getSupabaseAdmin()
+    const { data: cabin, error: cabinError } = await supabaseAdmin
       .from("cabins")
       .select("base_price_night, name, capacity, tenant_id, extra_person_price, pricing_tiers, has_tinaja, tinaja_price, season_prices")
       .eq("id", cabin_id)
@@ -39,6 +35,9 @@ export async function POST(req: Request) {
     }
 
     const tenant_id = cabin.tenant_id
+
+    // Tenant conocido → cliente con contexto de sesión
+    const supabase = await getSupabaseForTenant(tenant_id)
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
@@ -68,7 +67,6 @@ export async function POST(req: Request) {
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
 
-    // Calcular precio usando temporadas y tiers
     const priceResult = getPriceForDates({
       cabin: {
         base_price_night: Number(cabin.base_price_night),
@@ -160,14 +158,12 @@ export async function POST(req: Request) {
       }).catch(() => {})
     }
 
-    // WhatsApp al huésped
     if (guest_phone) {
       const currencyLabel = currency
       const guestMsg = `Hola ${guest_name} 👋 Recibimos tu solicitud de reserva en ${businessName}.\n📅 Check-in: ${check_in} | Check-out: ${check_out}\n💰 Total: ${currencyLabel} ${total} | Anticipo: ${currencyLabel} ${deposit}\nTu propietario revisará tu solicitud y te contactará para coordinar el pago.\nCódigo de reserva: ${bookingCode}`
       sendWhatsApp({ to: guest_phone, message: guestMsg, tenantId: tenant_id }).catch(() => {})
     }
 
-    // WhatsApp al propietario
     if (tenantConfig?.owner_whatsapp) {
       const panelUrl = tenantConfig.dashboard_token
         ? `https://panel.takai.cl/?token=${tenantConfig.dashboard_token}`

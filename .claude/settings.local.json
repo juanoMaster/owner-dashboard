@@ -29,7 +29,8 @@
       "PowerShell(cd \"C:\\\\Users\\\\Juano\\\\OneDrive\\\\Documents\\\\owner-dashboard\"; $files = @\\(\"diagnostico.txt\",\"todo_el_sistema.txt\",\"archivos_takai.txt\",\"ESTADO_SISTEMA.md\",\"CONTINUIDAD-TAKAI-2026-04-14.md\",\"CONTEXT.md\",\"_tmp_volver.txt\",\"fix_admin_api.js\",\"landing\\\\index.html\"\\); foreach \\($f in $files\\) { if \\(Test-Path $f\\) { Remove-Item $f -Force; Write-Output \"BORRADO: $f\" } else { Write-Output \"NO ENCONTRADO: $f\" } })",
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(Remove-Item *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(npx supabase *)"
     ]
   }
 }

@@ -1,12 +1,11 @@
 import { sendErrorAlert } from "@/lib/resend"
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { createHash } from "crypto"
 import { sendWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: Request) {
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } })
   let booking_id: string | undefined
   let tenant_id: string | undefined
   try {
@@ -18,8 +17,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "booking_id, tenant_id y token son requeridos" }, { status: 400 })
     }
 
+    // Lookup inicial: validar token → tenant
+    const supabaseAdmin = getSupabaseAdmin()
     const tokenHash = createHash("sha256").update(token).digest("hex")
-    const { data: link } = await supabase
+    const { data: link } = await supabaseAdmin
       .from("dashboard_links")
       .select("tenant_id")
       .eq("token_hash", tokenHash)
@@ -29,6 +30,9 @@ export async function POST(req: Request) {
     if (!link || link.tenant_id !== tenant_id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
+
+    // Tenant conocido → cliente con contexto de sesión
+    const supabase = await getSupabaseForTenant(tenant_id)
 
     const { data: booking, error: fetchErr } = await supabase
       .from("bookings")
@@ -78,14 +82,12 @@ export async function POST(req: Request) {
       performed_by: "owner_panel",
     })
 
-    // Email reserva confirmada
     fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/api/emails/reserva-confirmada`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET}` },
       body: JSON.stringify({ booking_id })
     }).catch(() => {})
 
-    // WhatsApp al huésped
     if (booking.guest_phone) {
       const { data: tenantData } = await supabase
         .from("tenants")
