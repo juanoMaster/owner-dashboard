@@ -17,6 +17,14 @@ type TenantRow = {
   currency: string | null
   guidebook?: Record<string, string> | null
   google_review_url?: string | null
+  billing_status?: string | null
+  manual_billing?: boolean | null
+  bank_name?: string | null
+  bank_account_type?: string | null
+  bank_account_number?: string | null
+  bank_account_holder?: string | null
+  bank_rut?: string | null
+  bank_email?: string | null
 }
 
 type SeasonPrice = {
@@ -143,6 +151,12 @@ export default function HomeDashboardClient() {
   const [googleReviewUrlDraft, setGoogleReviewUrlDraft] = useState("")
   const [savingReviewUrl, setSavingReviewUrl] = useState(false)
 
+  // Datos bancarios
+  const [bankDraft, setBankDraft] = useState<Record<string, string>>({})
+  const [editingBank, setEditingBank] = useState(false)
+  const [savingBank, setSavingBank] = useState(false)
+  const [bankMsg, setBankMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
   const load = useCallback(
     async (token: string, fromUrl: boolean) => {
       setStatus("loading")
@@ -210,6 +224,14 @@ export default function HomeDashboardClient() {
     if (payload?.tenant) {
       setGuidebookDraft((payload.tenant.guidebook as Record<string, string>) || {})
       setGoogleReviewUrlDraft(payload.tenant.google_review_url || "")
+      setBankDraft({
+        bank_name: payload.tenant.bank_name || "",
+        bank_account_type: payload.tenant.bank_account_type || "",
+        bank_account_number: payload.tenant.bank_account_number || "",
+        bank_account_holder: payload.tenant.bank_account_holder || "",
+        bank_rut: payload.tenant.bank_rut || "",
+        bank_email: payload.tenant.bank_email || "",
+      })
     }
   }, [payload])
 
@@ -345,6 +367,29 @@ export default function HomeDashboardClient() {
     }
   }
 
+  async function saveBank() {
+    if (!sessionToken) return
+    setSavingBank(true)
+    setBankMsg(null)
+    try {
+      const res = await fetch("/api/tenant/bank", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: sessionToken, ...bankDraft }),
+      })
+      const d = await res.json()
+      if (res.ok) {
+        await refreshDashboard()
+        setBankMsg({ ok: true, text: "Datos bancarios guardados correctamente." })
+        setEditingBank(false)
+      } else {
+        setBankMsg({ ok: false, text: d.error || "Error al guardar datos bancarios" })
+      }
+    } finally {
+      setSavingBank(false)
+    }
+  }
+
   if (status === "denied") return <AccessDenied />
   if (status === "loading" || !payload || !sessionToken) return <LoadingScreen />
 
@@ -363,8 +408,37 @@ export default function HomeDashboardClient() {
 
   const TABS = ["Inicio", "Estadísticas"]
 
+  const billingStatus = tenant?.billing_status
+  const isSuspended = !tenant?.manual_billing && billingStatus === "suspended"
+
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8" }}>
+      {isSuspended && (
+        <div style={{ background: "#3d0f0f", borderBottom: "2px solid #e63946", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
+          <span style={{ color: "#f87171", fontFamily: "sans-serif", fontSize: "14px", fontWeight: 600 }}>
+            Tu suscripción está suspendida. Las reservas en línea están pausadas para tus huéspedes.
+          </span>
+          <a
+            href={`/dashboard/facturacion`}
+            style={{ background: "#e63946", color: "#fff", padding: "8px 20px", borderRadius: "6px", fontFamily: "sans-serif", fontSize: "13px", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" as const }}
+          >
+            Regularizar pago →
+          </a>
+        </div>
+      )}
+      {!isSuspended && billingStatus === "past_due" && (
+        <div style={{ background: "#2a1f00", borderBottom: "2px solid #f59e0b", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
+          <span style={{ color: "#fbbf24", fontFamily: "sans-serif", fontSize: "14px" }}>
+            Tuvimos un problema con tu último pago. Revisa tu suscripción para evitar interrupciones.
+          </span>
+          <a
+            href={`/dashboard/facturacion`}
+            style={{ background: "#f59e0b", color: "#000", padding: "8px 20px", borderRadius: "6px", fontFamily: "sans-serif", fontSize: "13px", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" as const }}
+          >
+            Ver facturación →
+          </a>
+        </div>
+      )}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 28px", borderBottom: "1px solid #1e3a1e", background: "linear-gradient(180deg, #0f2014 0%, #0a1510 100%)", boxShadow: "0 2px 20px rgba(0,0,0,0.4)" }}>
         <div style={{ fontFamily: "Georgia,serif", fontSize: "17px", letterSpacing: "5px", color: "#e8d5a3", textTransform: "uppercase" as const }}>
           {businessName.split(" ").map(function (word, i) {
@@ -802,6 +876,86 @@ export default function HomeDashboardClient() {
               >
                 {savingReviewUrl ? "Guardando..." : "Guardar URL"}
               </button>
+            </div>
+
+            {/* ── Datos Bancarios ── */}
+            <div style={{ background: "linear-gradient(160deg, #192d1b 0%, #0e1c10 100%)", border: "1px solid #2a4028", borderRadius: "20px", padding: "22px 24px", marginBottom: "16px", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                <div style={{ fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase" as const, color: "#7ab87a" }}>
+                  Datos Bancarios
+                </div>
+                {!editingBank && (
+                  <button
+                    onClick={() => { setEditingBank(true); setBankMsg(null) }}
+                    style={{ background: "transparent", color: "#7ab87a", border: "1px solid #2a4028", borderRadius: "6px", fontSize: "11px", padding: "5px 12px", cursor: "pointer", fontFamily: "sans-serif" }}
+                  >
+                    Editar
+                  </button>
+                )}
+              </div>
+              <div style={{ fontSize: "12px", color: "#5a7058", marginBottom: "12px", lineHeight: 1.6 }}>
+                Estos datos aparecen en el formulario de reserva para los turistas que eligen pagar por transferencia.
+              </div>
+
+              {bankMsg && (
+                <div style={{ background: bankMsg.ok ? "#0a2010" : "#2a0a0a", border: `1px solid ${bankMsg.ok ? "#1a4020" : "#e63946"}`, borderRadius: "6px", padding: "10px 14px", marginBottom: "12px", color: bankMsg.ok ? "#4ade80" : "#e63946", fontSize: "12px" }}>
+                  {bankMsg.text}
+                </div>
+              )}
+
+              {!editingBank ? (
+                <div>
+                  {[
+                    { label: "Banco", value: tenant?.bank_name },
+                    { label: "Tipo de cuenta", value: tenant?.bank_account_type },
+                    { label: "Número de cuenta", value: tenant?.bank_account_number },
+                    { label: "Titular", value: tenant?.bank_account_holder },
+                    { label: "RUT titular", value: tenant?.bank_rut },
+                    { label: "Email para comprobante", value: tenant?.bank_email },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderTop: "1px solid #2a4028" }}>
+                      <span style={{ color: "#5a7058", fontSize: "12px" }}>{label}</span>
+                      <span style={{ color: value ? "#e8d5a3" : "#3d5a3c", fontSize: "12px", fontFamily: "sans-serif" }}>
+                        {value || "—"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  {[
+                    { key: "bank_name", label: "Banco", placeholder: "Banco BCI" },
+                    { key: "bank_account_type", label: "Tipo de cuenta", placeholder: "Cuenta corriente" },
+                    { key: "bank_account_number", label: "Número de cuenta", placeholder: "12345678" },
+                    { key: "bank_account_holder", label: "Titular", placeholder: "Juan Pérez" },
+                    { key: "bank_rut", label: "RUT titular", placeholder: "12.345.678-9" },
+                    { key: "bank_email", label: "Email para comprobante", placeholder: "pagos@micabana.cl" },
+                  ].map(({ key, label, placeholder }) => (
+                    <div key={key} style={{ marginBottom: "10px" }}>
+                      <div style={{ fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase" as const, color: "#5a7058", marginBottom: "4px" }}>{label}</div>
+                      <input
+                        type={key === "bank_email" ? "email" : "text"}
+                        placeholder={placeholder}
+                        value={bankDraft[key] || ""}
+                        onChange={e => setBankDraft({ ...bankDraft, [key]: e.target.value })}
+                        style={{ width: "100%", boxSizing: "border-box" as const, background: "#0d1a12", border: "1px solid #2a3e28", borderRadius: "6px", color: "#e8d5a3", fontSize: "12px", padding: "8px 10px", outline: "none", fontFamily: "sans-serif" }}
+                      />
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                    <button
+                      onClick={saveBank}
+                      disabled={savingBank}
+                      style={{ background: "linear-gradient(135deg, #7ab87a 0%, #4d9a5a 100%)", color: "#0d1a12", border: "none", borderRadius: "10px", fontSize: "12px", fontWeight: 700, padding: "9px 22px", cursor: "pointer", fontFamily: "sans-serif", boxShadow: "0 2px 10px rgba(122,184,122,0.25)", letterSpacing: "0.3px" }}
+                    >
+                      {savingBank ? "Guardando..." : "Guardar datos bancarios"}
+                    </button>
+                    <button onClick={() => { setEditingBank(false); setBankMsg(null) }} style={{ background: "transparent", color: "#5a7058", border: "none", fontSize: "12px", cursor: "pointer", fontFamily: "sans-serif" }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

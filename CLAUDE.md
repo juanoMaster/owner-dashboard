@@ -322,3 +322,75 @@ Verde confirm: #27ae60    Texto muted:   #5a7058
 ```
 
 Tipografía: `Georgia, serif` para headings y montos, `sans-serif` para cuerpo y UI.
+
+## Sistema de billing (Takai cobra a sus tenants)
+
+Implementado en junio 2026. **NUNCA mezclar con el MP Marketplace** (turistas → propietarios).
+
+**Credenciales Takai:** `MP_PLATFORM_ACCESS_TOKEN` y `MP_PLATFORM_WEBHOOK_SECRET` son de la cuenta de Takai. Los de cada tenant (`mp_access_token`) son para los turistas.
+
+### Modos de billing (`subscriptions.billing_mode`)
+
+| Modo | Quién lo usa | Cómo cobra Takai |
+|------|-------------|-----------------|
+| `commission` | Los 3 tenants actuales | Estado de cuenta mensual: X% de reservas confirmadas |
+| `subscription` | Nuevos clientes (futuro) | Débito mensual automático vía MP Preapproval |
+| `manual` | No implementado todavía | Fuera de sistema |
+
+**Tenants actuales (al 2026-06-10):**
+- `el-mirador`: `billing_mode=commission`, `free_until=2026-11-30`, `status=active`
+- `cabanas-majoaal-licanray`: `billing_mode=commission`, `free_until=2027-02-28`, `status=active`
+- `glamping-cacagual`: `billing_mode=commission`, `free_until=NULL` (indefinido), `manual_billing=true`, Ecuador/USD, NUNCA suspender automáticamente
+
+### Tablas billing
+
+- `subscriptions` — una fila por tenant. Campos clave: `billing_mode`, `status`, `commission_rate`, `free_until`, `trial_ends_at`, `mp_preapproval_id`, `failed_payments`.
+- `commission_statements` — estado de cuenta mensual. `status`: `pending → sent → transfer_reported → paid`. `ack_token` (64-hex): link único de confirmación para admin.
+- `tenants.billing_status` — espejo desnormalizado de `subscriptions.status`.
+- `tenants.manual_billing` — si `true`, nunca se suspende automáticamente.
+- `tenants.bank_email` — email para recibir comprobantes de transferencia.
+
+### Flujo comisiones
+
+1. Cron `1° de cada mes 10:00 UTC` → `generate-commission-statements`: suma reservas confirmadas del mes anterior, crea `commission_statement`, envía email con dos opciones de pago.
+2. Tenant paga por tarjeta → `/api/billing/commission-pay` → MP Preference → webhook `type=payment` marca como `paid`.
+3. Tenant paga por transferencia → `/api/billing/report-transfer` → genera `ack_token`, envía email a `ADMIN_EMAIL` con link único.
+4. Admin confirma → `GET /api/billing/ack/[token]` → marca como `paid`, envía email al tenant.
+
+### Rutas billing
+
+- `POST /api/billing/subscribe` — crea preapproval MP (solo subscription mode).
+- `POST /api/billing/webhook` — eventos MP: `payment` (comisión tarjeta), `preapproval`, `authorized_payment`.
+- `GET  /api/billing/status` — info completa: sub + últimos 6 statements. Requiere token.
+- `POST /api/billing/commission-pay` — genera MP Preference para pago único de comisión.
+- `POST /api/billing/report-transfer` — tenant reporta que transfirió; genera ack_token.
+- `GET  /api/billing/ack/[token]` — admin confirma pago por transferencia.
+- `GET  /api/cron/billing-check` — diario 09:00 UTC: suspende trials/past_due (solo `billing_mode=subscription`). Para commission mode: solo alerta por email si `free_until` venció.
+- `GET  /api/cron/generate-commission-statements` — 1° de cada mes 10:00 UTC.
+
+### Variables de entorno billing
+
+`MP_PLATFORM_ACCESS_TOKEN`, `MP_PLATFORM_WEBHOOK_SECRET`, `TAKAI_BANK_NAME`, `TAKAI_BANK_ACCOUNT_TYPE`, `TAKAI_BANK_ACCOUNT_NUMBER`, `TAKAI_BANK_HOLDER_NAME`, `TAKAI_BANK_HOLDER_RUT`, `TAKAI_BANK_EMAIL`, `ADMIN_EMAIL`.
+
+### Enforcement (solo subscription mode suspendido)
+
+- `POST /api/bookings/manual` → 403.
+- `PATCH /api/cabins/update` → 403.
+- `PATCH /api/cabins/update-price` → 403.
+- `POST /api/cabins/photos` → 403.
+- `GET /[slug]` pública → "reservas no disponibles".
+- Dashboard → banner rojo con link a `/dashboard/facturacion`.
+- Commission mode y manual_billing=true NUNCA generan banners ni 403.
+
+### Página `/dashboard/facturacion`
+
+- Commission mode: muestra "Plan Comisión X% — sin mensualidad hasta {fecha|indefinido}", historial de estados de cuenta, botones "Pagar con tarjeta" (solo CLP) y "Ya transferí".
+- Subscription mode: muestra estado, días de trial restantes, botón para activar MP.
+- GlampingCacagual (USD): formatea montos en USD correctamente.
+
+## Bugs corregidos (histórico)
+
+| Bug | Archivo | Fix |
+|-----|---------|-----|
+| RLS `OR current_tenant_id() IS NULL` permitía ver todos los datos si no había contexto de sesión | `supabase/migrations/004_rls_policies.sql` | Eliminada la cláusula; policies ahora usan solo `tenant_id = current_tenant_id()` |
+| `tinaja_price` en reservas manuales usaba hardcode `30000` en lugar del valor del tenant | `app/api/bookings/manual/route.ts` | Ahora lee `tenants.tinaja_price` vía `tenantConfig` |

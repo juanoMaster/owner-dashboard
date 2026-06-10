@@ -20,6 +20,7 @@ interface TenantData {
   latitude?: number | null; longitude?: number | null
   extra_services?: Array<{ name: string; price: number }>
   template?: string | null
+  suspended?: boolean
 }
 
 function SlugInner() {
@@ -64,6 +65,16 @@ function SlugInner() {
   if (notFound || !tenant) return (
     <div style={{ background: "#060606", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ color: "#2a2a2a", fontFamily: "sans-serif", fontSize: "12px" }}>No encontrado</div>
+    </div>
+  )
+
+  if (tenant.suspended) return (
+    <div style={{ background: "#060606", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "16px" }}>
+      <div style={{ color: "#555", fontFamily: "Georgia, serif", fontSize: "22px" }}>{tenant.business_name}</div>
+      <div style={{ color: "#444", fontFamily: "sans-serif", fontSize: "14px", textAlign: "center", maxWidth: "320px", lineHeight: "1.6" }}>
+        Las reservas en línea no están disponibles temporalmente.
+        <br />Para reservar contáctanos directamente.
+      </div>
     </div>
   )
 

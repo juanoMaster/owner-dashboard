@@ -457,3 +457,240 @@ export function emailReservaCancelada(data: {
     ${footer(data.business_name)}
   `)
 }
+
+// ── BILLING EMAILS ─────────────────────────────────────────────────────────
+
+export function emailTrialEnding(data: {
+  business_name: string
+  owner_name: string
+  days_left: number
+  reservas_count: number
+  monto_total: number
+  facturacion_url: string
+}) {
+  return wrapper(`
+    <tr>
+      <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
+        <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; FACTURACIÓN</p>
+        <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Tu prueba termina en ${data.days_left} días</h1>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${data.owner_name.split(" ")[0]}, esto es lo que lograste durante el período de prueba:</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:32px 40px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:8px;overflow:hidden;border:1px solid #1e2d40;margin-bottom:28px;">
+          <tr>
+            <td style="padding:20px 24px;border-bottom:1px solid #1e2d40;">
+              <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Reservas recibidas</p>
+              <p style="margin:6px 0 0;font-family:${FONT};font-size:32px;color:${GOLD};">${data.reservas_count}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 24px;">
+              <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Ingresos generados</p>
+              <p style="margin:6px 0 0;font-family:${FONT};font-size:32px;color:${GOLD};">$${data.monto_total.toLocaleString("es-CL")} CLP</p>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:0 0 24px;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};line-height:1.8;">
+          Activa tu suscripción para seguir recibiendo reservas sin interrupciones.
+          El plan Fundador está congelado en <span style="color:${GOLD};font-weight:700;">$19.990 CLP/mes</span> de por vida.
+        </p>
+        <a href="${data.facturacion_url}" style="display:block;background:${GOLD};color:#0a0e14;text-decoration:none;padding:16px 32px;border-radius:6px;text-align:center;font-family:${FONT_SANS};font-weight:700;font-size:14px;letter-spacing:1px;">
+          ACTIVAR SUSCRIPCIÓN &rarr;
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:${BG_LOGO};padding:20px 40px;text-align:center;border-top:1px solid #1e2d40;">
+        <p style="margin:0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;">Takai &middot; Sistema de reservas para cabañas en Chile</p>
+      </td>
+    </tr>
+  `)
+}
+
+export function emailSubscriptionActivated(data: {
+  business_name: string
+  owner_name: string
+  plan: string
+  amount: number
+  facturacion_url: string
+}) {
+  return wrapper(`
+    <tr>
+      <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
+        <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; SUSCRIPCIÓN ACTIVA</p>
+        <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">¡Bienvenido al equipo Takai!</h1>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Tu suscripción está activa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:32px 40px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:8px;overflow:hidden;border:1px solid #1a4020;margin-bottom:24px;">
+          <tr><td style="padding:16px 24px;border-bottom:1px solid #1e2d40;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Plan</p>
+            <p style="margin:5px 0 0;font-family:${FONT_SANS};font-size:15px;color:#4ade80;font-weight:700;">${data.plan} &mdash; Precio Fundador</p>
+          </td></tr>
+          <tr><td style="padding:16px 24px;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Cobro mensual</p>
+            <p style="margin:5px 0 0;font-family:${FONT};font-size:24px;color:${GOLD};">$${data.amount.toLocaleString("es-CL")} CLP</p>
+          </td></tr>
+        </table>
+        <p style="margin:0 0 20px;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};line-height:1.8;">
+          Tu plataforma de reservas está activa y lista para recibir huéspedes.
+          Este precio está congelado de por vida como cliente fundador.
+        </p>
+        <a href="${data.facturacion_url}" style="display:inline-block;color:${GOLD};font-family:${FONT_SANS};font-size:13px;text-decoration:underline;">
+          Ver detalles de facturación
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:${BG_LOGO};padding:20px 40px;text-align:center;border-top:1px solid #1e2d40;">
+        <p style="margin:0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;">Takai &middot; Sistema de reservas para cabañas en Chile</p>
+      </td>
+    </tr>
+  `)
+}
+
+export function emailPastDue(data: {
+  business_name: string
+  owner_name: string
+  failed_payments: number
+  facturacion_url: string
+}) {
+  return wrapper(`
+    <tr>
+      <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
+        <p style="margin:0;color:#f87171;font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; AVISO DE PAGO</p>
+        <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:26px;font-weight:400;color:${TEXT_LIGHT};">Problema con tu pago</h1>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${data.owner_name.split(" ")[0]}, tuvimos un inconveniente.</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:32px 40px;">
+        <div style="background:#2a0a0a;border:1px solid #5a2020;border-radius:8px;padding:20px;margin-bottom:24px;">
+          <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:#f87171;line-height:1.6;">
+            No pudimos procesar tu último pago (${data.failed_payments} intento(s) fallido(s)).
+            Si esto continúa, tu cuenta quedará suspendida y tus huéspedes no podrán hacer reservas en línea.
+          </p>
+        </div>
+        <p style="margin:0 0 24px;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};line-height:1.8;">
+          Actualiza tu método de pago en MercadoPago para restablecer el cobro automático.
+        </p>
+        <a href="${data.facturacion_url}" style="display:block;background:#f87171;color:#fff;text-decoration:none;padding:16px 32px;border-radius:6px;text-align:center;font-family:${FONT_SANS};font-weight:700;font-size:14px;letter-spacing:1px;">
+          REGULARIZAR PAGO &rarr;
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:${BG_LOGO};padding:20px 40px;text-align:center;border-top:1px solid #1e2d40;">
+        <p style="margin:0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;">Takai &middot; Sistema de reservas para cabañas en Chile</p>
+      </td>
+    </tr>
+  `)
+}
+
+export function emailCommissionStatement(data: {
+  business_name: string
+  owner_name: string
+  period_label: string
+  bookings_count: number
+  bookings_total: number
+  commission_amount: number
+  commission_rate: number
+  currency: string
+  statement_id: string
+  reference_code: string
+  facturacion_url: string
+  mp_enabled: boolean
+  takai_bank_name: string
+  takai_bank_type: string
+  takai_bank_number: string
+  takai_bank_holder: string
+  takai_bank_rut: string
+  takai_bank_email: string
+}) {
+  const fmt = (n: number) => {
+    if (data.currency === "USD") return "$" + n.toFixed(2)
+    if (data.currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
+    return "$" + Math.round(n).toLocaleString("es-CL")
+  }
+
+  const hasBankDetails = !!(data.takai_bank_name && data.takai_bank_number)
+
+  return wrapper(`
+    <tr>
+      <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
+        <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; ESTADO DE CUENTA</p>
+        <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:26px;font-weight:400;color:${TEXT_LIGHT};">${data.period_label}</h1>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${data.owner_name.split(" ")[0]}, aquí tu resumen de actividad y comisión a pagar.</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:28px 40px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:8px;overflow:hidden;border:1px solid #1e2d40;">
+          <tr><td style="padding:16px 24px;border-bottom:1px solid #1e2d40;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Reservas confirmadas</p>
+            <p style="margin:5px 0 0;font-family:${FONT};font-size:28px;color:${TEXT_LIGHT};">${data.bookings_count}</p>
+          </td></tr>
+          <tr><td style="padding:16px 24px;border-bottom:1px solid #1e2d40;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Total generado</p>
+            <p style="margin:5px 0 0;font-family:${FONT};font-size:28px;color:${TEXT_LIGHT};">${fmt(data.bookings_total)}</p>
+          </td></tr>
+          <tr><td style="padding:16px 24px;">
+            <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Comisión Takai (${data.commission_rate}%)</p>
+            <p style="margin:5px 0 0;font-family:${FONT};font-size:36px;color:${GOLD};font-weight:400;">${fmt(data.commission_amount)}</p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:28px 40px 0;">
+        <p style="margin:0 0 16px;font-family:${FONT_SANS};font-size:13px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">CÓMO PAGAR</p>
+
+        ${data.mp_enabled ? `
+        <div style="background:${BG_CARD};border:1px solid #1e2d40;border-radius:8px;padding:20px 24px;margin-bottom:12px;">
+          <p style="margin:0 0 8px;font-family:${FONT_SANS};font-size:13px;color:${TEXT_LIGHT};font-weight:700;">Opción 1 — Tarjeta (MercadoPago)</p>
+          <p style="margin:0 0 14px;font-family:${FONT_SANS};font-size:12px;color:${TEXT_MUTED};">Pago inmediato y confirmación automática.</p>
+          <a href="${data.facturacion_url}" style="display:inline-block;background:${GOLD};color:#0a0e14;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:${FONT_SANS};font-weight:700;font-size:12px;letter-spacing:1px;">
+            PAGAR CON TARJETA &rarr;
+          </a>
+        </div>` : ""}
+
+        ${hasBankDetails ? `
+        <div style="background:${BG_CARD};border:1px solid #1e2d40;border-radius:8px;padding:20px 24px;margin-bottom:12px;">
+          <p style="margin:0 0 12px;font-family:${FONT_SANS};font-size:13px;color:${TEXT_LIGHT};font-weight:700;">Opción ${data.mp_enabled ? "2" : "1"} — Transferencia bancaria</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            ${data.takai_bank_name ? `<tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};width:130px;">Banco</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_LIGHT};">${data.takai_bank_name}</td></tr>` : ""}
+            ${data.takai_bank_type ? `<tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">Tipo</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_LIGHT};">${data.takai_bank_type}</td></tr>` : ""}
+            <tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">N° Cuenta</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_LIGHT};font-weight:700;">${data.takai_bank_number}</td></tr>
+            ${data.takai_bank_holder ? `<tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">Titular</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_LIGHT};">${data.takai_bank_holder}</td></tr>` : ""}
+            ${data.takai_bank_rut ? `<tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">RUT</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_LIGHT};">${data.takai_bank_rut}</td></tr>` : ""}
+            ${data.takai_bank_email ? `<tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">Email</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_LIGHT};">${data.takai_bank_email}</td></tr>` : ""}
+            <tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">Monto exacto</td><td style="padding:5px 0;font-family:${FONT};font-size:14px;color:${GOLD};font-weight:700;">${fmt(data.commission_amount)}</td></tr>
+            <tr><td style="padding:5px 0;font-family:${FONT_SANS};font-size:11px;color:${TEXT_MUTED};">Glosa / Ref.</td><td style="padding:5px 0;font-family:${FONT_SANS};font-size:12px;color:#60a5fa;font-weight:700;">${data.reference_code}</td></tr>
+          </table>
+          <p style="margin:16px 0 0;font-family:${FONT_SANS};font-size:12px;color:${TEXT_MUTED};">
+            Una vez realizada la transferencia, confirma desde tu panel:
+          </p>
+          <a href="${data.facturacion_url}" style="display:inline-block;margin-top:8px;background:#1e3a2e;color:#7ab87a;text-decoration:none;padding:10px 20px;border-radius:6px;font-family:${FONT_SANS};font-size:12px;font-weight:700;">
+            YA TRANSFERÍ &rarr;
+          </a>
+        </div>` : ""}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:20px 40px 32px;">
+        <p style="margin:0;font-family:${FONT_SANS};font-size:11px;color:#2d3d50;text-align:center;">
+          ${data.reference_code} &nbsp;&middot;&nbsp; Usar como glosa/concepto en la transferencia
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:${BG_LOGO};padding:20px 40px;text-align:center;border-top:1px solid #1e2d40;">
+        <p style="margin:0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;">Takai &middot; Sistema de reservas para cabañas en Chile</p>
+      </td>
+    </tr>
+  `)
+}

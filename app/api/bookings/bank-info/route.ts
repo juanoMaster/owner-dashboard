@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, transfer_timeout_hours")
+    .select("bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, transfer_timeout_hours")
     .eq("id", booking.tenant_id)
     .single()
 
@@ -57,6 +57,7 @@ export async function GET(req: Request) {
     bank_account_number: tenant.bank_account_number || null,
     bank_account_holder: tenant.bank_account_holder || null,
     bank_rut: tenant.bank_rut || null,
+    bank_email: (tenant as any).bank_email || null,
     // Config de timeout para la cuenta regresiva
     transfer_timeout_hours: Number(tenant.transfer_timeout_hours) || 12,
     // WhatsApp donde enviar el comprobante

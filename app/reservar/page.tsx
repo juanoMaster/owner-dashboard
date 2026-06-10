@@ -44,6 +44,7 @@ function ReservarInner() {
   const [bankAccountNumber, setBankAccountNumber] = useState("")
   const [bankAccountHolder, setBankAccountHolder] = useState("")
   const [bankRut, setBankRut] = useState("")
+  const [bankEmail, setBankEmail] = useState("")
 
   const [paso, setPaso] = useState(1)
   const [checkIn, setCheckIn] = useState("")
@@ -111,6 +112,7 @@ function ReservarInner() {
         if (data.bank_account_number) setBankAccountNumber(data.bank_account_number)
         if (data.bank_account_holder) setBankAccountHolder(data.bank_account_holder)
         if (data.bank_rut) setBankRut(data.bank_rut)
+        if (data.bank_email) setBankEmail(data.bank_email)
       })
       .catch(() => {})
   }, [cabin_id])
@@ -151,6 +153,7 @@ function ReservarInner() {
         ["Número", bankAccountNumber],
         ["Titular", bankAccountHolder],
         ...(bankRut ? [["RUT titular", bankRut]] : []),
+        ...(bankEmail ? [["Email comprobante", bankEmail]] : []),
         ["Monto exacto", fmt(deposito)],
         ["Glosa / Concepto", codigo],
       ]
@@ -204,6 +207,7 @@ function ReservarInner() {
             if (bankData.bank_account_number) setBankAccountNumber(bankData.bank_account_number)
             if (bankData.bank_account_holder) setBankAccountHolder(bankData.bank_account_holder)
             if (bankData.bank_rut) setBankRut(bankData.bank_rut)
+            if (bankData.bank_email) setBankEmail(bankData.bank_email)
           }
         } catch {}
         try {

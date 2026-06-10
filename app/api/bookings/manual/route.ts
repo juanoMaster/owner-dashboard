@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit"
 import { sendErrorAlert } from "@/lib/resend"
 import { generateBookingCode } from "@/lib/booking-code"
 import { getPriceForGuests } from "@/lib/pricing"
+import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
 
 export async function POST(req: Request) {
   const supabase = createClient(
@@ -16,6 +17,15 @@ export async function POST(req: Request) {
     const { tenant_id, cabin_id, check_in, check_out, guest_name, guest_whatsapp, guests, tinaja_days, notes } = body
     if (!tenant_id || !cabin_id || !check_in || !check_out || !guest_name || !guest_whatsapp || !guests) {
       return NextResponse.json({ success: false, message: "Faltan campos obligatorios" }, { status: 400 })
+    }
+
+    // Billing check — bloquea si el tenant está suspendido
+    const billing = await getBillingInfo(tenant_id)
+    if (isBillingBlocked(billing.billing_status, billing.manual_billing)) {
+      return NextResponse.json(
+        { success: false, message: "Tu suscripción está suspendida. Regulariza tu pago para crear reservas." },
+        { status: 403 }
+      )
     }
 
     const { data: cabin, error: cabinError } = await supabase
@@ -61,11 +71,11 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("deposit_percent, slug")
+      .select("deposit_percent, slug, tinaja_price, has_tinaja")
       .eq("id", tenant_id)
       .single()
 
-    const tinajaPrice = Number(cabin.tinaja_price) || 30000
+    const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
     const tenantSlug = tenantConfig?.slug || "rsv"
 

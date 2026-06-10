@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/recordatorio-transferencia",
       "schedule": "30 9 * * *"
+    },
+    {
+      "path": "/api/cron/billing-check",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/generate-commission-statements",
+      "schedule": "0 10 1 * *"
     }
   ]
 }

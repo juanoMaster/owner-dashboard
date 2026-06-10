@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
+import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
 
 export async function PATCH(req: Request) {
   const supabase = createClient(
@@ -31,6 +32,14 @@ export async function PATCH(req: Request) {
       .maybeSingle()
 
     if (!link) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
+    const billing = await getBillingInfo(link.tenant_id)
+    if (isBillingBlocked(billing.billing_status, billing.manual_billing)) {
+      return NextResponse.json(
+        { error: "Tu suscripción está suspendida. Regulariza tu pago para editar precios." },
+        { status: 403 }
+      )
+    }
 
     const { data: cabin } = await supabase
       .from("cabins")

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
 
 export async function POST(req: NextRequest) {
   const supabase = createClient(
@@ -17,6 +18,18 @@ export async function POST(req: NextRequest) {
 
     if (!file || !cabin_id) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 })
+    }
+
+    // Billing check — resolver tenant desde cabin_id
+    const { data: cabinRow } = await supabase.from("cabins").select("tenant_id").eq("id", cabin_id).single()
+    if (cabinRow) {
+      const billing = await getBillingInfo(cabinRow.tenant_id)
+      if (isBillingBlocked(billing.billing_status, billing.manual_billing)) {
+        return NextResponse.json(
+          { error: "Tu suscripción está suspendida. Regulariza tu pago para subir fotos." },
+          { status: 403 }
+        )
+      }
     }
 
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
