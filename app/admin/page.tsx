@@ -1,67 +1,146 @@
-import { createClient } from "@supabase/supabase-js"
+"use client"
+import { useState, useEffect } from "react"
 import AdminDashboard from "../components/AdminDashboard"
-export const revalidate = 0
 
-export default async function AdminPage({ searchParams }: { searchParams: { token?: string } }) {
-  const adminToken = process.env.ADMIN_TOKEN
-  if (!adminToken || searchParams.token !== adminToken) {
+const STORAGE_KEY = "takai_admin_token"
+
+export default function AdminPage() {
+  const [token, setToken] = useState<string | null>(null)
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [input, setInput] = useState("")
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEY)
+    if (saved) loadData(saved)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function loadData(t: string) {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/admin/data", {
+        headers: { "x-admin-token": t },
+        cache: "no-store",
+      })
+      if (!res.ok) {
+        sessionStorage.removeItem(STORAGE_KEY)
+        setError("Token inválido")
+        return
+      }
+      const json = await res.json()
+      setToken(t)
+      setData(json)
+    } catch {
+      setError("Error de conexión")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!input.trim()) return
+    sessionStorage.setItem(STORAGE_KEY, input.trim())
+    loadData(input.trim())
+  }
+
+  if (data && token) {
     return (
-      <div style={{ background: "#09070a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", color: "#3a2a45" }}>
-        Acceso no autorizado
-      </div>
+      <AdminDashboard
+        tenants={data.tenants}
+        cabins={data.cabins}
+        tokens={data.tokens}
+        bookings={data.bookings}
+        auditRows={data.auditRows}
+        stats={data.stats}
+        adminToken={token}
+      />
     )
   }
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-  const [
-    { data: tenants }, { data: cabins }, { data: tokens }, { data: bookings }, { data: auditRows },
-  ] = await Promise.all([
-    supabase.from("tenants").select("id, business_name, owner_name, owner_whatsapp, email_owner, email_owner_2, deposit_percent, gender, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, active, verified, created_at, slug, dashboard_token, country, currency, location_text, location_maps_url, tagline, activities, page_rules, mp_enabled, whatsapp_enabled, latitude, longitude, extra_services, instagram_url, facebook_url, has_tinaja, tinaja_price, min_nights").order("created_at"),
-    supabase.from("cabins").select("id, tenant_id, name, capacity, base_price_night, cleaning_fee, extra_person_price, extras, amenities, description, active, created_at").order("tenant_id"),
-    supabase.from("dashboard_links").select("id, tenant_id, token_hash, active, created_at, last_used_at").order("created_at", { ascending: false }),
-    supabase.from("bookings").select("id, tenant_id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, commission_amount, commission_status, status, notes, created_at, deleted_at").order("created_at", { ascending: false }).limit(2000),
-    supabase.from("audit_log").select("id, tenant_id, cabin_id, action, entity_type, entity_id, details, performed_by, created_at").order("created_at", { ascending: false }).limit(1000),
-  ])
-  const thisYear = new Date().getFullYear()
-  const allBookings = (bookings || []) as any[]
-  const confirmed = allBookings.filter((b: any) => b.status === "confirmed" && !b.deleted_at)
-  const thisYearConfirmed = confirmed.filter((b: any) => new Date(b.created_at).getFullYear() === thisYear)
-  const lastYearConfirmed = confirmed.filter((b: any) => new Date(b.created_at).getFullYear() === thisYear - 1)
-  const pendingAll = allBookings.filter((b: any) => b.status === "draft" && !b.deleted_at)
-  const revenueByTenant: Record<string, number> = {}
-  const bookingsByTenant: Record<string, number> = {}
-  const pendingByTenant: Record<string, number> = {}
-  const revenueByTenantLastYear: Record<string, number> = {}
-  thisYearConfirmed.forEach((b: any) => {
-    revenueByTenant[b.tenant_id] = (revenueByTenant[b.tenant_id] || 0) + (b.total_amount || 0)
-    bookingsByTenant[b.tenant_id] = (bookingsByTenant[b.tenant_id] || 0) + 1
-  })
-  lastYearConfirmed.forEach((b: any) => {
-    revenueByTenantLastYear[b.tenant_id] = (revenueByTenantLastYear[b.tenant_id] || 0) + (b.total_amount || 0)
-  })
-  pendingAll.forEach((b: any) => {
-    pendingByTenant[b.tenant_id] = (pendingByTenant[b.tenant_id] || 0) + 1
-  })
-  const monthlyRevenue = Array.from({ length: 12 }, (_, i) => ({
-    month: i,
-    revenue: thisYearConfirmed.filter((b: any) => new Date(b.created_at).getMonth() === i).reduce((s: number, b: any) => s + (b.total_amount || 0), 0),
-  }))
-  const stats = {
-    totalRevenueThisYear: thisYearConfirmed.reduce((s: number, b: any) => s + (b.total_amount || 0), 0),
-    totalRevenueLastYear: lastYearConfirmed.reduce((s: number, b: any) => s + (b.total_amount || 0), 0),
-    totalBookingsThisYear: thisYearConfirmed.length,
-    totalPendingBookings: pendingAll.length,
-    pendingCommissions: confirmed.reduce((s: number, b: any) => s + (b.commission_status === "pending" ? (b.commission_amount || 0) : 0), 0),
-    revenueByTenant, bookingsByTenant, pendingByTenant, revenueByTenantLastYear, monthlyRevenue, thisYear,
-  }
+
   return (
-    <AdminDashboard
-      tenants={(tenants || []) as any[]}
-      cabins={(cabins || []) as any[]}
-      tokens={(tokens || []) as any[]}
-      bookings={allBookings}
-      auditRows={(auditRows || []) as any[]}
-      stats={stats as any}
-      adminToken={adminToken}
-    />
+    <div
+      style={{
+        background: "#09070a",
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "sans-serif",
+      }}
+    >
+      {loading ? (
+        <div style={{ color: "#5a4870", fontSize: "14px", letterSpacing: "2px" }}>
+          CARGANDO...
+        </div>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: "#110d15",
+            border: "1px solid #2a1e38",
+            borderRadius: "12px",
+            padding: "40px 32px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+            minWidth: "320px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              color: "#7a5a98",
+              textAlign: "center",
+            }}
+          >
+            TAKAI · ADMIN
+          </div>
+          <input
+            type="password"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Token de acceso"
+            autoFocus
+            style={{
+              background: "#1a1220",
+              border: "1px solid #3a2a4a",
+              borderRadius: "6px",
+              padding: "10px 14px",
+              color: "#e8d5a3",
+              fontSize: "14px",
+              outline: "none",
+            }}
+          />
+          {error && (
+            <div style={{ color: "#e63946", fontSize: "12px", textAlign: "center" }}>
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            style={{
+              background: "#7ab87a",
+              color: "#0a1510",
+              border: "none",
+              borderRadius: "6px",
+              padding: "10px",
+              fontWeight: 700,
+              fontSize: "12px",
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              cursor: "pointer",
+            }}
+          >
+            ENTRAR
+          </button>
+        </form>
+      )}
+    </div>
   )
 }

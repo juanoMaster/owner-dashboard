@@ -505,6 +505,7 @@ export default function HomeDashboardClient() {
                 tinaja_price: c.tinaja_price ?? 30000,
               }))}
               tenantId={payload.tenant_id}
+              token={sessionToken}
               tenantDepositPercent={tenant?.deposit_percent ?? 20}
               currency={currency}
             />
@@ -635,6 +636,7 @@ export default function HomeDashboardClient() {
                     cabinId={cabin.id}
                     cabinName={cabin.name}
                     initialPhotos={cabin.photos ?? []}
+                    token={sessionToken}
                   />
 
                   {/* ── Temporadas ── */}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { getResend, emailReservaConfirmada } from "@/lib/resend"
 
 export async function POST(req: Request) {
@@ -12,11 +12,7 @@ export async function POST(req: Request) {
     const { booking_id } = await req.json()
     if (!booking_id) return NextResponse.json({ error: "booking_id requerido" }, { status: 400 })
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-    )
+    const supabase = getSupabaseAdmin()
 
     const { data: booking, error } = await supabase
       .from("bookings")
@@ -32,7 +28,8 @@ export async function POST(req: Request) {
         )
       `)
       .eq("id", booking_id)
-      .single()
+      .is("deleted_at", null)
+      .maybeSingle()
 
     if (error || !booking) return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 })
     if (!booking.guest_email) return NextResponse.json({ success: true, skipped: "no guest_email" })

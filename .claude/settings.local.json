@@ -1,4 +1,5 @@
 {
+  "model": "claude-opus-4-8",
   "permissions": {
     "allow": [
       "WebFetch(domain:panel.takai.cl)",
@@ -30,7 +31,22 @@
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(Remove-Item *)",
       "Bash(git checkout *)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Bash(claude *)",
+      "Bash(npm show *)",
+      "Bash(Get-ChildItem *)",
+      "Bash(npx tsc *)",
+      "Bash(node *)",
+      "Bash(vercel whoami *)",
+      "Bash(vercel env *)",
+      "Bash(git *)",
+      "Read(//c/Users/Juan Luis/**)",
+      "Read(//c/Users/**)",
+      "Bash(dir *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Juano\\\\OneDrive\\\\Documents\\\\owner-dashboard\" -Name -File | Where-Object { $_ -match \"\\\\.\\(md|txt\\)$\" })",
+      "PowerShell(Add-Type -AssemblyName WindowsBase; $pkg = [System.IO.Packaging.Package]::Open\\(\"C:\\\\Users\\\\Juano\\\\Downloads\\\\TAKAI_FABLE5_AUDIT_CONTEXT.docx\"\\); $part = $pkg.GetPart\\([System.Uri]\"/word/document.xml\"\\); $reader = New-Object System.IO.StreamReader\\($part.GetStream\\(\\)\\); $xml = $reader.ReadToEnd\\(\\); $reader.Close\\(\\); $pkg.Close\\(\\); $xml -replace '<[^>]+>', ' ' -replace '\\\\s+', ' ')",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(cd \"C:\\\\Users\\\\Juano\\\\OneDrive\\\\Documents\\\\owner-dashboard\"; Get-ChildItem -Path \"app\", \"lib\", \"components\" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in \".ts\", \".tsx\", \".js\" } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\Juano\\\\OneDrive\\\\Documents\\\\owner-dashboard\\\\\", \"\"\\) } | Sort-Object)"
     ]
   }
 }

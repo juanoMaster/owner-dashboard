@@ -1,9 +1,31 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import crypto from "crypto"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { sendWhatsApp } from "@/lib/whatsapp"
 import { logAudit } from "@/lib/audit"
+
+function validateTwilioSignature(req: Request, rawBody: string): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN
+  if (!authToken) return false
+
+  const twilioSig = req.headers.get("x-twilio-signature") ?? ""
+  const params = new URLSearchParams(rawBody)
+  const sortedKeys = Array.from(params.keys()).sort()
+
+  let toSign = req.url
+  for (const key of sortedKeys) {
+    toSign += key + (params.get(key) ?? "")
+  }
+
+  const computed = crypto.createHmac("sha1", authToken).update(toSign).digest("base64")
+
+  const a = Buffer.from(twilioSig)
+  const b = Buffer.from(computed)
+  if (a.length !== b.length) return false
+  return crypto.timingSafeEqual(a, b)
+}
 
 // Formato real de booking codes: RUK-KVT-3821, CAC-XNM-5047, TRI-BPL-1293
 const BOOKING_CODE_RE = /\b([A-Z]{2,5}-[A-Z]{3}-\d{4})\b/i
@@ -17,17 +39,17 @@ function twimlResponse(message: string): NextResponse {
 }
 
 export async function POST(req: Request) {
-  // Twilio envía form-urlencoded
   const text = await req.text()
+
+  if (!validateTwilioSignature(req, text)) {
+    return new NextResponse("Forbidden", { status: 403 })
+  }
+
   const params = new URLSearchParams(text)
-  const from = params.get("From") ?? ""          // "whatsapp:+56912345678"
+  const from = params.get("From") ?? ""
   const body = params.get("Body") ?? ""
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   const match = body.match(BOOKING_CODE_RE)
   const bookingCode = match ? match[1].toUpperCase() : null

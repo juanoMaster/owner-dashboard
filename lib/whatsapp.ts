@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 
 export async function sendWhatsApp(params: {
   to: string
@@ -7,19 +7,15 @@ export async function sendWhatsApp(params: {
 }): Promise<void> {
   const { to, message, tenantId } = params
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("twilio_whatsapp")
+    .select("twilio_whatsapp, whatsapp_enabled")
     .eq("id", tenantId)
     .maybeSingle()
 
-  if (!tenant?.twilio_whatsapp) return
+  if (!tenant?.twilio_whatsapp || !tenant?.whatsapp_enabled) return
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN

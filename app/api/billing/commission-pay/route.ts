@@ -1,16 +1,12 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import crypto from "crypto"
 import { logAudit } from "@/lib/audit"
 
 export async function POST(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const { token, statement_id } = await req.json()

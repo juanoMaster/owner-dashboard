@@ -1,11 +1,9 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { SupabaseClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import crypto from "crypto"
-
-const fetchNoStore = (url: RequestInfo | URL, options: RequestInit = {}) =>
-  fetch(url, { ...options, cache: "no-store" })
 
 function slugify(input: string): string {
   const s = input
@@ -46,11 +44,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: fetchNoStore } }
-  )
+  const supabase = getSupabaseAdmin()
 
   let body: Record<string, unknown>
   try {

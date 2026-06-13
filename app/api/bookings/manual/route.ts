@@ -1,23 +1,36 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { sendErrorAlert } from "@/lib/resend"
 import { generateBookingCode } from "@/lib/booking-code"
 import { getPriceForGuests } from "@/lib/pricing"
 import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
+import { sendWhatsApp } from "@/lib/whatsapp"
+import crypto from "crypto"
 
 export async function POST(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
   try {
     const body = await req.json()
-    const { tenant_id, cabin_id, check_in, check_out, guest_name, guest_whatsapp, guests, tinaja_days, notes } = body
-    if (!tenant_id || !cabin_id || !check_in || !check_out || !guest_name || !guest_whatsapp || !guests) {
+    const { token, cabin_id, check_in, check_out, guest_name, guest_whatsapp, guests, tinaja_days, notes } = body
+
+    if (!token) {
+      return NextResponse.json({ success: false, message: "No autorizado" }, { status: 401 })
+    }
+    if (!cabin_id || !check_in || !check_out || !guest_name || !guest_whatsapp || !guests) {
       return NextResponse.json({ success: false, message: "Faltan campos obligatorios" }, { status: 400 })
     }
+
+    // Derivar tenant_id desde el token — no se confía en el body
+    const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
+    const { data: link } = await supabase
+      .from("dashboard_links")
+      .select("tenant_id")
+      .eq("token_hash", tokenHash)
+      .eq("active", true)
+      .maybeSingle()
+    if (!link) return NextResponse.json({ success: false, message: "No autorizado" }, { status: 401 })
+    const tenant_id = link.tenant_id
 
     // Billing check — bloquea si el tenant está suspendido
     const billing = await getBillingInfo(tenant_id)
@@ -50,34 +63,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "No se pueden crear reservas en fechas pasadas" }, { status: 400 })
     }
 
-    // Verificar que no exista reserva confirmada para esas fechas
-    const { data: existingConfirmed } = await supabase
-      .from("bookings")
-      .select("id, check_in, check_out")
-      .eq("cabin_id", cabin_id)
-      .eq("tenant_id", tenant_id)
-      .eq("status", "confirmed")
-      .is("deleted_at", null)
-      .lt("check_in", check_out)
-      .gt("check_out", check_in)
-
-    if (existingConfirmed && existingConfirmed.length > 0) {
-      const c = existingConfirmed[0]
-      return NextResponse.json({
-        success: false,
-        message: "Las fechas ya están confirmadas para otra reserva (" + c.check_in + " al " + c.check_out + ")"
-      }, { status: 409 })
-    }
-
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("deposit_percent, slug, tinaja_price, has_tinaja")
+      .select("deposit_percent, slug, tinaja_price, has_tinaja, owner_whatsapp, dashboard_token, currency")
       .eq("id", tenant_id)
       .single()
 
     const tinajaPrice = Number(tenantConfig?.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
     const tenantSlug = tenantConfig?.slug || "rsv"
+    const currency = tenantConfig?.currency || "CLP"
 
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
@@ -103,42 +98,60 @@ export async function POST(req: Request) {
       price_per_night: resolvedPricePerNight
     })
 
-    const { data: booking, error: bookingError } = await supabase
-      .from("bookings")
-      .insert([{
-        tenant_id, cabin_id, check_in, check_out,
-        guests: guestCount, nights,
-        subtotal_amount: subtotal, total_amount: total,
-        deposit_percent: depositPercent, deposit_amount: deposit, balance_amount: balance,
-        status: "draft", notes: notesData,
-        booking_code: bookingCode,
-        guest_name, guest_phone: guest_whatsapp,
-        commission_percent: 0, commission_amount: 0, commission_status: "not_applicable"
-      }])
-      .select("id")
-      .single()
+    // Uso create_booking_manual (advisory lock + conflict check atómico)
+    const { data: rpcResult, error: rpcError } = await supabase.rpc("create_booking_manual", {
+      p_tenant_id: tenant_id,
+      p_cabin_id: cabin_id,
+      p_check_in: check_in,
+      p_check_out: check_out,
+      p_guests: guestCount,
+      p_nights: nights,
+      p_subtotal_amount: subtotal,
+      p_total_amount: total,
+      p_deposit_percent: depositPercent,
+      p_deposit_amount: deposit,
+      p_balance_amount: balance,
+      p_notes: notesData,
+      p_booking_code: bookingCode,
+      p_guest_name: guest_name,
+      p_guest_phone: guest_whatsapp,
+      p_tinaja_amount: tinajaTotal,
+    })
 
-    if (bookingError || !booking) {
-      return NextResponse.json({ success: false, message: bookingError?.message || "Error al guardar" }, { status: 500 })
+    if (rpcError) {
+      return NextResponse.json({ success: false, message: rpcError.message || "Error al guardar" }, { status: 500 })
     }
 
-    const { error: blockError } = await supabase
-      .from("calendar_blocks")
-      .insert([{ tenant_id, cabin_id, start_date: check_in, end_date: check_out, reason: "manual", booking_id: booking.id }])
-
-    if (blockError) {
-      await supabase.from("bookings").delete().eq("id", booking.id)
-      return NextResponse.json({ success: false, message: "Las fechas no están disponibles" }, { status: 409 })
+    const rpc = rpcResult as { success: boolean; booking_id?: string; message?: string }
+    if (!rpc.success) {
+      return NextResponse.json({ success: false, message: rpc.message || "Las fechas no están disponibles" }, { status: 409 })
     }
+
+    const bookingId = rpc.booking_id!
 
     await logAudit({
       tenant_id, cabin_id,
       action: "booking_created",
       entity_type: "booking",
-      entity_id: booking.id,
+      entity_id: bookingId,
       details: { check_in, check_out, nights, total_amount: total, deposit_amount: deposit, origen: "manual", guest_name, booking_code: bookingCode },
       performed_by: "owner_panel",
     })
+
+    // WhatsApp al turista
+    if (guest_whatsapp) {
+      const guestMsg = `Hola ${guest_name} 👋 Tu reserva en ${cabin.name} fue registrada.\n📅 Check-in: ${check_in} | Check-out: ${check_out}\n💰 Total: ${currency} ${total} | Anticipo: ${currency} ${deposit}\nCódigo de reserva: ${bookingCode}`
+      sendWhatsApp({ to: guest_whatsapp, message: guestMsg, tenantId: tenant_id }).catch(() => {})
+    }
+
+    // WhatsApp al propietario
+    if (tenantConfig?.owner_whatsapp) {
+      const panelUrl = tenantConfig.dashboard_token
+        ? `https://panel.takai.cl/?token=${tenantConfig.dashboard_token}`
+        : "https://panel.takai.cl"
+      const ownerMsg = `🏡 Nueva reserva manual en ${cabin.name}\n👤 ${guest_name}\n📅 Check-in: ${check_in} → Check-out: ${check_out}\n💰 Total: ${currency} ${total}\nVer reserva: ${panelUrl}`
+      sendWhatsApp({ to: tenantConfig.owner_whatsapp, message: ownerMsg, tenantId: tenant_id }).catch(() => {})
+    }
 
     return NextResponse.json({ success: true, booking_code: bookingCode, total, deposit, nights })
   } catch (err: any) {

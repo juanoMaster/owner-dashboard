@@ -3,7 +3,7 @@ import { useState, useEffect, CSSProperties } from "react"
 import { getPriceForGuests, PricingTier } from "@/lib/pricing"
 
 interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null; has_tinaja?: boolean; tinaja_price?: number }
-interface Props { cabins: Cabin[]; tenantId: string; tenantDepositPercent?: number; currency?: string }
+interface Props { cabins: Cabin[]; tenantId: string; token: string; tenantDepositPercent?: number; currency?: string }
 
 function fmtCurrency(n: number, currency: string): string {
   if (currency === "USD") return "$" + Math.round(n).toLocaleString("en-US")
@@ -11,7 +11,7 @@ function fmtCurrency(n: number, currency: string): string {
   return "$" + Math.round(n).toLocaleString("es-CL", { maximumFractionDigits: 0 })
 }
 
-export default function ManualBookingForm({ cabins, tenantId, tenantDepositPercent = 20, currency = "CLP" }: Props) {
+export default function ManualBookingForm({ cabins, tenantId, token, tenantDepositPercent = 20, currency = "CLP" }: Props) {
   const fmt = (n: number) => fmtCurrency(n, currency)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -73,7 +73,7 @@ export default function ManualBookingForm({ cabins, tenantId, tenantDepositPerce
     if (calcNights() < 1) { setError("Las fechas no son v\u00e1lidas."); return }
     setLoading(true)
     try {
-      const res = await fetch("/api/bookings/manual", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tenant_id: tenantId, cabin_id: cabinId, check_in: checkIn, check_out: checkOut, guest_name: guestName, guest_whatsapp: guestWhatsapp, guests: guestCount, tinaja_days: tinajaUse ? tinajaDays : "0", notes }) })
+      const res = await fetch("/api/bookings/manual", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, cabin_id: cabinId, check_in: checkIn, check_out: checkOut, guest_name: guestName, guest_whatsapp: guestWhatsapp, guests: guestCount, tinaja_days: tinajaUse ? tinajaDays : "0", notes }) })
       const data = await res.json()
       if (!data.success) setError(data.message || "Error al guardar.")
       else {

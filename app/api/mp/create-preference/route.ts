@@ -4,15 +4,11 @@
 export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { MercadoPagoConfig, Preference } from "mercadopago"
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url: RequestInfo | URL, options: RequestInit = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const { booking_id } = await req.json() as { booking_id: string }
@@ -21,15 +17,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Falta booking_id" }, { status: 400 })
     }
 
-    // Buscar booking
+    // Buscar booking activo y en estado draft
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("id, cabin_id, tenant_id, deposit_amount")
+      .select("id, cabin_id, tenant_id, deposit_amount, status")
       .eq("id", booking_id)
-      .single()
+      .is("deleted_at", null)
+      .maybeSingle()
 
     if (bookingError || !booking) {
       return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 })
+    }
+
+    if (booking.status !== "draft") {
+      return NextResponse.json({ error: "Esta reserva ya fue procesada" }, { status: 409 })
     }
 
     // Buscar cabaña (nombre para el item)
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
       .from("cabins")
       .select("name")
       .eq("id", booking.cabin_id)
+      .eq("tenant_id", booking.tenant_id)
       .single()
 
     if (cabinError || !cabin) {
@@ -94,6 +96,7 @@ export async function POST(req: NextRequest) {
       .from("bookings")
       .update({ mp_preference_id: response.id })
       .eq("id", booking_id)
+      .eq("tenant_id", booking.tenant_id)
 
     return NextResponse.json({ init_point: response.init_point, preference_id: response.id })
   } catch (err: unknown) {

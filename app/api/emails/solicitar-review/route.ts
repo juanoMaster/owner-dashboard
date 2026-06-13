@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { getResend } from "@/lib/resend"
 
 export async function GET(req: NextRequest) {
@@ -9,11 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)

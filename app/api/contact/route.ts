@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { nombre, cabanas, whatsapp, cantidad } = body
+    const nombre  = escapeHtml(body.nombre  ?? "")
+    const cabanas = escapeHtml(body.cabanas ?? "")
+    const whatsapp = escapeHtml(body.whatsapp ?? "")
+    const cantidad = escapeHtml(body.cantidad ?? "")
     const apiKey = process.env.RESEND_API_KEY
 
     if (apiKey) {

@@ -6,6 +6,15 @@ export function getResend() {
   return _resend
 }
 
+function esc(s: string | number | null | undefined): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+}
+
 const LOGO_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/takai-logo-email.png"
 const GOLD = "#C9A84C"
 const GOLD_LIGHT = "#e8c96a"
@@ -110,9 +119,9 @@ export function emailNuevaReservaTurista(data: {
     <tr>
       <td style="padding:40px 40px 24px;">
         <p style="margin:0 0 6px;font-family:${FONT_SANS};font-size:11px;color:${GOLD};text-transform:uppercase;letter-spacing:3px;">Solicitud recibida</p>
-        <h2 style="margin:0 0 16px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Hola, ${data.guest_name}</h2>
+        <h2 style="margin:0 0 16px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Hola, ${esc(data.guest_name)}</h2>
         <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
-          Recibimos tu solicitud de reserva en <span style="color:${TEXT_LIGHT};font-weight:600;">${data.business_name}</span>. 
+          Recibimos tu solicitud de reserva en <span style="color:${TEXT_LIGHT};font-weight:600;">${esc(data.business_name)}</span>.
           Lo revisaremos y te confirmaremos a la brevedad.
         </p>
       </td>
@@ -175,7 +184,7 @@ export function emailNuevaReservaDuena(data: {
         </div>
         <h2 style="margin:0 0 12px;font-family:${FONT};font-size:26px;font-weight:400;color:${TEXT_LIGHT};">Nueva reserva recibida</h2>
         <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
-          Hola <span style="color:${TEXT_LIGHT};font-weight:600;">${data.owner_name}</span>, tienes una nueva solicitud de reserva.
+          Hola <span style="color:${TEXT_LIGHT};font-weight:600;">${esc(data.owner_name)}</span>, tienes una nueva solicitud de reserva.
         </p>
       </td>
     </tr>
@@ -184,9 +193,9 @@ export function emailNuevaReservaDuena(data: {
       <td style="padding:0 40px 20px;">
         <p style="margin:0 0 10px;font-family:${FONT_SANS};font-size:10px;color:${GOLD};text-transform:uppercase;letter-spacing:2px;">Datos del turista</p>
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
-          ${detailRow("Nombre", data.guest_name)}
-          ${detailRow("Email", data.guest_email)}
-          ${detailRow("Teléfono", data.guest_phone)}
+          ${detailRow("Nombre", esc(data.guest_name))}
+          ${detailRow("Email", esc(data.guest_email))}
+          ${detailRow("Teléfono", esc(data.guest_phone))}
           ${detailRow("Personas", `${data.guests_count} personas`, false, true)}
         </table>
       </td>
@@ -243,9 +252,9 @@ export function emailReservaConfirmada(data: {
         <div style="display:inline-block;background:#0f2a1a;border:1px solid #2d5a3d;border-radius:20px;padding:8px 20px;margin-bottom:20px;">
           <p style="margin:0;font-family:${FONT_SANS};font-size:11px;color:#4caf7d;font-weight:700;letter-spacing:2px;text-transform:uppercase;">✓ Reserva Confirmada</p>
         </div>
-        <h2 style="margin:0 0 12px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">¡Todo listo, ${data.guest_name}!</h2>
+        <h2 style="margin:0 0 12px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">¡Todo listo, ${esc(data.guest_name)}!</h2>
         <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
-          Tu reserva en <span style="color:${TEXT_LIGHT};font-weight:600;">${data.business_name}</span> está 100% confirmada.
+          Tu reserva en <span style="color:${TEXT_LIGHT};font-weight:600;">${esc(data.business_name)}</span> está 100% confirmada.
         </p>
       </td>
     </tr>
@@ -382,7 +391,7 @@ export function emailRecordatorio48h(data: {
         <p style="margin:0 0 6px;font-family:${FONT_SANS};font-size:11px;color:${GOLD};text-transform:uppercase;letter-spacing:3px;">Recordatorio</p>
         <h2 style="margin:0 0 12px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">¡Tu estadía es en 2 días!</h2>
         <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
-          Hola <span style="color:${TEXT_LIGHT};font-weight:600;">${data.guest_name}</span>, se acerca tu reserva en <span style="color:${TEXT_LIGHT};font-weight:600;">${data.business_name}</span>.
+          Hola <span style="color:${TEXT_LIGHT};font-weight:600;">${esc(data.guest_name)}</span>, se acerca tu reserva en <span style="color:${TEXT_LIGHT};font-weight:600;">${esc(data.business_name)}</span>.
         </p>
       </td>
     </tr>
@@ -423,10 +432,10 @@ export function emailReservaCancelada(data: {
         <div style="display:inline-block;background:#2a1010;border:1px solid #5a2d2d;border-radius:20px;padding:8px 20px;margin-bottom:20px;">
           <p style="margin:0;font-family:${FONT_SANS};font-size:11px;color:#e05555;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Reserva no confirmada</p>
         </div>
-        <h2 style="margin:0 0 12px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Hola, ${data.guest_name}</h2>
+        <h2 style="margin:0 0 12px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Hola, ${esc(data.guest_name)}</h2>
         <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${TEXT_MUTED};line-height:1.8;">
           Lamentablemente no fue posible confirmar tu reserva en
-          <span style="color:${TEXT_LIGHT};font-weight:600;">${data.business_name}</span>.
+          <span style="color:${TEXT_LIGHT};font-weight:600;">${esc(data.business_name)}</span>.
           Las fechas han quedado liberadas.
         </p>
       </td>

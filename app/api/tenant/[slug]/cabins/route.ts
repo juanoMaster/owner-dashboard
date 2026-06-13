@@ -1,14 +1,10 @@
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(_req: Request, { params }: { params: { slug: string } }) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   const { data: tenant } = await supabase
     .from("tenants")

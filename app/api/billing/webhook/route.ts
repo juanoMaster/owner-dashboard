@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { verifyMpSignature } from "@/lib/mp-verify"
 import { syncBillingStatus } from "@/lib/billing"
 import { logAudit } from "@/lib/audit"
@@ -11,11 +11,7 @@ import { getResend, emailSubscriptionActivated, emailPastDue } from "@/lib/resen
 const OK = () => NextResponse.json({ received: true }, { status: 200 })
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const { searchParams } = new URL(req.url)

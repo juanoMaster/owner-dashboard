@@ -1,18 +1,14 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 
 export async function PATCH(req: Request) {
   const adminToken = process.env.ADMIN_TOKEN
   const h = req.headers.get("x-admin-token")
   if (!adminToken || h !== adminToken) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const { booking_id, commission_status } = await req.json()

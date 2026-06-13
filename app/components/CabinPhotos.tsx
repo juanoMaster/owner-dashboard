@@ -6,9 +6,10 @@ interface CabinPhotosProps {
   cabinId: string
   cabinName: string
   initialPhotos: string[]
+  token: string
 }
 
-export default function CabinPhotos({ cabinId, cabinName, initialPhotos }: CabinPhotosProps) {
+export default function CabinPhotos({ cabinId, cabinName, initialPhotos, token }: CabinPhotosProps) {
   const [photos, setPhotos] = useState<string[]>(initialPhotos)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -62,6 +63,7 @@ export default function CabinPhotos({ cabinId, cabinName, initialPhotos }: Cabin
     const formData = new FormData()
     formData.append("file", file)
     formData.append("cabin_id", cabinId)
+    formData.append("token", token)
 
     try {
       const res = await fetch("/api/cabins/photos", { method: "POST", body: formData })
@@ -84,7 +86,7 @@ export default function CabinPhotos({ cabinId, cabinName, initialPhotos }: Cabin
       const res = await fetch("/api/cabins/photos", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cabin_id: cabinId, url }),
+        body: JSON.stringify({ token, cabin_id: cabinId, url }),
       })
       const json = await res.json()
       if (!res.ok) {

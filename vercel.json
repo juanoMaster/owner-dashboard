@@ -1,36 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/emails/recordatorio",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/health",
-      "schedule": "0 8 * * *"
+      "path": "/api/cron/daily",
+      "schedule": "0 9 * * *"
     },
     {
       "path": "/api/emails/resumen-semanal",
       "schedule": "0 10 * * 1"
-    },
-    {
-      "path": "/api/emails/solicitar-review",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/cron/cancelar-pendientes",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/recordatorio-transferencia",
-      "schedule": "30 9 * * *"
-    },
-    {
-      "path": "/api/cron/billing-check",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/generate-commission-statements",
-      "schedule": "0 10 1 * *"
     }
   ]
 }

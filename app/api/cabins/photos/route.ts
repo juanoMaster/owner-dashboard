@@ -1,35 +1,56 @@
 export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
+import crypto from "crypto"
+
+async function resolveToken(supabase: ReturnType<typeof getSupabaseAdmin>, token: string | null) {
+  if (!token) return null
+  const hash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
+  const { data: link } = await supabase
+    .from("dashboard_links")
+    .select("tenant_id")
+    .eq("token_hash", hash)
+    .eq("active", true)
+    .maybeSingle()
+  return link?.tenant_id ?? null
+}
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url: RequestInfo | URL, options: RequestInit = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const formData = await req.formData()
     const file = formData.get("file") as File | null
     const cabin_id = formData.get("cabin_id") as string | null
+    const token = formData.get("token") as string | null
 
+    if (!token) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
     if (!file || !cabin_id) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 })
     }
 
-    // Billing check — resolver tenant desde cabin_id
-    const { data: cabinRow } = await supabase.from("cabins").select("tenant_id").eq("id", cabin_id).single()
-    if (cabinRow) {
-      const billing = await getBillingInfo(cabinRow.tenant_id)
-      if (isBillingBlocked(billing.billing_status, billing.manual_billing)) {
-        return NextResponse.json(
-          { error: "Tu suscripción está suspendida. Regulariza tu pago para subir fotos." },
-          { status: 403 }
-        )
-      }
+    const tenant_id = await resolveToken(supabase, token)
+    if (!tenant_id) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
+    // Verificar que la cabaña pertenece al tenant y hacer billing check
+    const { data: cabinRow } = await supabase
+      .from("cabins")
+      .select("tenant_id")
+      .eq("id", cabin_id)
+      .eq("tenant_id", tenant_id)
+      .single()
+    if (!cabinRow) return NextResponse.json({ error: "Cabaña no encontrada" }, { status: 404 })
+
+    const billing = await getBillingInfo(tenant_id)
+    if (isBillingBlocked(billing.billing_status, billing.manual_billing)) {
+      return NextResponse.json(
+        { error: "Tu suscripción está suspendida. Regulariza tu pago para subir fotos." },
+        { status: 403 }
+      )
     }
 
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
@@ -60,6 +81,7 @@ export async function POST(req: NextRequest) {
       .from("cabins")
       .select("photos")
       .eq("id", cabin_id)
+      .eq("tenant_id", tenant_id)
       .single()
 
     if (selectError) {
@@ -72,6 +94,7 @@ export async function POST(req: NextRequest) {
       .from("cabins")
       .update({ photos: [...currentPhotos, publicUrl] })
       .eq("id", cabin_id)
+      .eq("tenant_id", tenant_id)
 
     if (updateError) {
       return NextResponse.json({ error: "Error al guardar URL: " + updateError.message }, { status: 500 })
@@ -85,18 +108,20 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url: RequestInfo | URL, options: RequestInit = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
-    const { cabin_id, url } = (await req.json()) as { cabin_id: string; url: string }
+    const { token, cabin_id, url } = (await req.json()) as { token: string; cabin_id: string; url: string }
 
+    if (!token) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
     if (!cabin_id || !url) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 })
     }
+
+    const tenant_id = await resolveToken(supabase, token)
+    if (!tenant_id) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
 
     const marker = "/cabin-photos/"
     const markerIdx = url.indexOf(marker)
@@ -117,6 +142,7 @@ export async function DELETE(req: NextRequest) {
       .from("cabins")
       .select("photos")
       .eq("id", cabin_id)
+      .eq("tenant_id", tenant_id)
       .single()
 
     if (selectError) {
@@ -129,6 +155,7 @@ export async function DELETE(req: NextRequest) {
       .from("cabins")
       .update({ photos: currentPhotos.filter((p) => p !== url) })
       .eq("id", cabin_id)
+      .eq("tenant_id", tenant_id)
 
     if (updateError) {
       return NextResponse.json({ error: "Error al actualizar fotos: " + updateError.message }, { status: 500 })

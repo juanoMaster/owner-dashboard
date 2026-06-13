@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { MercadoPagoConfig, Payment } from "mercadopago"
 import { createHmac } from "crypto"
 import { logAudit } from "@/lib/audit"
@@ -23,11 +23,7 @@ function verifyMpSignature(secret: string, xSignature: string, xRequestId: strin
 
 export async function POST(req: NextRequest) {
   // MP requiere 200 siempre o reintenta — nunca retornar error al final
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url: RequestInfo | URL, options: RequestInit = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const { searchParams } = new URL(req.url)
@@ -93,6 +89,7 @@ export async function POST(req: NextRequest) {
         .from("calendar_blocks")
         .update({ reason: "system_booking" })
         .eq("booking_id", bookingId)
+        .eq("tenant_id", tenantId)
         .neq("reason", "manual")
 
       await logAudit({

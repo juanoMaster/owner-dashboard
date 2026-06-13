@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { sendAlertEmail } from "@/lib/alertEmail"
 
 function isAuthorized(req: Request): boolean {
@@ -28,11 +28,7 @@ export async function GET(req: Request) {
   const failures: string[] = []
   const checks: Record<string, unknown> = {}
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   // 1. Verificar conexión a Supabase
   const { error: pingError } = await supabase

@@ -1,14 +1,9 @@
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import crypto from "crypto"
 
 export async function PATCH(req: Request) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
   try {
     const body = await req.json()
     const { token, guidebook, google_review_url } = body
@@ -16,8 +11,9 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "token requerido" }, { status: 400 })
     }
 
+    const supabaseAdmin = getSupabaseAdmin()
     const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
-    const { data: link } = await supabase
+    const { data: link } = await supabaseAdmin
       .from("dashboard_links")
       .select("tenant_id")
       .eq("token_hash", tokenHash)
@@ -25,6 +21,8 @@ export async function PATCH(req: Request) {
       .maybeSingle()
 
     if (!link) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
+    const supabase = await getSupabaseForTenant(link.tenant_id)
 
     const updatePayload: Record<string, any> = {}
     if (guidebook !== undefined) updatePayload.guidebook = guidebook

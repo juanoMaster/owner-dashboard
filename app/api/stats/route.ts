@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin, getSupabaseForTenant } from "@/lib/supabase-server"
 import crypto from "crypto"
 
 export async function GET(req: Request) {
@@ -9,14 +9,9 @@ export async function GET(req: Request) {
   const token = searchParams.get("token")
   if (!token) return NextResponse.json({ error: "Missing token" }, { status: 400 })
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url, options = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
-
+  const supabaseAdmin = getSupabaseAdmin()
   const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")
-  const { data: link } = await supabase
+  const { data: link } = await supabaseAdmin
     .from("dashboard_links")
     .select("tenant_id")
     .eq("token_hash", tokenHash)
@@ -24,6 +19,8 @@ export async function GET(req: Request) {
     .maybeSingle()
 
   if (!link) return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+
+  const supabase = await getSupabaseForTenant(link.tenant_id)
 
   const now = new Date()
   const from = new Date(now.getFullYear(), now.getMonth() - 11, 1)

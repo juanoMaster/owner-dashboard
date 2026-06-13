@@ -1,14 +1,10 @@
 export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { getSupabaseAdmin } from "@/lib/supabase-server"
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { global: { fetch: (url: RequestInfo | URL, options: RequestInit = {}) => fetch(url, { ...options, cache: "no-store" }) } }
-  )
+  const supabase = getSupabaseAdmin()
 
   try {
     const { searchParams } = new URL(req.url)
@@ -22,7 +18,8 @@ export async function GET(req: NextRequest) {
       .from("bookings")
       .select("status, tenant_id")
       .eq("id", booking_id)
-      .single()
+      .is("deleted_at", null)
+      .maybeSingle()
 
     if (bookingError || !booking) {
       return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 })

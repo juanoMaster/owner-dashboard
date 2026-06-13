@@ -145,7 +145,7 @@ function CalendarContent() {
       const res = await fetch("/api/calendar/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cabin_id: cabinId, id: existing.id }),
+        body: JSON.stringify({ token, cabin_id: cabinId, id: existing.id }),
       })
       const data = await res.json()
       if (!data.success) alert("Error al liberar el día.")
@@ -173,7 +173,7 @@ function CalendarContent() {
     const res = await fetch("/api/calendar/delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cabin_id: cabinId, id: modal?.blockId }),
+      body: JSON.stringify({ token, cabin_id: cabinId, id: modal?.blockId }),
     })
     const data = await res.json()
     setModalLoading(false)
@@ -244,6 +244,7 @@ function CalendarContent() {
           <ManualBookingForm
             cabins={[{ id: cabinId, name: cabinName, capacity: cabinCapacity, base_price_night: cabinPrice || 30000 }]}
             tenantId={tenantId}
+            token={token}
           />
         )}
 
