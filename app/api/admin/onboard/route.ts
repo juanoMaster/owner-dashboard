@@ -32,6 +32,7 @@ async function ensureUniqueSlug(supabase: SupabaseClient, base: string): Promise
 }
 
 async function deleteTenantCascade(supabase: SupabaseClient, tenantId: string) {
+  await supabase.from("subscriptions").delete().eq("tenant_id", tenantId)
   await supabase.from("dashboard_links").delete().eq("tenant_id", tenantId)
   await supabase.from("cabins").delete().eq("tenant_id", tenantId)
   await supabase.from("tenants").delete().eq("id", tenantId)
@@ -82,6 +83,13 @@ export async function POST(req: Request) {
   const extra_services = Array.isArray(body.extra_services) ? body.extra_services : []
   const activities = Array.isArray(body.activities) ? body.activities : []
   const page_rules = Array.isArray(body.page_rules) ? body.page_rules : []
+
+  // ── Billing fields ───────────────────────────────────────────────────────────
+  const billing_mode = (body.billing_mode === "commission" || body.billing_mode === "manual") ? body.billing_mode : "subscription"
+  const commission_rate = billing_mode === "commission" ? (Number(body.commission_rate) || 10) : 10
+  const free_until = (billing_mode === "commission" && typeof body.free_until === "string" && body.free_until) ? body.free_until : null
+  const is_manual_billing = billing_mode === "manual"
+  const initial_billing_status = (billing_mode === "subscription") ? "trial" : "active"
   const gp = (body.guidebook_patch && typeof body.guidebook_patch === "object" && !Array.isArray(body.guidebook_patch))
     ? body.guidebook_patch as Record<string, unknown>
     : {}
@@ -180,6 +188,8 @@ export async function POST(req: Request) {
     bank_account_holder: bank_account_holder || null,
     bank_rut,
     guidebook: Object.keys(initialGuidebook).length > 0 ? initialGuidebook : null,
+    manual_billing: is_manual_billing,
+    billing_status: initial_billing_status,
     active: true,
   }
 
@@ -241,6 +251,26 @@ export async function POST(req: Request) {
   if (tokErr) {
     await deleteTenantCascade(supabase, tenantId)
     return NextResponse.json({ error: tokErr.message || "Error al guardar el token del panel." }, { status: 500 })
+  }
+
+  // ── Create subscription row ──────────────────────────────────────────────────
+  const trialEndsAt = billing_mode === "subscription"
+    ? new Date(Date.now() + 30 * 86400 * 1000).toISOString()
+    : null
+
+  const { error: subErr } = await supabase.from("subscriptions").insert([{
+    tenant_id: tenantId,
+    billing_mode,
+    commission_rate,
+    free_until: free_until || null,
+    status: initial_billing_status,
+    trial_ends_at: trialEndsAt,
+    currency,
+  }])
+
+  if (subErr) {
+    await deleteTenantCascade(supabase, tenantId)
+    return NextResponse.json({ error: subErr.message || "Error al crear la suscripción." }, { status: 500 })
   }
 
   return NextResponse.json({
