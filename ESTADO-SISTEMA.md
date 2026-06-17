@@ -19,7 +19,12 @@
 - vercel.json: ya usa `/api/cron/daily` como orquestador único + `/api/emails/resumen-semanal` semanal
 - Build OK sin errores TypeScript
 
-**Pendiente:** Commit + push a main (deploy Vercel automático)
+**También en esta sesión (commits posteriores):**
+- `admin/onboard`: crea fila en `subscriptions` al onboardear tenant nuevo (billing_mode, commission_rate, free_until, trial_ends_at); rollback incluye DELETE en subscriptions
+- `resumen-semanal`: bugfix crítico — `commission_rate` se guarda como porcentaje entero (10=10%) pero se aplicaba sin dividir por 100; fix: `/100` antes de multiplicar
+- `billing/ack`: eliminado import muerto `emailSubscriptionActivated`
+
+**Estado:** Todo deployado en producción (Vercel auto-deploy)
 
 ---
 
@@ -178,4 +183,4 @@
 | 2026-06-12 | Auditoría total (solo lectura). Creados ESTADO-SISTEMA.md y actualizado CLAUDE.md. |
 | 2026-06-12 | Sprint seguridad: P0 auth, P1 (Twilio HMAC, XSS, loop, deleted_at MP), RPC atómico, índices BD. |
 | 2026-06-13 | Corrección documentación: CLAUDE.md y ESTADO-SISTEMA.md con info correcta de clientes y modelo de negocio. |
-| 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado como ya resuelto. |
+| 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado. Onboard crea subscription row. Bugfix crítico comisión ÷100. |
