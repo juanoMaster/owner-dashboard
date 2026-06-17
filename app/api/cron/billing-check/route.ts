@@ -133,7 +133,7 @@ export async function GET(req: Request) {
       try {
         const { data: tenant } = await supabase
           .from("tenants")
-          .select("business_name, owner_name, email_owner, manual_billing")
+          .select("business_name, owner_name, email_owner, manual_billing, currency")
           .eq("id", sub.tenant_id)
           .single()
 
@@ -161,6 +161,7 @@ export async function GET(req: Request) {
             days_left: daysLeft,
             reservas_count: reservasCount,
             monto_total: montoTotal,
+            currency: tenant.currency || "CLP",
             facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`,
           }),
         })

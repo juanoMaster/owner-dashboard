@@ -111,8 +111,15 @@ export function emailNuevaReservaTurista(data: {
   has_tinaja: boolean
   tinaja_amount?: number
   gender?: string
+  currency?: string
 }) {
   const pct = data.deposit_amount > 0 ? Math.round((data.deposit_amount / data.total_amount) * 100) : 20
+  const currency = data.currency || "CLP"
+  const fmt = (n: number) => {
+    if (currency === "USD") return "USD $" + n.toFixed(2)
+    if (currency === "COP") return "COP $" + Math.round(n).toLocaleString("es-CO")
+    return "$" + Math.round(n).toLocaleString("es-CL")
+  }
 
   return wrapper(`
     ${header(data.business_name)}
@@ -135,9 +142,9 @@ export function emailNuevaReservaTurista(data: {
           ${detailRow("Check-in", data.check_in)}
           ${detailRow("Check-out", data.check_out)}
           ${detailRow("Noches", `${data.nights} noches`)}
-          ${data.has_tinaja && data.tinaja_amount ? detailRow("Tinaja", `$${data.tinaja_amount.toLocaleString("es-CL")} CLP`) : ""}
-          ${detailRow("Total", `$${data.total_amount.toLocaleString("es-CL")} CLP`)}
-          ${detailRow(`Adelanto requerido (${pct}%)`, `$${data.deposit_amount.toLocaleString("es-CL")} CLP`, true, true)}
+          ${data.has_tinaja && data.tinaja_amount ? detailRow("Tinaja", fmt(data.tinaja_amount)) : ""}
+          ${detailRow("Total", fmt(data.total_amount))}
+          ${detailRow(`Adelanto requerido (${pct}%)`, fmt(data.deposit_amount), true, true)}
         </table>
       </td>
     </tr>
@@ -174,7 +181,15 @@ export function emailNuevaReservaDuena(data: {
   has_tinaja: boolean
   tinaja_amount?: number
   dashboard_url: string
+  currency?: string
 }) {
+  const currency = data.currency || "CLP"
+  const fmt = (n: number) => {
+    if (currency === "USD") return "USD $" + n.toFixed(2)
+    if (currency === "COP") return "COP $" + Math.round(n).toLocaleString("es-CO")
+    return "$" + Math.round(n).toLocaleString("es-CL")
+  }
+
   return wrapper(`
     ${header(data.business_name)}
     <tr>
@@ -209,8 +224,8 @@ export function emailNuevaReservaDuena(data: {
           ${detailRow("Cabaña", data.cabin_name)}
           ${detailRow("Check-in / Check-out", `${data.check_in} → ${data.check_out}`)}
           ${detailRow("Noches", `${data.nights} noches`)}
-          ${data.has_tinaja && data.tinaja_amount ? detailRow("Tinaja", `$${data.tinaja_amount.toLocaleString("es-CL")} CLP`) : ""}
-          ${detailRow("Total / Adelanto esperado", `$${data.total_amount.toLocaleString("es-CL")} / $${data.deposit_amount.toLocaleString("es-CL")} CLP`, true, true)}
+          ${data.has_tinaja && data.tinaja_amount ? detailRow("Tinaja", fmt(data.tinaja_amount)) : ""}
+          ${detailRow("Total / Adelanto esperado", `${fmt(data.total_amount)} / ${fmt(data.deposit_amount)}`, true, true)}
         </table>
       </td>
     </tr>
@@ -476,7 +491,14 @@ export function emailTrialEnding(data: {
   reservas_count: number
   monto_total: number
   facturacion_url: string
+  currency?: string
 }) {
+  const currency = data.currency || "CLP"
+  const fmtTrial = (n: number) => {
+    if (currency === "USD") return "USD $" + n.toFixed(2)
+    if (currency === "COP") return "COP $" + Math.round(n).toLocaleString("es-CO")
+    return "$" + Math.round(n).toLocaleString("es-CL") + " CLP"
+  }
   return wrapper(`
     <tr>
       <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
@@ -497,7 +519,7 @@ export function emailTrialEnding(data: {
           <tr>
             <td style="padding:20px 24px;">
               <p style="margin:0;font-family:${FONT_SANS};font-size:10px;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:2px;">Ingresos generados</p>
-              <p style="margin:6px 0 0;font-family:${FONT};font-size:32px;color:${GOLD};">$${data.monto_total.toLocaleString("es-CL")} CLP</p>
+              <p style="margin:6px 0 0;font-family:${FONT};font-size:32px;color:${GOLD};">${fmtTrial(data.monto_total)}</p>
             </td>
           </tr>
         </table>

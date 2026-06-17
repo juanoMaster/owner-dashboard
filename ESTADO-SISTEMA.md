@@ -6,25 +6,30 @@
 
 ## Última actualización
 **Fecha:** 2026-06-17
-**Sesión:** Sprint de optimización y completitud — P2/P3 cerrados
-**Hecho:**
-- P2-0a + P2-7: `embed/[slug]/availability` — agregado `.eq("tenant_id", tenant.id)` + filtro de fechas `.lt("check_in", windowEndStr).gt("check_out", windowStartStr)` al query de bookings
-- P2-1: Historial pagination — API acepta `cursor` (ISO timestamp) + `limit=100`, devuelve `next_cursor`; HistorialPageClient acumula páginas y muestra botón "Cargar más"
-- P2-2 + P3-3: `resumen-semanal` — tasa de comisión dinámica desde `subscriptions.commission_rate` (join); género desde `tenants.gender` con fallback a heurística; removida constante `TAKAI_COMMISSION_RATE`
-- P2-3: `lib/whatsapp.ts` — parámetros opcionales `whatsappEnabled`/`twilioWhatsappNumber` para evitar DB query cuando el caller ya tiene el dato
-- P2-4: `lib/audit.ts` — acepta `SupabaseClient` opcional para reusar conexión existente
-- P2-5: `app/api/health/route.ts` — N+1 eliminado; reemplazado con `Promise.all` + 2 queries batch con `.in("tenant_id", tenantIds)`
-- P3-2: `app/api/admin/cabins/route.ts` — corregido bug crítico: `q.eq("tenant_id", ...)` descartaba el resultado silenciosamente; corregido a `q = q.eq(...)`
-- P1-2: Verificado que ya estaba resuelto — `app/admin/page.tsx` ya usa form + `sessionStorage` + header `x-admin-token` (no URL)
-- vercel.json: ya usa `/api/cron/daily` como orquestador único + `/api/emails/resumen-semanal` semanal
-- Build OK sin errores TypeScript
+**Sesión:** Sprint de optimización y completitud — P2/P3 cerrados + fix de moneda
 
-**También en esta sesión (commits posteriores):**
-- `admin/onboard`: crea fila en `subscriptions` al onboardear tenant nuevo (billing_mode, commission_rate, free_until, trial_ends_at); rollback incluye DELETE en subscriptions
-- `resumen-semanal`: bugfix crítico — `commission_rate` se guarda como porcentaje entero (10=10%) pero se aplicaba sin dividir por 100; fix: `/100` antes de multiplicar
-- `billing/ack`: eliminado import muerto `emailSubscriptionActivated`
+**Sprint anterior (mismo día):**
+- P2-0a + P2-7: `embed/[slug]/availability` — agregado `.eq("tenant_id", tenant.id)` + filtro de fechas
+- P2-1: Historial pagination — cursor-based, límite 100, botón "Cargar más"
+- P2-2 + P3-3: `resumen-semanal` — comisión dinámica desde DB; género desde DB; constante hardcodeada removida
+- P2-3: `lib/whatsapp.ts` — parámetros opcionales para evitar DB extra query
+- P2-4: `lib/audit.ts` — acepta SupabaseClient opcional
+- P2-5: `app/api/health/route.ts` — N+1 eliminado; 2 queries batch
+- P3-2: `app/api/admin/cabins/route.ts` — bug variable descartada corregido
+- P1-2: Verificado como ya resuelto
+- `admin/onboard`: crea fila `subscriptions` al onboardear tenant nuevo
+- `resumen-semanal`: bugfix comisión ÷100
+- `billing/ack`: import muerto eliminado
 
-**Estado:** Todo deployado en producción (Vercel auto-deploy)
+**Esta iteración del loop:**
+- `lib/resend.ts`: corrección de moneda en emails `emailNuevaReservaTurista`, `emailNuevaReservaDuena`, `emailTrialEnding` — todas hardcodeaban "CLP" para todos los tenants; GlampingCacagual (USD) recibía emails con "CLP" incorrecto
+- `app/api/emails/nueva-reserva/route.ts`: agregado `currency` al SELECT de tenants; propagado a ambos emails
+- `app/api/cron/billing-check/route.ts`: agregado `currency` al SELECT de tenants; propagado a `emailTrialEnding`
+- Auditados: `bookings/confirm`, `bookings/cancel`, `mp/webhook`, `cancelar-pendientes`, `recordatorio-transferencia`, `generate-commission-statements`, `billing-check`, `solicitar-review`, `report-transfer`, `billing/status`, `dashboard/facturacion` — todos sólidos
+- P0-2b verificado como ya resuelto: `/api/bookings/route.ts` ya usa RPC `create_booking_atomic`
+- P3-5 verificado como ya resuelto: `review_sent_at` y `mp_preference_id` ya documentados en CLAUDE.md
+
+**Estado:** Build OK. Todo deployado en producción (Vercel auto-deploy)
 
 ---
 
@@ -36,7 +41,7 @@
 | Reservas (propietario panel) | 97% | Race condition resuelta vía RPC create_booking_manual atómico |
 | Calendario | 90% | Funcional; sin paginación en API |
 | Billing / Comisiones | 90% | Funcional; comisión dinámica en resumen-semanal |
-| Emails (Resend) | 95% | Loop resiliente; género por DB; comisión dinámica |
+| Emails (Resend) | 98% | Loop resiliente; género por DB; comisión dinámica; moneda dinámica en emails turista |
 | WhatsApp (Twilio) | 95% | HMAC-SHA1 verificado; parámetros opcionales para evitar DB extra |
 | MercadoPago (turistas) | 95% | Filtros completos implementados |
 | MercadoPago (billing) | 90% | Funcional; webhook billing sin test end-to-end |
@@ -149,8 +154,7 @@
 
 ### Pendiente (antes de 10 clientes)
 1. [P2-8] Confirmar con Juan: ¿comisiones por `created_at` o `check_in`?
-2. [P3-5] Documentar `review_sent_at` y `mp_preference_id` en CLAUDE.md schema
-3. [P3-4] Limpiar archivos muertos en raíz (con OK de Juan)
+2. [P3-4] Limpiar archivos muertos en raíz (con OK de Juan)
 
 ### Pendiente (antes de 50 clientes)
 4. [P2-1b] Paginación en admin dashboard (`.limit(2000)` hardcodeado)
@@ -183,4 +187,4 @@
 | 2026-06-12 | Auditoría total (solo lectura). Creados ESTADO-SISTEMA.md y actualizado CLAUDE.md. |
 | 2026-06-12 | Sprint seguridad: P0 auth, P1 (Twilio HMAC, XSS, loop, deleted_at MP), RPC atómico, índices BD. |
 | 2026-06-13 | Corrección documentación: CLAUDE.md y ESTADO-SISTEMA.md con info correcta de clientes y modelo de negocio. |
-| 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado. Onboard crea subscription row. Bugfix crítico comisión ÷100. |
+| 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado. Onboard crea subscription row. Bugfix crítico comisión ÷100. Fix moneda en emails turista (USD/COP/CLP dinámico en emailNuevaReservaTurista, emailNuevaReservaDuena, emailTrialEnding). P0-2b y P3-5 verificados como ya resueltos. |

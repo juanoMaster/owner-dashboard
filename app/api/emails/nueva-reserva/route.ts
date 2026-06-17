@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         cabins(name, has_tinaja),
         tenants(
           business_name, owner_name, email_owner, owner_whatsapp,
-          deposit_percent, slug,
+          deposit_percent, slug, currency,
           bank_name, bank_account_type, bank_account_number,
           bank_account_holder, bank_rut, dashboard_token
         )
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
       booking_code: booking.booking_code,
       has_tinaja: booking.cabins?.has_tinaja ?? false,
       tinaja_amount: booking.tinaja_amount || 0,
+      currency: t.currency || "CLP",
     }
 
     // Email al turista
