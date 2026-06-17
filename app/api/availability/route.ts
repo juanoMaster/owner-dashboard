@@ -9,7 +9,8 @@ export async function GET(req: Request) {
   const cabin_id = searchParams.get("cabin_id")
   const check_in = searchParams.get("check_in")
   const check_out = searchParams.get("check_out")
-  const visited = (searchParams.get("visited") || "").split(",").filter(Boolean)
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const visited = (searchParams.get("visited") || "").split(",").filter(v => UUID_RE.test(v))
   const guests = parseInt(searchParams.get("guests") || "1") || 1
 
   if (!cabin_id || !check_in || !check_out) {

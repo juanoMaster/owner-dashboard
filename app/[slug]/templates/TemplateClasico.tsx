@@ -342,7 +342,7 @@ export default function TemplateClasico({ tenant, cabins }: { tenant: TenantData
               {extraServices.map((svc, i) => (
                 <div key={i} style={{ background: "rgba(13,13,13,0.9)", border: "1px solid " + BORDER, borderRadius: "10px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
                   <div style={{ fontSize: "13px", color: TEXT, fontWeight: 400 }}>{svc.name}</div>
-                  <div style={{ fontFamily: SERIF, fontSize: "14px", color: GOLD, whiteSpace: "nowrap" as const }}>{"$" + Math.round(svc.price).toLocaleString("es-CL")}</div>
+                  <div style={{ fontFamily: SERIF, fontSize: "14px", color: GOLD, whiteSpace: "nowrap" as const }}>{fmt(svc.price)}</div>
                 </div>
               ))}
             </div>

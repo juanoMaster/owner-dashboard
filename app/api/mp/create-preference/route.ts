@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     // Buscar tenant (mp_access_token y mp_enabled)
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
-      .select("mp_access_token, mp_enabled")
+      .select("mp_access_token, mp_enabled, currency")
       .eq("id", booking.tenant_id)
       .single()
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             title: cabin.name,
             quantity: 1,
             unit_price: Number(booking.deposit_amount),
-            currency_id: "CLP",
+            currency_id: (tenant.currency || "CLP") as string,
           },
         ],
         external_reference: booking_id,

@@ -130,14 +130,7 @@ export async function DELETE(req: NextRequest) {
     }
     const filePath = url.slice(markerIdx + marker.length)
 
-    const { error: removeError } = await supabase.storage
-      .from("cabin-photos")
-      .remove([filePath])
-
-    if (removeError) {
-      return NextResponse.json({ error: "Error al eliminar archivo: " + removeError.message }, { status: 500 })
-    }
-
+    // Verify ownership before touching storage
     const { data: cabin, error: selectError } = await supabase
       .from("cabins")
       .select("photos")
@@ -145,11 +138,22 @@ export async function DELETE(req: NextRequest) {
       .eq("tenant_id", tenant_id)
       .single()
 
-    if (selectError) {
-      return NextResponse.json({ error: "Error al leer cabaña" }, { status: 500 })
+    if (selectError || !cabin) {
+      return NextResponse.json({ error: "Cabaña no encontrada" }, { status: 404 })
     }
 
     const currentPhotos: string[] = cabin.photos ?? []
+    if (!currentPhotos.includes(url)) {
+      return NextResponse.json({ error: "Foto no encontrada en esta cabaña" }, { status: 404 })
+    }
+
+    const { error: removeError } = await supabase.storage
+      .from("cabin-photos")
+      .remove([filePath])
+
+    if (removeError) {
+      return NextResponse.json({ error: "Error al eliminar archivo: " + removeError.message }, { status: 500 })
+    }
 
     const { error: updateError } = await supabase
       .from("cabins")
