@@ -5,9 +5,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { getResend } from "@/lib/resend"
 import { generarResumenSemanal, type ResumenReserva } from "@/lib/email-templates/resumen-semanal"
 
-const TAKAI_COMMISSION_RATE = 0.10
-
-/** Derives gender from a Spanish first name using a suffix heuristic. */
+/** Derives gender from a Spanish first name using a suffix heuristic. Used as fallback when tenants.gender is null. */
 function detectarGenero(ownerName: string): "male" | "female" {
   const primerNombre = ownerName.trim().split(/\s+/)[0].toLowerCase()
   return primerNombre.endsWith("a") ? "female" : "male"
@@ -67,7 +65,7 @@ export async function GET(req: Request) {
     // 1. Fetch all active tenants with an owner email configured
     const { data: tenants, error: tenantsError } = await supabase
       .from("tenants")
-      .select("id, business_name, owner_name, email_owner")
+      .select("id, business_name, owner_name, email_owner, gender, subscriptions(commission_rate, billing_mode)")
       .eq("active", true)
       .not("email_owner", "is", null)
 
@@ -110,15 +108,20 @@ export async function GET(req: Request) {
           }
         })
 
+        const sub = Array.isArray((tenant as any).subscriptions) ? (tenant as any).subscriptions[0] : null
+        const commissionRate = sub?.billing_mode === "commission" ? (Number(sub.commission_rate) || 0.10) : 0
+        const tenantGender = (tenant as any).gender as string | null
+        const gender: "male" | "female" = tenantGender === "female" ? "female" : tenantGender === "male" ? "male" : detectarGenero(tenant.owner_name)
+
         const base_comisionable = reservas.filter(r => !r.is_manual).reduce((sum, r) => sum + r.total_amount, 0)
-        const comision_takai = Math.round(base_comisionable * TAKAI_COMMISSION_RATE)
+        const comision_takai = Math.round(base_comisionable * commissionRate)
         const total_bruto = reservas.reduce((sum, r) => sum + r.total_amount, 0)
         const monto_neto = total_bruto - comision_takai
 
         const html = generarResumenSemanal({
           business_name: tenant.business_name,
           owner_name: tenant.owner_name,
-          gender: detectarGenero(tenant.owner_name),
+          gender,
           semana_desde: formatDiaSemana(weekStart),
           semana_hasta: formatDiaSemana(weekEnd),
           reservas,

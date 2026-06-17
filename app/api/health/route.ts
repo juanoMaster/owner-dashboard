@@ -60,33 +60,18 @@ export async function GET(req: Request) {
     checks.cabins = { ok: false, error: tenantsError.message }
     checks.dashboard_links = { ok: false, error: tenantsError.message }
   } else {
-    const tenantsWithoutCabins: string[] = []
-    const tenantsWithoutLinks: string[] = []
+    const tenantIds = (tenants ?? []).map(t => t.id)
 
-    for (const tenant of tenants ?? []) {
-      const { data: cabins } = await supabase
-        .from("cabins")
-        .select("id")
-        .eq("tenant_id", tenant.id)
-        .eq("active", true)
-        .limit(1)
+    const [cabinsResult, linksResult] = await Promise.all([
+      supabase.from("cabins").select("tenant_id").in("tenant_id", tenantIds).eq("active", true),
+      supabase.from("dashboard_links").select("tenant_id").in("tenant_id", tenantIds).eq("active", true),
+    ])
 
-      if (!cabins || cabins.length === 0) {
-        tenantsWithoutCabins.push(tenant.business_name)
-      }
+    const tenantsWithCabins = new Set(cabinsResult.data?.map(c => c.tenant_id) ?? [])
+    const tenantsWithLinks = new Set(linksResult.data?.map(l => l.tenant_id) ?? [])
 
-      // 3. Verificar que cada tenant tiene dashboard_links activos
-      const { data: links } = await supabase
-        .from("dashboard_links")
-        .select("id")
-        .eq("tenant_id", tenant.id)
-        .eq("active", true)
-        .limit(1)
-
-      if (!links || links.length === 0) {
-        tenantsWithoutLinks.push(tenant.business_name)
-      }
-    }
+    const tenantsWithoutCabins = (tenants ?? []).filter(t => !tenantsWithCabins.has(t.id)).map(t => t.business_name)
+    const tenantsWithoutLinks = (tenants ?? []).filter(t => !tenantsWithLinks.has(t.id)).map(t => t.business_name)
 
     if (tenantsWithoutCabins.length > 0) {
       const msg = "Tenants sin cabañas activas: " + tenantsWithoutCabins.join(", ")

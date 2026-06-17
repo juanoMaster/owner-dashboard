@@ -9,6 +9,7 @@ type HistorialPayload = {
   tenant: { business_name: string | null; owner_name: string | null; currency?: string | null } | null
   cabins: Array<{ id: string; name: string }>
   bookings: any[]
+  next_cursor: string | null
 }
 
 function AccessDenied() {
@@ -52,6 +53,9 @@ export default function HistorialPageClient() {
   const router = useRouter()
   const [status, setStatus] = useState<"init" | "loading" | "ready" | "denied">("init")
   const [payload, setPayload] = useState<HistorialPayload | null>(null)
+  const [allBookings, setAllBookings] = useState<any[]>([])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [sessionToken, setSessionToken] = useState<string | null>(null)
 
   const load = useCallback(async (token: string, fromUrl: boolean) => {
@@ -62,6 +66,8 @@ export default function HistorialPageClient() {
         clearPersistedToken()
       }
       setPayload(null)
+      setAllBookings([])
+      setNextCursor(null)
       setSessionToken(null)
       setStatus("denied")
       return
@@ -77,8 +83,29 @@ export default function HistorialPageClient() {
     }
     setSessionToken(token)
     setPayload(data)
+    setAllBookings(data.bookings || [])
+    setNextCursor(data.next_cursor ?? null)
     setStatus("ready")
   }, [router])
+
+  const loadMore = useCallback(async () => {
+    if (!sessionToken || !nextCursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const res = await fetch(
+        "/api/historial?token=" + encodeURIComponent(sessionToken) + "&cursor=" + encodeURIComponent(nextCursor)
+      )
+      if (res.ok) {
+        const data = (await res.json()) as HistorialPayload
+        setAllBookings(prev => [...prev, ...(data.bookings || [])])
+        setNextCursor(data.next_cursor ?? null)
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [sessionToken, nextCursor, loadingMore])
 
   useEffect(() => {
     const urlToken = searchParams.get("token")
@@ -213,11 +240,31 @@ export default function HistorialPageClient() {
         </div>
 
         <HistorialClient
-          bookings={payload.bookings || []}
+          bookings={allBookings}
           cabinMap={cabinMap}
           businessName={payload.tenant?.business_name || ""}
           currency={payload.tenant?.currency || "CLP"}
         />
+        {nextCursor && (
+          <div style={{ textAlign: "center", marginTop: "32px" }}>
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              style={{
+                background: "transparent",
+                border: "1px solid #2a3e28",
+                borderRadius: "20px",
+                color: loadingMore ? "#3a5a38" : "#6a8a68",
+                fontSize: "13px",
+                letterSpacing: "1px",
+                padding: "10px 28px",
+                cursor: loadingMore ? "default" : "pointer",
+              }}
+            >
+              {loadingMore ? "Cargando…" : "Cargar más reservas"}
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )

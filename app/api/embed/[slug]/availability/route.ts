@@ -88,7 +88,10 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     .from("bookings")
     .select("cabin_id, check_in, check_out, status")
     .in("cabin_id", cabinIds)
+    .eq("tenant_id", tenant.id)
     .is("deleted_at", null)
+    .lt("check_in", windowEndStr)
+    .gt("check_out", windowStartStr)
 
   if (bookErr) {
     return NextResponse.json({ error: "Error al cargar reservas" }, { status: 500 })

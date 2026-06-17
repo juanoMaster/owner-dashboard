@@ -260,6 +260,8 @@ Todas las tablas tienen RLS habilitado (migración 002). El `SUPABASE_SERVICE_RO
 | `commission_status` | text | `"not_applicable"`, etc. |
 | `transfer_proof_received_at` | timestamptz | Timestamp del comprobante de transferencia recibido vía WhatsApp. null si no recibido. |
 | `reminder_sent_at` | timestamptz | Timestamp del recordatorio enviado. null si aún no se envió. Evita duplicados en el cron. |
+| `review_sent_at` | timestamptz | Timestamp de la solicitud de reseña enviada. null si no enviada. Evita duplicados en el cron solicitar-review. |
+| `mp_preference_id` | text | ID de preferencia MercadoPago. null si sin pago MP. Aplicado en migración 008. |
 | `deleted_at` | timestamptz | Soft delete — null si activa |
 | `deleted_by` | text | Quién canceló: `"owner_panel"`, `"system"`, etc. |
 | `created_at` | timestamptz | |

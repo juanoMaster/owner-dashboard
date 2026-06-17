@@ -28,9 +28,24 @@ export async function GET(req: NextRequest) {
     }
 
     const tenantId = link.tenant_id
+    const cursor = searchParams.get("cursor")
+    const LIMIT = 100
 
     // Tenant conocido → cliente con contexto de sesión
     const supabase = await getSupabaseForTenant(tenantId)
+
+    let bookingsQuery = supabase
+      .from("bookings")
+      .select(
+        "id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, status, notes, created_at, deleted_at, deleted_by"
+      )
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(LIMIT + 1)
+
+    if (cursor) {
+      bookingsQuery = bookingsQuery.lt("created_at", cursor)
+    }
 
     const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
       supabase
@@ -39,13 +54,7 @@ export async function GET(req: NextRequest) {
         .eq("id", tenantId)
         .maybeSingle(),
       supabase.from("cabins").select("id, name").eq("tenant_id", tenantId),
-      supabase
-        .from("bookings")
-        .select(
-          "id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, status, notes, created_at, deleted_at, deleted_by"
-        )
-        .eq("tenant_id", tenantId)
-        .order("created_at", { ascending: false }),
+      bookingsQuery,
     ])
 
     if (tenantRes.error) {
@@ -58,10 +67,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Error loading bookings" }, { status: 500 })
     }
 
+    const rawBookings = bookingsRes.data ?? []
+    const hasMore = rawBookings.length > LIMIT
+    const bookings = hasMore ? rawBookings.slice(0, LIMIT) : rawBookings
+    const next_cursor = hasMore ? bookings[bookings.length - 1].created_at : null
+
     return NextResponse.json({
       tenant: tenantRes.data ?? null,
       cabins: cabinsRes.data ?? [],
-      bookings: bookingsRes.data ?? [],
+      bookings,
+      next_cursor,
     })
   } catch {
     return NextResponse.json({ error: "Server crash" }, { status: 500 })

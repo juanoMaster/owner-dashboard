@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, cabin: data })
     }
     if (action === "update") {
-      const q = supabase.from("cabins").update({
+      let q = supabase.from("cabins").update({
         name: body.name,
         capacity: Number(body.capacity) || 4,
         base_price_night: Number(body.base_price_night) || 0,
@@ -39,14 +39,14 @@ export async function POST(req: Request) {
         pricing_tiers: body.pricing_tiers ?? [],
         season_prices: body.season_prices ?? [],
       }).eq("id", id)
-      if (body.tenant_id) q.eq("tenant_id", body.tenant_id)
+      if (body.tenant_id) q = q.eq("tenant_id", body.tenant_id)
       const { data, error } = await q.select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, cabin: data })
     }
     if (action === "toggle") {
-      const q2 = supabase.from("cabins").update({ active: body.active }).eq("id", id)
-      if (body.tenant_id) q2.eq("tenant_id", body.tenant_id)
+      let q2 = supabase.from("cabins").update({ active: body.active }).eq("id", id)
+      if (body.tenant_id) q2 = q2.eq("tenant_id", body.tenant_id)
       const { data, error } = await q2.select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       return NextResponse.json({ success: true, cabin: data })

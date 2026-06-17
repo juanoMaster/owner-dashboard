@@ -4,18 +4,30 @@ export async function sendWhatsApp(params: {
   to: string
   message: string
   tenantId: string
+  /** Skip the DB lookup if you already have the tenant's WhatsApp config */
+  whatsappEnabled?: boolean
+  twilioWhatsappNumber?: string
 }): Promise<void> {
-  const { to, message, tenantId } = params
+  const { to, message, tenantId, whatsappEnabled, twilioWhatsappNumber } = params
 
-  const supabase = getSupabaseAdmin()
+  let enabled: boolean
+  let twilioWa: string | null
 
-  const { data: tenant } = await supabase
-    .from("tenants")
-    .select("twilio_whatsapp, whatsapp_enabled")
-    .eq("id", tenantId)
-    .maybeSingle()
+  if (whatsappEnabled !== undefined && twilioWhatsappNumber !== undefined) {
+    enabled = whatsappEnabled
+    twilioWa = twilioWhatsappNumber
+  } else {
+    const supabase = getSupabaseAdmin()
+    const { data: tenant } = await supabase
+      .from("tenants")
+      .select("twilio_whatsapp, whatsapp_enabled")
+      .eq("id", tenantId)
+      .maybeSingle()
+    enabled = tenant?.whatsapp_enabled ?? false
+    twilioWa = tenant?.twilio_whatsapp ?? null
+  }
 
-  if (!tenant?.twilio_whatsapp || !tenant?.whatsapp_enabled) return
+  if (!twilioWa || !enabled) return
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN

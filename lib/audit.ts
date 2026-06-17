@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase-server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 interface AuditParams {
   tenant_id: string
@@ -10,8 +11,8 @@ interface AuditParams {
   performed_by?: string
 }
 
-export async function logAudit(params: AuditParams) {
-  const supabase = getSupabaseAdmin()
+export async function logAudit(params: AuditParams, supabaseClient?: SupabaseClient<any>) {
+  const supabase = supabaseClient ?? getSupabaseAdmin()
 
   const { error } = await supabase.from("audit_log").insert([
     {
