@@ -109,7 +109,8 @@ export async function GET(req: Request) {
         })
 
         const sub = Array.isArray((tenant as any).subscriptions) ? (tenant as any).subscriptions[0] : null
-        const commissionRate = sub?.billing_mode === "commission" ? (Number(sub.commission_rate) || 0.10) : 0
+        // commission_rate se almacena como porcentaje entero (ej: 10 = 10%), se divide por 100 para operar
+        const commissionRate = sub?.billing_mode === "commission" ? Number(sub.commission_rate) / 100 : 0
         const tenantGender = (tenant as any).gender as string | null
         const gender: "male" | "female" = tenantGender === "female" ? "female" : tenantGender === "male" ? "male" : detectarGenero(tenant.owner_name)
 

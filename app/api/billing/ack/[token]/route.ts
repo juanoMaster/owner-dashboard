@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
-import { getResend, emailSubscriptionActivated } from "@/lib/resend"
+import { getResend } from "@/lib/resend"
 import { logAudit } from "@/lib/audit"
 
 export async function GET(
