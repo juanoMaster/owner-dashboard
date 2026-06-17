@@ -21,13 +21,20 @@
 - `resumen-semanal`: bugfix comisión ÷100
 - `billing/ack`: import muerto eliminado
 
-**Esta iteración del loop:**
+**Esta iteración del loop (sesión previa):**
 - `lib/resend.ts`: corrección de moneda en emails `emailNuevaReservaTurista`, `emailNuevaReservaDuena`, `emailTrialEnding` — todas hardcodeaban "CLP" para todos los tenants; GlampingCacagual (USD) recibía emails con "CLP" incorrecto
 - `app/api/emails/nueva-reserva/route.ts`: agregado `currency` al SELECT de tenants; propagado a ambos emails
 - `app/api/cron/billing-check/route.ts`: agregado `currency` al SELECT de tenants; propagado a `emailTrialEnding`
 - Auditados: `bookings/confirm`, `bookings/cancel`, `mp/webhook`, `cancelar-pendientes`, `recordatorio-transferencia`, `generate-commission-statements`, `billing-check`, `solicitar-review`, `report-transfer`, `billing/status`, `dashboard/facturacion` — todos sólidos
 - P0-2b verificado como ya resuelto: `/api/bookings/route.ts` ya usa RPC `create_booking_atomic`
 - P3-5 verificado como ya resuelto: `review_sent_at` y `mp_preference_id` ya documentados en CLAUDE.md
+
+**Esta iteración del loop (2026-06-17 continuación):**
+- `app/api/cabins/photos/route.ts` DELETE: **bug TOCTOU corregido** — el storage se borraba ANTES de verificar propiedad; ahora se verifica que la foto pertenece al tenant antes de borrar del storage. También agrega verificación que la URL existe en `cabins.photos`.
+- `app/api/mp/create-preference/route.ts`: `currency_id` dinámico desde `tenant.currency` en lugar de hardcodeado "CLP"
+- `app/api/availability/route.ts`: validación UUID regex en parámetro `visited` (previene SQL injection)
+- `app/[slug]/templates/TemplateClasico.tsx`: `extra_services` precio usa `fmt(svc.price)` en lugar de `es-CL` hardcodeado
+- Auditados y confirmados sólidos: `stats`, `historial`, `dashboard`, `calendar/delete`, `cron/daily`, `admin/tokens`, `admin/commissions`, `bookings/bank-info`, `tenant/[slug]/cabins`, `embed/[slug]/availability`, `tenant/bank`, `tenant/guidebook`, `cabins/update`, `billing.ts`, `reservar/page.tsx`, `HomeDashboardClient.tsx`, landing templates (Moderno, Rural)
 
 **Estado:** Build OK. Todo deployado en producción (Vercel auto-deploy)
 
@@ -43,13 +50,13 @@
 | Billing / Comisiones | 90% | Funcional; comisión dinámica en resumen-semanal |
 | Emails (Resend) | 98% | Loop resiliente; género por DB; comisión dinámica; moneda dinámica en emails turista |
 | WhatsApp (Twilio) | 95% | HMAC-SHA1 verificado; parámetros opcionales para evitar DB extra |
-| MercadoPago (turistas) | 95% | Filtros completos implementados |
+| MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
 | MercadoPago (billing) | 90% | Funcional; webhook billing sin test end-to-end |
 | RLS / Seguridad BD | 95% | Todos los P0/P1 resueltos; P2-0b pendiente (bajo riesgo) |
 | Índices BD | 95% | Índices aplicados en producción vía 008_indexes.sql |
 | Paginación | 70% | Historial paginado ✅; calendar y admin sin paginar |
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
-| Validación inputs públicos | 70% | XSS contact resuelto; longitud de campos sin límite |
+| Validación inputs públicos | 80% | XSS contact resuelto; UUID validation en availability; TOCTOU foto corregido |
 | Admin panel | 90% | Token via header ✅; bug tenant_id resuelto ✅; sin paginación |
 | Crons | 90% | Orquestador daily ✅; funcionales; timezone risk bajo |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
@@ -188,3 +195,4 @@
 | 2026-06-12 | Sprint seguridad: P0 auth, P1 (Twilio HMAC, XSS, loop, deleted_at MP), RPC atómico, índices BD. |
 | 2026-06-13 | Corrección documentación: CLAUDE.md y ESTADO-SISTEMA.md con info correcta de clientes y modelo de negocio. |
 | 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado. Onboard crea subscription row. Bugfix crítico comisión ÷100. Fix moneda en emails turista (USD/COP/CLP dinámico en emailNuevaReservaTurista, emailNuevaReservaDuena, emailTrialEnding). P0-2b y P3-5 verificados como ya resueltos. |
+| 2026-06-17 | Auditoría completa de todas las rutas API. Fixes: TOCTOU en foto DELETE (verificar propiedad antes de borrar storage); currency_id dinámico en MP preference; UUID regex en availability visited param; extra_services fmt() en TemplateClasico. 40+ rutas verificadas y confirmadas sólidas. |
