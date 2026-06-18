@@ -1,8 +1,8 @@
 "use client"
 import { useState, useEffect, CSSProperties } from "react"
-import { getPriceForGuests, PricingTier } from "@/lib/pricing"
+import { getPriceForDates, getPriceForGuests, PricingTier, SeasonPrice } from "@/lib/pricing"
 
-interface Cabin { id: string; name: string; capacity: number; base_price_night: number; pricing_tiers?: PricingTier[] | null; has_tinaja?: boolean; tinaja_price?: number }
+interface Cabin { id: string; name: string; capacity: number; base_price_night: number; extra_person_price?: number; pricing_tiers?: PricingTier[] | null; season_prices?: SeasonPrice[] | null; has_tinaja?: boolean; tinaja_price?: number }
 interface Props { cabins: Cabin[]; tenantId: string; token: string; tenantDepositPercent?: number; currency?: string }
 
 function fmtCurrency(n: number, currency: string): string {
@@ -53,10 +53,23 @@ export default function ManualBookingForm({ cabins, tenantId, token, tenantDepos
   function calcTotal() {
     const n = calcNights()
     if (!selectedCabin || n === 0) return { subtotal: 0, extras: 0, tinaja: 0, total: 0, deposit: 0 }
-    const pricePerNight = getPriceForGuests(selectedCabin.pricing_tiers, parseInt(guestCount), selectedCabin.base_price_night)
-    const extra = Math.max(0, parseInt(guestCount) - selectedCabin.capacity)
-    const subtotal = pricePerNight * n
-    const extras = extra * 0 * n
+    const priceResult = getPriceForDates({
+      cabin: {
+        base_price_night: selectedCabin.base_price_night,
+        season_prices: selectedCabin.season_prices,
+        pricing_tiers: selectedCabin.pricing_tiers,
+      },
+      checkIn,
+      checkOut,
+      guests: parseInt(guestCount),
+      tenantMinNights: 1,
+    })
+    const subtotal = priceResult.total
+    const hasTierMatch = (selectedCabin.pricing_tiers || []).some(
+      (t: PricingTier) => parseInt(guestCount) >= t.min_guests && parseInt(guestCount) <= t.max_guests
+    )
+    const extraGuests = Math.max(0, parseInt(guestCount) - selectedCabin.capacity)
+    const extras = hasTierMatch ? 0 : extraGuests * (selectedCabin.extra_person_price ?? 0) * n
     const tinajaPrice = selectedCabin?.tinaja_price ?? 30000
     const tinaja = tinajaUse ? parseInt(tinajaDays) * tinajaPrice : 0
     const total = subtotal + extras + tinaja

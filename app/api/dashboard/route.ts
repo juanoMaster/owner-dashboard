@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle(),
       supabase
         .from("cabins")
-        .select("id, name, capacity, base_price_night, description, cleaning_fee, photos, pricing_tiers, has_tinaja, tinaja_price, season_prices")
+        .select("id, name, capacity, base_price_night, extra_person_price, description, cleaning_fee, photos, pricing_tiers, has_tinaja, tinaja_price, season_prices")
         .eq("tenant_id", tenantId)
         .eq("active", true),
       supabase

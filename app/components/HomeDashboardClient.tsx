@@ -60,6 +60,7 @@ type DashboardPayload = {
     name: string
     capacity: number
     base_price_night: number
+    extra_person_price: number | null
     description: string | null
     cleaning_fee: number | null
     photos: string[] | null
@@ -514,7 +515,9 @@ export default function HomeDashboardClient() {
                 name: c.name,
                 capacity: c.capacity,
                 base_price_night: Number(c.base_price_night),
+                extra_person_price: c.extra_person_price ? Number(c.extra_person_price) : 0,
                 pricing_tiers: c.pricing_tiers ?? null,
+                season_prices: c.season_prices ?? null,
                 has_tinaja: c.has_tinaja ?? (tenant?.has_tinaja ?? true),
                 tinaja_price: c.tinaja_price || tenant?.tinaja_price || 30000,
               }))}
