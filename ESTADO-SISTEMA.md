@@ -6,7 +6,17 @@
 
 ## Última actualización
 **Fecha:** 2026-06-17
-**Sesión:** Sprint de optimización y completitud — P2/P3 cerrados + fix de moneda
+**Sesión:** Auditoría profunda — seguridad de inputs, limpieza de datos, guards de billing
+
+**Esta iteración del loop (2026-06-17 última):**
+- `app/api/mp/webhook/route.ts`: moneda dinámica en WhatsApp al propietario (USD/COP/CLP) — `currency` agregado al SELECT del tenant
+- `app/api/admin/tenants/route.ts` DELETE: ahora elimina también `commission_statements` y `subscriptions` — sin filas huérfanas al borrar tenant
+- `app/api/billing/subscribe/route.ts`: guard para `billing_mode=commission` — clientes fundadores no pueden activar suscripción mensual por error
+- `app/api/availability/route.ts`: validación UUID del `cabin_id` (previene injection en `.not("id","in",...)` concatenado); validación formato YYYY-MM-DD en fechas; check `check_in < check_out`
+- `app/api/cabins/photos/route.ts` POST: sanitizar `file.name` (elimina path traversal, caracteres especiales) antes de construir clave en Supabase Storage
+- Auditadas y confirmadas sólidas: `bookings/confirm`, `bookings/cancel`, `bookings/manual`, `billing/status`, `billing/report-transfer`, `billing/ack`, `billing/commission-pay`, `cron/generate-commission-statements`, `cron/billing-check`, `cron/daily`, `health`, `stats`, `contact`, `historial`, `admin/commissions`, `admin/tokens`, `cabins/update`, `cabins/update-price`, `tenant/bank`, `tenant/guidebook`, `mp/create-preference`, `mp/status`, `tenant-by-cabin`, `emails/reserva-confirmada`, `emails/solicitar-review`, `emails/recordatorio`, `twilio/webhook`
+
+**Sprint anterior (mismo día):**
 
 **Sprint anterior (mismo día):**
 - P2-0a + P2-7: `embed/[slug]/availability` — agregado `.eq("tenant_id", tenant.id)` + filtro de fechas
@@ -56,17 +66,17 @@
 | Reservas (turista) | 96% | Funcional; RPC atómico; índices en producción |
 | Reservas (propietario panel) | 98% | Race condition resuelta vía RPC create_booking_manual atómico |
 | Calendario | 95% | Filtro de fechas en API ✅; ventana 18 meses en cliente ✅ |
-| Billing / Comisiones | 92% | P2-0b resuelto ✅; comisión y moneda dinámicas en emails |
+| Billing / Comisiones | 96% | Guard comisión en subscribe ✅; cleanup de datos al borrar tenant ✅ |
 | Emails (Resend) | 99% | Moneda dinámica en todos los emails ✅; comisión dinámica ✅ |
-| WhatsApp (Twilio) | 95% | HMAC-SHA1 verificado; parámetros opcionales para evitar DB extra |
+| WhatsApp (Twilio) | 98% | HMAC-SHA1 ✅; moneda dinámica en WA propietario ✅ |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
-| MercadoPago (billing) | 92% | Webhook con tenant_id en UPDATE ✅ |
-| RLS / Seguridad BD | 97% | Todos los P0/P1 resueltos; P2-0b resuelto |
+| MercadoPago (billing) | 96% | Webhook con tenant_id en UPDATE ✅; guard commission en subscribe ✅ |
+| RLS / Seguridad BD | 98% | Todos los P0/P1 resueltos; UUID validation en availability ✅ |
 | Índices BD | 95% | Índices aplicados en producción vía 008_indexes.sql |
-| Paginación | 85% | Historial paginado ✅; admin bookings por rango fechas ✅; calendar filtrado ✅ |
+| Paginación | 88% | Historial paginado ✅; admin bookings por rango fechas ✅; calendar filtrado ✅ |
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
-| Validación inputs públicos | 85% | XSS contact resuelto; UUID validation en availability; TOCTOU foto corregido |
-| Admin panel | 92% | Token via header ✅; bookings query optimizada ✅ |
+| Validación inputs públicos | 92% | UUID+fecha validation en availability ✅; sanitización filename fotos ✅ |
+| Admin panel | 95% | Token via header ✅; cleanup completo al borrar tenant ✅ |
 | Crons | 92% | Orquestador daily ✅; funcionales; timezone risk bajo |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
 
