@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = "force-dynamic"
 
-import { Suspense, useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 
 function PagoFallidoInner() {
@@ -9,6 +9,15 @@ function PagoFallidoInner() {
   const booking_id = params.get("booking_id") || ""
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [ownerWhatsapp, setOwnerWhatsapp] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!booking_id) return
+    fetch(`/api/bookings/bank-info?booking_id=${booking_id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.owner_whatsapp) setOwnerWhatsapp(d.owner_whatsapp) })
+      .catch(() => {})
+  }, [booking_id])
 
   async function reintentar() {
     if (!booking_id) { setError("No se encontró la reserva para reintentar."); return }
@@ -62,14 +71,16 @@ function PagoFallidoInner() {
           {loading ? "Redirigiendo..." : "Intentar de nuevo"}
         </button>
 
-        <a
-          href="https://wa.me/56955230900"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
-        >
-          Contactar por WhatsApp
-        </a>
+        {ownerWhatsapp && (
+          <a
+            href={`https://wa.me/${ownerWhatsapp.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
+          >
+            Contactar al propietario por WhatsApp
+          </a>
+        )}
 
       </div>
     </div>
