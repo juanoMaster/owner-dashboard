@@ -9,10 +9,14 @@
 **Sesión:** UX billing nav + hardening defensivo + limpieza roadmap
 
 **Esta iteración del loop (2026-06-18 loop continuo):**
-- `app/components/HomeDashboardClient.tsx`: link "Facturación" en nav del dashboard — visible para todos los tenants excepto `manual_billing=true` (GlampingCacagual); permite acceso a estados de cuenta sin necesitar estar suspendido
-- `app/components/HomeDashboardClient.tsx`: banner `past_due` ahora también verifica `!manual_billing` — hardening defensivo para evitar que GlampingCacagual vea banners de billing
-- `ESTADO-SISTEMA.md`: P2-8 marcado como resuelto (check_in ya implementado); P0-2b y P2-0b marcados como ya resueltos en roadmap
-- Auditadas y confirmadas sólidas: `bienvenida/[booking_code]/page.tsx`, `reservar/pago-pendiente/page.tsx`, `reservar/pago-fallido/page.tsx`, `reservar/page.tsx` (currency-aware), `lib/pricing.ts` (year-crossing seasons), `ManualBookingForm.tsx`, templates Moderno + Rural (fmtPrice), `billing/status/route.ts`, `bookings/bank-info/route.ts`, `admin/onboard/route.ts`, `[slug]/page.tsx`
+- `app/components/HomeDashboardClient.tsx`: link "Facturación" en nav — visible para todos los tenants excepto `manual_billing=true`; banner `past_due` también verifica `!manual_billing`
+- `app/api/embed/[slug]/availability/route.ts`: retorna 503 si tenant suspendido — coherente con landing pública y booking API
+- `app/api/bookings/route.ts`: billing check añadido para turistas — tenant suspendido retorna 503 antes de crear booking
+- `app/api/bookings/bank-info/route.ts`: agrega campo `slug` del tenant a la respuesta
+- `app/reservar/pago-exitoso/page.tsx`: "Volver al inicio" ahora enlaza a `/{slug}` del tenant en lugar de "/" (panel propietario)
+- `app/reservar/pago-pendiente/page.tsx`: "Volver al inicio" ahora usa slug del tenant; tipo `BankInfo` actualizado con `slug`
+- `ESTADO-SISTEMA.md`: P2-8 marcado como resuelto; P0-2b y P2-0b marcados como ya resueltos en roadmap
+- Auditadas y confirmadas sólidas: `bienvenida/page.tsx`, `pago-pendiente/page.tsx`, `pago-fallido/page.tsx`, `reservar/page.tsx`, `lib/pricing.ts`, `ManualBookingForm.tsx`, templates Moderno + Rural, `billing/status`, `admin/onboard`, `[slug]/page.tsx`, `contact/route.ts`, `mp/status/route.ts`, `stats/route.ts`, `cabins/update/route.ts`, `NewClientOnboarding.tsx`, `lib/billing.ts`, zero dangerouslySetInnerHTML en todo el codebase ✅
 - Build: ✅ limpio
 
 **Esta iteración del loop (2026-06-18 auditoria final + migraciones):**
@@ -127,7 +131,7 @@
 
 | Área | % Completo | Notas |
 |------|-----------|-------|
-| Reservas (turista) | 97% | RPC atómico ✅; tinaja desde tenant ✅; moneda dinámica WA ✅ |
+| Reservas (turista) | 99% | RPC atómico ✅; tinaja desde tenant ✅; moneda dinámica ✅; billing guard 503 ✅; redirect pago ✅ |
 | Reservas (propietario panel) | 99% | Tinaja cascade cabin→tenant ✅; moneda dinámica WA ✅; trial 3 meses ✅ |
 | Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
 | Billing / Comisiones | 99% | Trial 3 meses ✅; guard comisión ✅; cleanup al borrar tenant ✅; nav link facturación ✅; P2-8 check_in ✅ |
@@ -141,7 +145,7 @@
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
 | Validación inputs públicos | 95% | UUID+fecha ✅; sanitización filename ✅; calendario POST fechas ✅ |
 | Admin panel | 98% | Token via header ✅; cleanup fotos ✅; Billing tab ✅; BillingBadge en clientes ✅ |
-| Embed widget | 97% | calendar_blocks incluidos (bloques manuales reflejados) ✅ |
+| Embed widget | 99% | calendar_blocks incluidos ✅; 503 si suspendido ✅ |
 | Crons | 95% | Orquestador daily ✅; exclusión MP en cancelar y recordatorio ✅ |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
 
