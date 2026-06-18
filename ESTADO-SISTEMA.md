@@ -6,7 +6,12 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** Auditoría continua — 4 bugs encontrados y corregidos, sistema en estado muy sólido
+**Sesión:** Auditoría continua — XSS fix en resumen-semanal.ts
+
+**Esta iteración del loop (2026-06-18 loop continuo):**
+- `lib/email-templates/resumen-semanal.ts`: XSS fix — `r.guest_name` y `data.owner_name` se renderizaban sin escapar en el email semanal; añadida función `esc()` y aplicada a ambos campos; `r.guest_name` es input de usuario (turista)
+- Auditados completos y confirmados sólidos: todos los templates en `lib/resend.ts` (emailNuevaReservaTurista, emailNuevaReservaDuena, emailReservaConfirmada, emailRecordatorio48h, emailReservaCancelada, emailTrialEnding, emailSubscriptionActivated, emailPastDue, emailCommissionStatement), `app/api/emails/solicitar-review/route.ts`, `app/api/emails/resumen-semanal/route.ts`
+- Pendientes de largo plazo: [P2-8] criterio fechas comisiones (Juan decide), [P3-4] archivos muertos en raíz (Juan OK), [P2-6] timezones
 
 **Esta iteración del loop (2026-06-18 continuación final):**
 - `app/reservar/pago-fallido/page.tsx`: número Takai hardcodeado `56955230900` reemplazado por `owner_whatsapp` del tenant obtenido dinámicamente vía `/api/bookings/bank-info`; también agrega campo `owner_whatsapp` a la respuesta de `bank-info/route.ts`
@@ -92,7 +97,7 @@
 | Reservas (propietario panel) | 99% | Tinaja cascade cabin→tenant ✅; moneda dinámica WA ✅; trial 3 meses ✅ |
 | Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
 | Billing / Comisiones | 97% | Trial 3 meses ✅; guard comisión en subscribe ✅; cleanup al borrar tenant ✅ |
-| Emails (Resend) | 99% | Moneda dinámica en todos los emails ✅; XSS fix en solicitar-review ✅ |
+| Emails (Resend) | 100% | Moneda dinámica en todos los emails ✅; XSS fix en solicitar-review ✅; XSS fix en resumen-semanal ✅ |
 | WhatsApp (Twilio) | 99% | HMAC-SHA1 ✅; moneda dinámica en WA turista y propietario ✅ |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
 | MercadoPago (billing) | 97% | timingSafeEqual en webhook tenant MP ✅; guard commission en subscribe ✅ |
@@ -244,3 +249,4 @@
 | 2026-06-17 | Sprint final: resumen-semanal con moneda+comisión dinámicas; admin/data con filtro de 2 años (P2-1b); calendar API con start/end params (P2-1c); billing/webhook con tenant_id en UPDATE (P2-0b). Auditados: cancelar-pendientes, recordatorio-transferencia, bookings/route, recordatorio, admin/onboard — todos sólidos. |
 | 2026-06-18 | XSS fix en solicitar-review (esc() en guest_name/business_name/review_url); cabin delete limpia Storage; embed widget ahora incluye calendar_blocks (bloques manuales se mostraban como disponibles — bug crítico); tinaja_price desde tenants (no hardcoded 30000); moneda dinámica en WA de nueva reserva turista y propietario; validación fecha POST /api/calendar. |
 | 2026-06-18 (cont.) | Timing attack en mp/webhook tenant (duplicate verifyMpSignature → ahora importa timingSafeEqual de lib/mp-verify); trial 3 meses en onboard (era 30 días); tinaja cascade cabin→tenant en bookings/manual; moneda dinámica en WA de reserva manual; exclusión mp_preference_id en crons cancelar-pendientes y recordatorio-transferencia (evita cancelar reservas MP con webhook demorado). |
+| 2026-06-18 (loop) | XSS fix en resumen-semanal.ts — guest_name (input de usuario) se renderizaba sin escapar; añadida esc() y aplicada a guest_name y owner_name. Auditoría completa de todos los 9 templates en lib/resend.ts + solicitar-review + resumen-semanal — todos sólidos. |

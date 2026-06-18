@@ -2,6 +2,10 @@ const WISE_ACCOUNT_PLACEHOLDER = "WISE_ACCOUNT_PLACEHOLDER"
 const GREEN_GRAD = "linear-gradient(140deg,#1a6b45 0%,#25905e 60%,#1e7d52 100%)"
 const FONT = "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
 
+function esc(s: string): string {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+}
+
 export interface ResumenReserva {
   booking_code: string
   guest_name: string
@@ -79,7 +83,7 @@ function bookingTable(reservas: ResumenReserva[], fmt: (n: number) => string): s
     const base = `padding:11px 8px;color:#334155;font-weight:500;white-space:nowrap;font-family:${FONT};font-size:12px;border-bottom:1px solid #f1f5f9;`
     return `<tr>
       <td style="${base}padding-left:12px;"><strong>${r.booking_code}</strong></td>
-      <td style="${base}">${badge}${r.guest_name}</td>
+      <td style="${base}">${badge}${esc(r.guest_name)}</td>
       <td style="${base}">${r.cabin_name}</td>
       <td style="${base}">${shortDate(r.check_in)}</td>
       <td style="${base}">${shortDate(r.check_out)}</td>
@@ -255,7 +259,7 @@ export function generarResumenSemanal(data: ResumenData): string {
                 </td>
               </tr>
             </table>
-            <p style="margin:0 0 7px;font-size:27px;font-weight:700;color:#ffffff;line-height:1.25;font-family:${FONT};">${saludo} ${data.owner_name},</p>
+            <p style="margin:0 0 7px;font-size:27px;font-weight:700;color:#ffffff;line-height:1.25;font-family:${FONT};">${saludo} ${esc(data.owner_name)},</p>
             <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.5;font-family:${FONT};">Aquí está el resumen de tu semana del <strong style="color:rgba(255,255,255,0.9);font-weight:600;">${data.semana_desde}</strong> al <strong style="color:rgba(255,255,255,0.9);font-weight:600;">${data.semana_hasta}.</strong></p>
           </td>
         </tr>
