@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     const { data: tenant } = await supabase
       .from("tenants")
-      .select("mp_access_token, mp_webhook_secret, owner_whatsapp, dashboard_token, business_name")
+      .select("mp_access_token, mp_webhook_secret, owner_whatsapp, dashboard_token, business_name, currency")
       .eq("id", tenantId)
       .single()
 
@@ -116,7 +116,13 @@ export async function POST(req: NextRequest) {
           ? `https://panel.takai.cl/?token=${tenant.dashboard_token}`
           : "https://panel.takai.cl"
         const cabinName = (booking.cabins as any)?.name || "Cabaña"
-        const ownerMsg = `🏡 Nueva reserva en ${cabinName}\n👤 ${booking.guest_name}\n📅 Check-in: ${booking.check_in} → Check-out: ${booking.check_out}\n💰 Total: $${booking.total_amount}\nVer reserva: ${panelUrl}`
+        const cur = (tenant as any).currency || "CLP"
+        const totalFmt = cur === "USD"
+          ? "$" + Number(booking.total_amount).toFixed(2) + " USD"
+          : cur === "COP"
+            ? "$" + Math.round(Number(booking.total_amount)).toLocaleString("es-CO") + " COP"
+            : "$" + Math.round(Number(booking.total_amount)).toLocaleString("es-CL")
+        const ownerMsg = `🏡 Nueva reserva en ${cabinName}\n👤 ${booking.guest_name}\n📅 Check-in: ${booking.check_in} → Check-out: ${booking.check_out}\n💰 Total: ${totalFmt}\nVer reserva: ${panelUrl}`
         sendWhatsApp({ to: tenant.owner_whatsapp, message: ownerMsg, tenantId }).catch(() => {})
       }
 

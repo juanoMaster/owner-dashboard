@@ -129,6 +129,8 @@ export async function POST(req: Request) {
     if (action === "delete") {
       await supabase.from("dashboard_links").delete().eq("tenant_id", id)
       await supabase.from("calendar_blocks").delete().eq("tenant_id", id)
+      await supabase.from("commission_statements").delete().eq("tenant_id", id)
+      await supabase.from("subscriptions").delete().eq("tenant_id", id)
       await supabase.from("bookings").delete().eq("tenant_id", id)
       await supabase.from("cabins").delete().eq("tenant_id", id)
       const { error } = await supabase.from("tenants").delete().eq("id", id)

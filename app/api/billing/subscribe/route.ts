@@ -47,9 +47,16 @@ export async function POST(req: Request) {
     // Cargar suscripción existente
     const { data: sub } = await supabase
       .from("subscriptions")
-      .select("id, amount, currency, plan")
+      .select("id, amount, currency, plan, billing_mode")
       .eq("tenant_id", tenant_id)
       .maybeSingle()
+
+    if (sub?.billing_mode === "commission") {
+      return NextResponse.json(
+        { error: "Tu plan es de comisión — no requiere suscripción mensual." },
+        { status: 400 }
+      )
+    }
 
     const amount = sub?.amount ?? 19990
     const currency = sub?.currency ?? "CLP"
