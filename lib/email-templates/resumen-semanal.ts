@@ -1,5 +1,3 @@
-// Commission rate — applied only to web bookings
-const TAKAI_COMMISSION_RATE = 0.10
 const WISE_ACCOUNT_PLACEHOLDER = "WISE_ACCOUNT_PLACEHOLDER"
 const GREEN_GRAD = "linear-gradient(140deg,#1a6b45 0%,#25905e 60%,#1e7d52 100%)"
 const FONT = "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
@@ -22,10 +20,14 @@ export interface ResumenData {
   semana_desde: string
   semana_hasta: string
   reservas: ResumenReserva[]
+  currency?: string
+  commission_rate?: number
 }
 
-function clp(n: number): string {
-  return "$" + Math.round(n).toLocaleString("es-CL")
+function mkFmt(currency: string): (n: number) => string {
+  if (currency === "USD") return (n) => "$" + n.toFixed(2)
+  if (currency === "COP") return (n) => "$" + Math.round(n).toLocaleString("es-CO")
+  return (n) => "$" + Math.round(n).toLocaleString("es-CL")
 }
 
 // "lunes 21 de abril" + "domingo 27 de abril" → "Semana 21 – 27 Abr 2025"
@@ -41,7 +43,7 @@ function weekChip(desde: string, hasta: string): string {
   const monthRaw = (ph[3] ?? ph[ph.length - 1] ?? "").toLowerCase()
   const month    = MONTHS[monthRaw] ?? monthRaw
   const year     = new Date().getUTCFullYear()
-  return `Semana ${dayStart} – ${dayEnd} ${month} ${year}`
+  return `Semana ${dayStart} – ${dayEnd} ${month} ${year}`
 }
 
 // Handles both "2026-04-21" (Supabase) and "21/04/2026" (preview mock)
@@ -54,7 +56,7 @@ function shortDate(d: string): string {
   return p.length >= 3 ? `${p[2]}/${p[1]}` : d
 }
 
-function bookingTable(reservas: ResumenReserva[]): string {
+function bookingTable(reservas: ResumenReserva[], fmt: (n: number) => string): string {
   const thStyle = (align: string) =>
     `padding:10px 8px;text-align:${align};font-size:9.5px;font-weight:700;letter-spacing:0.08em;` +
     `text-transform:uppercase;color:#94a3b8;border-bottom:1px solid #e2e8f0;white-space:nowrap;font-family:${FONT};`
@@ -82,7 +84,7 @@ function bookingTable(reservas: ResumenReserva[]): string {
       <td style="${base}">${shortDate(r.check_in)}</td>
       <td style="${base}">${shortDate(r.check_out)}</td>
       <td style="${base}">${r.nights}</td>
-      <td style="${base}text-align:right;font-weight:700;color:#1e293b;padding-right:12px;">${clp(r.total_amount)}</td>
+      <td style="${base}text-align:right;font-weight:700;color:#1e293b;padding-right:12px;">${fmt(r.total_amount)}</td>
     </tr>`
   }).join("")
 
@@ -99,7 +101,7 @@ function sectionDot(color: string): string {
   return `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};margin-right:8px;vertical-align:middle;"></span>`
 }
 
-function renderBookings(reservas: ResumenReserva[]): string {
+function renderBookings(reservas: ResumenReserva[], fmt: (n: number) => string): string {
   const webR = reservas.filter(r => !r.is_manual)
   const manR = reservas.filter(r => r.is_manual)
   const manTotal = manR.reduce((s, r) => s + r.total_amount, 0)
@@ -107,16 +109,16 @@ function renderBookings(reservas: ResumenReserva[]): string {
 
   const webSection = webR.length > 0 ? `
     <p style="${labelBase}color:#1a6b45;">${sectionDot("#1a6b45")}Reservas Online</p>
-    ${bookingTable(webR)}
+    ${bookingTable(webR, fmt)}
     <div style="height:32px;"></div>` : ""
 
   const manSection = manR.length > 0 ? `
     <p style="${labelBase}color:#1d4ed8;">${sectionDot("#1d4ed8")}Reservas Manuales <span style="font-weight:400;text-transform:none;letter-spacing:0;">(sin comisión)</span></p>
-    ${bookingTable(manR)}
+    ${bookingTable(manR, fmt)}
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7ff;border:1px solid #dbeafe;border-radius:10px;margin-top:14px;">
       <tr>
         <td style="padding:12px 18px;font-size:13px;color:#475569;font-weight:500;font-family:${FONT};">Subtotal reservas manuales</td>
-        <td style="padding:12px 18px;text-align:right;font-size:15px;font-weight:700;color:#1e293b;white-space:nowrap;font-family:${FONT};">${clp(manTotal)}</td>
+        <td style="padding:12px 18px;text-align:right;font-size:15px;font-weight:700;color:#1e293b;white-space:nowrap;font-family:${FONT};">${fmt(manTotal)}</td>
       </tr>
     </table>
     <p style="font-size:12px;color:#94a3b8;margin:10px 0 0;font-style:italic;font-family:${FONT};">⚠ Estas reservas no generan comisión Takai.</p>
@@ -125,11 +127,11 @@ function renderBookings(reservas: ResumenReserva[]): string {
   return webSection + manSection
 }
 
-function renderFinance(data: ResumenData): string {
+function renderFinance(data: ResumenData, fmt: (n: number) => string, commissionRate: number): string {
   const webR = data.reservas.filter(r => !r.is_manual)
   const total_bruto       = data.reservas.reduce((s, r) => s + r.total_amount, 0)
   const base_comisionable = webR.reduce((s, r) => s + r.total_amount, 0)
-  const comision          = Math.round(base_comisionable * TAKAI_COMMISSION_RATE)
+  const comision          = Math.round(base_comisionable * commissionRate)
   const ganancia          = total_bruto - comision
   const labelBase = `font-size:10.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;margin:0 0 12px;font-family:${FONT};color:#94a3b8;`
 
@@ -139,42 +141,43 @@ function renderFinance(data: ResumenData): string {
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="padding:8px 0 4px;font-size:15px;font-weight:600;color:#1e293b;font-family:${FONT};">Total generado (todas las reservas)</td>
-          <td style="padding:8px 0 4px;font-size:15px;font-weight:600;color:#1e293b;text-align:right;white-space:nowrap;font-family:${FONT};">${clp(total_bruto)}</td>
+          <td style="padding:8px 0 4px;font-size:15px;font-weight:600;color:#1e293b;text-align:right;white-space:nowrap;font-family:${FONT};">${fmt(total_bruto)}</td>
         </tr>
         <tr>
           <td style="padding:2px 0 2px 12px;font-size:12.5px;color:#94a3b8;font-family:${FONT};">· Reservas online</td>
-          <td style="padding:2px 0;font-size:12.5px;color:#94a3b8;text-align:right;white-space:nowrap;font-family:${FONT};">${clp(base_comisionable)}</td>
+          <td style="padding:2px 0;font-size:12.5px;color:#94a3b8;text-align:right;white-space:nowrap;font-family:${FONT};">${fmt(base_comisionable)}</td>
         </tr>
         <tr>
           <td colspan="2" style="height:8px;"></td>
         </tr>
         <tr>
-          <td style="padding:14px 0 7px;font-size:13.5px;color:#64748b;border-top:1px solid #e2e8f0;font-family:${FONT};">Comisión Takai ${Math.round(TAKAI_COMMISSION_RATE * 100)}% (solo reservas online)</td>
-          <td style="padding:14px 0 7px;font-size:13.5px;font-weight:600;color:#64748b;text-align:right;white-space:nowrap;border-top:1px solid #e2e8f0;font-family:${FONT};">− ${clp(comision)}</td>
+          <td style="padding:14px 0 7px;font-size:13.5px;color:#64748b;border-top:1px solid #e2e8f0;font-family:${FONT};">Comisión Takai ${Math.round(commissionRate * 100)}% (solo reservas online)</td>
+          <td style="padding:14px 0 7px;font-size:13.5px;font-weight:600;color:#64748b;text-align:right;white-space:nowrap;border-top:1px solid #e2e8f0;font-family:${FONT};">− ${fmt(comision)}</td>
         </tr>
       </table>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-radius:10px;border:1px solid #6ee7b7;background:linear-gradient(135deg,#d1fae5,#ecfdf5);">
         <tr>
           <td style="padding:16px 20px;font-size:14px;font-weight:600;color:#065f46;font-family:${FONT};">💰 Tu ganancia neta</td>
-          <td style="padding:16px 20px;text-align:right;font-size:24px;font-weight:800;color:#047857;letter-spacing:-0.02em;white-space:nowrap;font-family:${FONT};">${clp(ganancia)}</td>
+          <td style="padding:16px 20px;text-align:right;font-size:24px;font-weight:800;color:#047857;letter-spacing:-0.02em;white-space:nowrap;font-family:${FONT};">${fmt(ganancia)}</td>
         </tr>
       </table>
     </div>`
 }
 
-function renderTransferBox(data: ResumenData): string {
+function renderTransferBox(data: ResumenData, fmt: (n: number) => string, commissionRate: number): string {
   const webR = data.reservas.filter(r => !r.is_manual)
   const base  = webR.reduce((s, r) => s + r.total_amount, 0)
-  const comision = Math.round(base * TAKAI_COMMISSION_RATE)
+  const comision = Math.round(base * commissionRate)
   const chip = weekChip(data.semana_desde, data.semana_hasta)
+  const rateLabel = `${Math.round(commissionRate * 100)}% sobre reservas online`
 
   return `
     <div style="margin-top:32px;background:${GREEN_GRAD};border-radius:18px;padding:30px 34px;text-align:center;">
       <p style="margin:0 0 5px;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.6);font-family:${FONT};">Transferencia Takai</p>
       <p style="margin:0 0 16px;font-size:14px;font-weight:500;color:rgba(255,255,255,0.75);font-family:${FONT};">Tu aporte de esta semana a la plataforma</p>
-      <p style="margin:0 0 16px;font-size:52px;font-weight:800;color:#ffffff;line-height:1;letter-spacing:-0.03em;font-family:${FONT};">${clp(comision)}</p>
+      <p style="margin:0 0 16px;font-size:52px;font-weight:800;color:#ffffff;line-height:1;letter-spacing:-0.03em;font-family:${FONT};">${fmt(comision)}</p>
       <p style="margin:0 0 16px;">
-        <span style="display:inline-block;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:12px;font-weight:600;padding:6px 18px;border-radius:100px;border:1px solid rgba(255,255,255,0.2);letter-spacing:0.03em;font-family:${FONT};">10% sobre reservas online</span>
+        <span style="display:inline-block;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:12px;font-weight:600;padding:6px 18px;border-radius:100px;border:1px solid rgba(255,255,255,0.2);letter-spacing:0.03em;font-family:${FONT};">${rateLabel}</span>
       </p>
       <p style="margin:0 0 20px;font-size:12px;color:rgba(255,255,255,0.45);font-family:${FONT};">${chip}</p>
       <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.15);border-radius:12px;">
@@ -212,11 +215,13 @@ export function generarResumenSemanal(data: ResumenData): string {
   const chip        = weekChip(data.semana_desde, data.semana_hasta)
   const hasBookings = data.reservas.length > 0
   const hasWeb      = data.reservas.some(r => !r.is_manual)
+  const fmt         = mkFmt(data.currency || "CLP")
+  const commRate    = (data.commission_rate ?? 10) / 100
 
   const body = hasBookings ? `
-    ${renderBookings(data.reservas)}
-    ${renderFinance(data)}
-    ${hasWeb ? renderTransferBox(data) : ""}
+    ${renderBookings(data.reservas, fmt)}
+    ${renderFinance(data, fmt, commRate)}
+    ${hasWeb ? renderTransferBox(data, fmt, commRate) : ""}
     ${hasWeb ? renderBankData() : ""}` : `
     <p style="margin:0;padding:40px 0;text-align:center;font-size:15px;color:#94a3b8;font-family:${FONT};">No hubo reservas confirmadas esta semana.</p>`
 

@@ -65,7 +65,7 @@ export async function GET(req: Request) {
     // 1. Fetch all active tenants with an owner email configured
     const { data: tenants, error: tenantsError } = await supabase
       .from("tenants")
-      .select("id, business_name, owner_name, email_owner, gender, subscriptions(commission_rate, billing_mode)")
+      .select("id, business_name, owner_name, email_owner, gender, currency, subscriptions(commission_rate, billing_mode)")
       .eq("active", true)
       .not("email_owner", "is", null)
 
@@ -126,6 +126,8 @@ export async function GET(req: Request) {
           semana_desde: formatDiaSemana(weekStart),
           semana_hasta: formatDiaSemana(weekEnd),
           reservas,
+          currency: (tenant as any).currency || "CLP",
+          commission_rate: sub?.billing_mode === "commission" ? Number(sub.commission_rate) : 0,
         })
 
         await getResend().emails.send({
