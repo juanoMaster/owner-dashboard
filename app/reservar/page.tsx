@@ -63,6 +63,7 @@ function ReservarInner() {
   const [suggest, setSuggest] = useState<any>(null)
   const [redTakai, setRedTakai] = useState(false)
   const [activeSeasonName, setActiveSeasonName] = useState<string | null>(null)
+  const [apiSubtotal, setApiSubtotal] = useState<number | null>(null)
   const [bookingId, setBookingId] = useState("")
   const [mpEnabled, setMpEnabled] = useState<boolean | null>(null)
   const [tenantMpEnabled, setTenantMpEnabled] = useState(false)
@@ -126,7 +127,8 @@ function ReservarInner() {
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
   const extrasPersonas = hasTierMatch ? 0 : Math.max(0, guests - capacidad) * extraPersonPrice * noches
-  const subtotal = precio_noche * noches + extrasPersonas
+  const alojamientoNeto = (apiSubtotal !== null && dispStatus === "ok") ? apiSubtotal : precio_noche * noches
+  const subtotal = alojamientoNeto + extrasPersonas
   const tinaja = tinajaDias * tinajaPrecio
   const total = subtotal + tinaja
   const deposito = Math.round(total * depositPercent / 100)
@@ -161,7 +163,7 @@ function ReservarInner() {
 
   useEffect(() => {
     if (!checkIn || !checkOut || !noches_ok || !cabin_id) {
-      setDispStatus("idle"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); setActiveSeasonName(null); return
+      setDispStatus("idle"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); setActiveSeasonName(null); setApiSubtotal(null); return
     }
     setDispStatus("checking")
     const timer = setTimeout(async () => {
@@ -169,15 +171,15 @@ function ReservarInner() {
         const vParam = visitedCabins.join(",")
         const res = await fetch("/api/availability?cabin_id=" + cabin_id + "&check_in=" + checkIn + "&check_out=" + checkOut + "&visited=" + encodeURIComponent(vParam) + "&guests=" + guests)
         const data = await res.json()
-        if (data.available) { setDispStatus("ok"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); setActiveSeasonName(data.active_season_name ?? null) }
-        else if (data.auto_assign) { setAutoAssignId(data.auto_assign.cabin_id); setDispStatus("ok"); setSuggest(null); setRedTakai(false); setActiveSeasonName(null) }
-        else if (data.suggest) { setDispStatus("occupied"); setSuggest(data.suggest); setRedTakai(false); setAutoAssignId(""); setActiveSeasonName(null) }
-        else if (data.red_takai) { setDispStatus("occupied"); setSuggest(null); setRedTakai(true); setAutoAssignId(""); setActiveSeasonName(null) }
-        else { setDispStatus("occupied"); setSuggest(null); setRedTakai(false); setAutoAssignId(""); setActiveSeasonName(null) }
+        if (data.available) { setDispStatus("ok"); setAutoAssignId(""); setSuggest(null); setRedTakai(false); setActiveSeasonName(data.active_season_name ?? null); setApiSubtotal(typeof data.price_total === "number" ? data.price_total : null) }
+        else if (data.auto_assign) { setAutoAssignId(data.auto_assign.cabin_id); setDispStatus("ok"); setSuggest(null); setRedTakai(false); setActiveSeasonName(null); setApiSubtotal(null) }
+        else if (data.suggest) { setDispStatus("occupied"); setSuggest(data.suggest); setRedTakai(false); setAutoAssignId(""); setActiveSeasonName(null); setApiSubtotal(null) }
+        else if (data.red_takai) { setDispStatus("occupied"); setSuggest(null); setRedTakai(true); setAutoAssignId(""); setActiveSeasonName(null); setApiSubtotal(null) }
+        else { setDispStatus("occupied"); setSuggest(null); setRedTakai(false); setAutoAssignId(""); setActiveSeasonName(null); setApiSubtotal(null) }
       } catch (e) { setDispStatus("idle") }
     }, 700)
     return () => clearTimeout(timer)
-  }, [checkIn, checkOut, cabin_id, noches_ok])
+  }, [checkIn, checkOut, cabin_id, noches_ok, guests])
 
   async function confirmar() {
     setLoading(true); setSubmitError("")
@@ -519,7 +521,7 @@ function ReservarInner() {
               <div style={s.cardCompact}>
                 <div style={s.cardTitleCompact}>Precio</div>
                 <div style={s.priceBoxCompact}>
-                  <div style={s.priceRowCompact}><span style={s.priceKey}>{fmt(precio_noche)} x {noches} noches</span><span style={s.priceVal}>{fmt(precio_noche * noches)}</span></div>
+                  <div style={s.priceRowCompact}><span style={s.priceKey}>{fmt(precio_noche)} x {noches} noches</span><span style={s.priceVal}>{fmt(alojamientoNeto)}</span></div>
                   {extrasPersonas > 0 && <div style={s.priceRowCompact}><span style={s.priceKey}>Personas extra</span><span style={s.priceVal}>{fmt(extrasPersonas)}</span></div>}
                   {tinaja > 0 && <div style={s.priceRowCompact}><span style={s.priceKey}>Tinaja {tinajaDias}{tinajaDias === 1 ? " día" : " días"}</span><span style={s.priceVal}>{fmt(tinaja)}</span></div>}
                   <hr style={{ ...s.hr, margin: "6px 0" }} />
