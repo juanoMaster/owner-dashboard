@@ -50,9 +50,11 @@ export async function POST(req: Request) {
       .eq("id", booking_id)
       .eq("tenant_id", tenant_id)
     await supabase.from("calendar_blocks").delete().eq("booking_id", booking_id).eq("tenant_id", tenant_id)
+    // Limpiar bloques huérfanos (sin booking_id) en esas fechas — no tocar bloques de otras reservas
     await supabase.from("calendar_blocks").delete()
       .eq("cabin_id", booking.cabin_id).eq("tenant_id", tenant_id)
       .eq("start_date", booking.check_in).eq("end_date", booking.check_out)
+      .is("booking_id", null)
     await logAudit({
       tenant_id,
       cabin_id: booking.cabin_id,
