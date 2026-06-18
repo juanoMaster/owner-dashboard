@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("business_name, owner_name, slug, owner_whatsapp, mp_enabled, mp_access_token, currency, location_text, location_maps_url, tagline, activities, page_rules, deposit_percent, min_nights, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email")
+    .select("business_name, owner_name, slug, owner_whatsapp, mp_enabled, mp_access_token, currency, location_text, location_maps_url, tagline, activities, page_rules, deposit_percent, min_nights, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, tinaja_price")
     .eq("id", cabin.tenant_id)
     .single()
 
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
     page_rules: tenant.page_rules || [],
     extra_person_price: cabin.extra_person_price || 0,
     pricing_tiers: cabin.pricing_tiers ?? [],
-    tinaja_price: cabin.tinaja_price || 30000,
+    tinaja_price: cabin.tinaja_price || tenant.tinaja_price || 30000,
     deposit_percent: tenant.deposit_percent || 20,
     min_nights: tenant.min_nights || 2,
     bank_name: tenant.bank_name || null,
