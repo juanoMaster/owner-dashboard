@@ -344,8 +344,8 @@ export default function NewClientOnboarding({ adminToken, onClose, onCreated }: 
             })),
             season_prices: c.season_prices.map(sp => ({
               name: sp.name,
-              start_date: sp.start_date,
-              end_date: sp.end_date,
+              start_md: sp.start_date.slice(5),
+              end_md: sp.end_date.slice(5),
               price_per_night: Number(sp.price_per_night),
             })),
           })),
