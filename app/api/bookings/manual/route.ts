@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { sendErrorAlert } from "@/lib/resend"
 import { generateBookingCode } from "@/lib/booking-code"
-import { getPriceForGuests } from "@/lib/pricing"
+import { getPriceForDates } from "@/lib/pricing"
 import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
 import { sendWhatsApp } from "@/lib/whatsapp"
 import crypto from "crypto"
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     const { data: cabin, error: cabinError } = await supabase
       .from("cabins")
-      .select("base_price_night, name, capacity, extra_person_price, pricing_tiers, has_tinaja, tinaja_price")
+      .select("base_price_night, name, capacity, extra_person_price, pricing_tiers, season_prices, has_tinaja, tinaja_price")
       .eq("id", cabin_id)
       .eq("tenant_id", tenant_id)
       .single()
@@ -76,11 +76,22 @@ export async function POST(req: Request) {
 
     const guestCount = parseInt(guests)
     const tinajaCount = parseInt(tinaja_days) || 0
-    const resolvedPricePerNight = getPriceForGuests(cabin.pricing_tiers, guestCount, cabin.base_price_night)
+    const priceResult = getPriceForDates({
+      cabin: {
+        base_price_night: Number(cabin.base_price_night),
+        season_prices: cabin.season_prices,
+        pricing_tiers: cabin.pricing_tiers,
+      },
+      checkIn: check_in,
+      checkOut: check_out,
+      guests: guestCount,
+      tenantMinNights: 1,
+    })
+    const subtotal = priceResult.total
+    const resolvedPricePerNight = nights > 0 ? Math.round(subtotal / nights) : Number(cabin.base_price_night)
     const hasTierMatch = (cabin.pricing_tiers || []).some((t: any) => guestCount >= t.min_guests && guestCount <= t.max_guests)
     const extraGuests = Math.max(0, guestCount - cabin.capacity)
     const extraPersonPrice = Number(cabin.extra_person_price) || 0
-    const subtotal = resolvedPricePerNight * nights
     const extras = hasTierMatch ? 0 : extraGuests * extraPersonPrice * nights
     const tinajaTotal = tinajaCount * tinajaPrice
     const total = subtotal + extras + tinajaTotal
