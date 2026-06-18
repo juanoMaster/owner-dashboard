@@ -56,6 +56,8 @@ export default function AdminPage() {
         bookings={data.bookings}
         auditRows={data.auditRows}
         stats={data.stats}
+        subscriptions={data.subscriptions || []}
+        statements={data.statements || []}
         adminToken={token}
       />
     )

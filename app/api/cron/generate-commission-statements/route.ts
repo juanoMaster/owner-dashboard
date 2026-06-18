@@ -59,22 +59,27 @@ export async function GET(req: Request) {
 
         const currency = tenant.currency || "CLP"
 
-        // Sumar reservas CONFIRMADAS del período (no canceladas)
+        // Sumar reservas CONFIRMADAS del período por check_in (fecha de estadía, no de creación)
         const { data: bookings } = await supabase
           .from("bookings")
           .select("total_amount")
           .eq("tenant_id", sub.tenant_id)
           .eq("status", "confirmed")
           .is("deleted_at", null)
-          .gte("created_at", periodStart)
-          .lt("created_at", periodEnd)
+          .gte("check_in", periodStart)
+          .lt("check_in", periodEnd)
 
         const bookingsCount = bookings?.length ?? 0
         const bookingsTotal = bookings?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) ?? 0
         const commissionAmount = Math.round(bookingsTotal * (sub.commission_rate / 100) * 100) / 100
 
-        // Crear statement (status 'pending' si no hay reservas; 'sent' si hay comisión > 0)
-        const statementStatus = commissionAmount > 0 ? "sent" : "pending"
+        // Sin reservas en el período → no crear statement (no hay nada que cobrar)
+        if (bookingsCount === 0 || commissionAmount === 0) {
+          skipped.push(sub.tenant_id)
+          continue
+        }
+
+        const statementStatus = "sent"
 
         const { data: statement, error: insertErr } = await supabase
           .from("commission_statements")

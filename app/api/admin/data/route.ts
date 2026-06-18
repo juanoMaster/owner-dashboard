@@ -16,17 +16,21 @@ export async function GET(req: Request) {
   // As old bookings age beyond 2 years, the query stays bounded regardless of total booking count.
   const statsWindowStart = `${thisYear - 1}-01-01`
 
+  const statementsWindowStart = `${thisYear - 1}-01-01`
+
   const [
     { data: tenants },
     { data: cabins },
     { data: tokens },
     { data: bookings },
     { data: auditRows },
+    { data: subscriptions },
+    { data: statements },
   ] = await Promise.all([
     supabase
       .from("tenants")
       .select(
-        "id, business_name, owner_name, owner_whatsapp, email_owner, email_owner_2, deposit_percent, gender, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, active, verified, created_at, slug, dashboard_token, country, currency, location_text, location_maps_url, tagline, activities, page_rules, mp_enabled, whatsapp_enabled, latitude, longitude, extra_services, instagram_url, facebook_url, has_tinaja, tinaja_price, min_nights"
+        "id, business_name, owner_name, owner_whatsapp, email_owner, email_owner_2, deposit_percent, gender, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, active, verified, created_at, slug, dashboard_token, country, currency, location_text, location_maps_url, tagline, activities, page_rules, mp_enabled, whatsapp_enabled, latitude, longitude, extra_services, instagram_url, facebook_url, has_tinaja, tinaja_price, min_nights, billing_status, manual_billing"
       )
       .order("created_at"),
     supabase
@@ -53,6 +57,16 @@ export async function GET(req: Request) {
       )
       .order("created_at", { ascending: false })
       .limit(1000),
+    supabase
+      .from("subscriptions")
+      .select("tenant_id, billing_mode, status, commission_rate, free_until, trial_ends_at, plan, amount, currency, failed_payments, mp_preapproval_id, last_payment_at")
+      .order("tenant_id"),
+    supabase
+      .from("commission_statements")
+      .select("id, tenant_id, period_year, period_month, kind, bookings_count, bookings_total, currency, commission_amount, commission_rate, status, payment_method, paid_at, created_at")
+      .gte("created_at", statementsWindowStart)
+      .order("created_at", { ascending: false })
+      .limit(200),
   ])
   const allBookings = (bookings || []) as any[]
   const confirmed = allBookings.filter((b: any) => b.status === "confirmed" && !b.deleted_at)
@@ -118,6 +132,8 @@ export async function GET(req: Request) {
     tokens: tokens || [],
     bookings: allBookings,
     auditRows: auditRows || [],
+    subscriptions: subscriptions || [],
+    statements: statements || [],
     stats,
   })
 }

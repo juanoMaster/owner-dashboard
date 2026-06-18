@@ -655,7 +655,7 @@ export function emailCommissionStatement(data: {
       <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
         <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; ESTADO DE CUENTA</p>
         <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:26px;font-weight:400;color:${TEXT_LIGHT};">${data.period_label}</h1>
-        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${data.owner_name.split(" ")[0]}, aquí tu resumen de actividad y comisión a pagar.</p>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${esc(data.owner_name.split(" ")[0])}, aquí tu resumen de actividad y comisión a pagar.</p>
       </td>
     </tr>
     <tr>

@@ -6,7 +6,15 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** Auditoría continua — XSS hardening completo
+**Sesión:** Billing tab en panel admin + correcciones comisiones
+
+**Esta iteración del loop (2026-06-18 billing admin tab):**
+- `app/api/admin/data/route.ts`: ahora retorna `subscriptions` y `statements` (últimos 2 años, máx 200 filas); tenants SELECT incluye `billing_status` y `manual_billing`
+- `app/api/cron/generate-commission-statements/route.ts`: cambiado filtro de reservas de `created_at` a `check_in` (fecha de estadía, correcta para el servicio); skip de statements con `commissionAmount === 0` — no se crean filas vacías
+- `lib/resend.ts` (emailCommissionStatement): `owner_name.split(" ")[0]` ahora usa `esc()` — XSS fix
+- `supabase/migrations/009_subscriptions_index.sql`: 3 índices faltantes (`subscriptions.tenant_id`, `subscriptions(billing_mode,status)`, `commission_statements(tenant_id,period_year,period_month,kind)`) — ⚠ APLICAR MANUALMENTE en Supabase SQL Editor
+- `app/admin/page.tsx`: pasa `subscriptions` y `statements` a `AdminDashboard`
+- `app/components/AdminDashboard.tsx`: nuevo tab "Billing" (tab 7) con tabla de suscripciones y estados de cuenta; `BillingBadge` en columna "Billing" de tab Resumen y tab Clientes; `BillingTab` con filtros por cliente, modo y estado
 
 **Esta iteración del loop (2026-06-18 hardening final):**
 - `lib/resend.ts`: `header()` y `footer()` ahora usan `esc(business_name)` — las funciones compartidas no escapaban antes; también `esc(data.cabin_name)` en todos los `detailRow("Cabaña", ...)` (5 ocurrencias); `esc(owner_name.split(" ")[0])` en `emailTrialEnding` y `emailPastDue`

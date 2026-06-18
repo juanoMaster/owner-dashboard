@@ -42,7 +42,7 @@ const INPUT: React.CSSProperties = { width: "100%", background: "#080610", borde
 const LABEL: React.CSSProperties = { fontSize: "11px", color: "#5a4870", letterSpacing: "1px", textTransform: "uppercase", display: "block", marginBottom: "6px" }
 
 // ── main component ────────────────────────
-export default function AdminDashboard({ tenants: initTenants, cabins: initCabins, tokens: initTokens, bookings, auditRows, stats, adminToken }: any) {
+export default function AdminDashboard({ tenants: initTenants, cabins: initCabins, tokens: initTokens, bookings, auditRows, stats, subscriptions: initSubscriptions, statements: initStatements, adminToken }: any) {
   const [tab, setTab] = useState(0)
   const [tenants, setTenants] = useState<any[]>(initTenants)
   const [cabins, setCabins] = useState<any[]>(initCabins)
@@ -56,6 +56,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
   const [filterCabinTenant, setFilterCabinTenant] = useState("")
   const [filterCabinEstado, setFilterCabinEstado] = useState("")
   const [filterCabinCapacidad, setFilterCabinCapacidad] = useState("")
+  const subscriptions: any[] = initSubscriptions || []
+  const statements: any[] = initStatements || []
+  const subMap = useMemo(() => { const m: Record<string, any> = {}; subscriptions.forEach((s: any) => { m[s.tenant_id] = s }); return m }, [subscriptions])
 
   const tenantMap = useMemo(() => { const m: Record<string,string> = {}; tenants.forEach((t: any) => { m[t.id] = t.business_name }); return m }, [tenants])
   const cabinMap = useMemo(() => { const m: Record<string,string> = {}; cabins.forEach((c: any) => { m[c.id] = c.name }); return m }, [cabins])
@@ -167,7 +170,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error al eliminar")
   }
 
-  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones"]
+  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing"]
 
   return (
     <div style={{ background: "#09070a", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8d5f8" }}>
@@ -222,7 +225,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
                   <tr>
-                    {["Cliente", "Propietaria", "Cabañas", "Reservas " + stats.thisYear, "Ingresos " + stats.thisYear, "Pendientes", "Estado"].map(h => <th key={h} style={TH}>{h}</th>)}
+                    {["Cliente", "Propietaria", "Cabañas", "Reservas " + stats.thisYear, "Ingresos " + stats.thisYear, "Pendientes", "Estado", "Billing"].map(h => <th key={h} style={TH}>{h}</th>)}
                   </tr>
                 </thead>
                 <tbody>
@@ -241,6 +244,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                             {t.active ? "Activo" : "Inactivo"}
                           </span>
                         </td>
+                        <td style={TD}><BillingBadge sub={subMap[t.id]} bstatus={t.billing_status} manual={t.manual_billing} /></td>
                       </tr>
                     )
                   })}
@@ -265,7 +269,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                     <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setTenantSort(s => ({ key: "business_name", dir: s.key === "business_name" ? (s.dir === "asc" ? "desc" : "asc") : "asc" }))}>
                       Negocio{tenantSort.key === "business_name" ? (tenantSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
                     </th>
-                    {["Propietaria", "WhatsApp", "Depósito %", "Estado", "Verificado", "WA Notif."].map(h => <th key={h} style={TH}>{h}</th>)}
+                    {["Propietaria", "WhatsApp", "Depósito %", "Estado", "Billing", "Verificado", "WA Notif."].map(h => <th key={h} style={TH}>{h}</th>)}
                     <th style={{ ...TH, cursor: "pointer", userSelect: "none" as const }} onClick={() => setTenantSort(s => ({ key: "created_at", dir: s.key === "created_at" ? (s.dir === "asc" ? "desc" : "asc") : "desc" }))}>
                       Fecha de ingreso{tenantSort.key === "created_at" ? (tenantSort.dir === "asc" ? " ↑" : " ↓") : " ↕"}
                     </th>
@@ -284,6 +288,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                           {t.active ? "Activo" : "Inactivo"}
                         </span>
                       </td>
+                      <td style={TD}><BillingBadge sub={subMap[t.id]} bstatus={t.billing_status} manual={t.manual_billing} /></td>
                       <td style={TD}>
                         <button onClick={() => saveTenant({ action: "verify", id: t.id, verified: !t.verified })} style={BTN(t.verified ? "#c8b878" : "#3a2e50")}>
                           {t.verified ? "✓ Verificado" : "Verificar"}
@@ -516,6 +521,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
 
         {/* ══ TAB 6: COMISIONES ══ */}
         {tab === 6 && <ComisionesTab bookings={bookings} tenants={tenants} tenantMap={tenantMap} adminToken={adminToken} />}
+
+        {/* ══ TAB 7: BILLING ══ */}
+        {tab === 7 && <BillingTab subscriptions={subscriptions} statements={statements} tenants={tenants} tenantMap={tenantMap} />}
 
       </main>
 
@@ -1021,6 +1029,165 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
           <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "transparent", border: "1px solid #2a1e38", borderRadius: "10px", color: "#5a4870", fontSize: "13px", cursor: "pointer", fontFamily: "sans-serif" }}>
             Cancelar
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ══ BILLING BADGE ══════════════════════════
+function BillingBadge({ sub, bstatus, manual }: { sub?: any; bstatus?: string; manual?: boolean }) {
+  if (manual) return <span style={{ fontSize: "10px", color: "#c8b878", background: "#1a1428", border: "1px solid #c8b87840", padding: "2px 7px", borderRadius: "5px" }}>Manual</span>
+  const mode = sub?.billing_mode
+  const status = bstatus || sub?.status || "—"
+  const color = status === "active" ? "#27ae60" : status === "trial" ? "#7ab87a" : status === "suspended" ? "#e63946" : "#5a4870"
+  const label = mode === "commission" ? "Comisión" : mode === "subscription" ? "Suscripción" : "—"
+  return (
+    <span style={{ fontSize: "10px", color, background: color + "15", border: "1px solid " + color + "30", padding: "2px 7px", borderRadius: "5px", display: "inline-flex", flexDirection: "column" as const, alignItems: "center", gap: "1px" }}>
+      <span style={{ fontWeight: 700 }}>{status}</span>
+      <span style={{ color: "#5a4870", fontSize: "9px" }}>{label}</span>
+    </span>
+  )
+}
+
+// ══ BILLING TAB ════════════════════════════
+const MONTHS_ES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+
+function BillingTab({ subscriptions, statements, tenants, tenantMap }: any) {
+  const [filterTenant, setFilterTenant] = useState("")
+  const [filterMode, setFilterMode] = useState("")
+  const [filterStmtTenant, setFilterStmtTenant] = useState("")
+  const [filterStmtStatus, setFilterStmtStatus] = useState("")
+  const IS: React.CSSProperties = { background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "7px 12px", outline: "none", fontFamily: "sans-serif" }
+
+  const fmtAmt = (amt: number | null | undefined, currency: string) => {
+    if (amt == null) return "—"
+    if (currency === "USD") return "USD $" + amt.toFixed(2)
+    if (currency === "COP") return "COP $" + Math.round(amt).toLocaleString("es-CO")
+    return "$" + Math.round(amt).toLocaleString("es-CL")
+  }
+
+  const filteredSubs = useMemo(() => {
+    return subscriptions.filter((s: any) => {
+      if (filterTenant && tenantMap[s.tenant_id] !== filterTenant) return false
+      if (filterMode && s.billing_mode !== filterMode) return false
+      return true
+    })
+  }, [subscriptions, filterTenant, filterMode, tenantMap])
+
+  const filteredStmts = useMemo(() => {
+    return statements.filter((s: any) => {
+      if (filterStmtTenant && tenantMap[s.tenant_id] !== filterStmtTenant) return false
+      if (filterStmtStatus && s.status !== filterStmtStatus) return false
+      return true
+    })
+  }, [statements, filterStmtTenant, filterStmtStatus, tenantMap])
+
+  const tenantNames = useMemo(() => Array.from(new Set(subscriptions.map((s: any) => tenantMap[s.tenant_id] || ""))).filter(Boolean).sort(), [subscriptions, tenantMap])
+  const stmtTenantNames = useMemo(() => Array.from(new Set(statements.map((s: any) => tenantMap[s.tenant_id] || ""))).filter(Boolean).sort(), [statements, tenantMap])
+
+  const stmtStatusColor = (s: string) => s === "paid" ? "#27ae60" : s === "sent" ? "#7ab87a" : s === "transfer_reported" ? "#f97316" : s === "pending" ? "#c8b878" : "#5a4870"
+  const stmtStatusLabel = (s: string) => ({ paid: "Pagado", sent: "Enviado", transfer_reported: "Transferencia reportada", pending: "Pendiente" }[s] || s)
+
+  return (
+    <div>
+      {/* SUBSCRIPTIONS SECTION */}
+      <div style={{ marginBottom: "32px" }}>
+        <SectionHeader title="Suscripciones" />
+        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "10px", marginBottom: "14px", alignItems: "center" }}>
+          <select value={filterTenant} onChange={e => setFilterTenant(e.target.value)} style={IS}>
+            <option value="">Todos los clientes</option>
+            {(tenantNames as string[]).map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <select value={filterMode} onChange={e => setFilterMode(e.target.value)} style={IS}>
+            <option value="">Todos los modos</option>
+            <option value="commission">Comisión</option>
+            <option value="subscription">Suscripción</option>
+          </select>
+          <span style={{ fontSize: "11px", color: "#3a2e50", marginLeft: "auto" }}>{filteredSubs.length} registros</span>
+        </div>
+        <div style={{ overflowX: "auto" as const, borderRadius: "14px", border: "1px solid #1e1428" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+            <thead>
+              <tr>
+                {["Cliente", "Modo", "Estado", "Plan", "Comisión %", "Free hasta", "Trial hasta", "Último pago", "Pagos fallidos"].map(h => <th key={h} style={TH}>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSubs.length === 0
+                ? <tr><td colSpan={9} style={{ ...TD, textAlign: "center" as const, padding: "32px", color: "#3a2e50" }}>Sin registros</td></tr>
+                : filteredSubs.map((s: any) => {
+                  const t = tenants.find((t: any) => t.id === s.tenant_id)
+                  const statusColor = s.status === "active" ? "#27ae60" : s.status === "trial" ? "#7ab87a" : s.status === "suspended" ? "#e63946" : "#5a4870"
+                  return (
+                    <tr key={s.tenant_id}>
+                      <td style={{ ...TD, color: "#e8d5f8", fontWeight: 600 }}>{tenantMap[s.tenant_id] || s.tenant_id}
+                        {t?.manual_billing && <span style={{ marginLeft: "6px", fontSize: "9px", color: "#c8b878", background: "#1a1428", border: "1px solid #c8b87840", padding: "1px 5px", borderRadius: "4px" }}>manual</span>}
+                      </td>
+                      <td style={TD}><span style={{ fontSize: "11px", color: s.billing_mode === "commission" ? "#9a78c8" : "#7ab87a" }}>{s.billing_mode === "commission" ? "Comisión" : s.billing_mode === "subscription" ? "Suscripción" : s.billing_mode || "—"}</span></td>
+                      <td style={TD}><span style={{ fontSize: "11px", fontWeight: 600, color: statusColor, background: statusColor + "15", border: "1px solid " + statusColor + "30", padding: "2px 8px", borderRadius: "6px" }}>{s.status}</span></td>
+                      <td style={{ ...TD, fontSize: "11px" }}>{s.plan || "—"}</td>
+                      <td style={{ ...TD, fontFamily: "Georgia,serif" }}>{s.commission_rate != null ? s.commission_rate + "%" : "—"}</td>
+                      <td style={{ ...TD, fontSize: "11px", color: s.free_until ? "#c8b878" : "#3a2e50" }}>{s.free_until ? fmtDate(s.free_until) : "—"}</td>
+                      <td style={{ ...TD, fontSize: "11px" }}>{s.trial_ends_at ? fmtDate(s.trial_ends_at) : "—"}</td>
+                      <td style={{ ...TD, fontSize: "11px" }}>{s.last_payment_at ? fmtDate(s.last_payment_at) : "—"}</td>
+                      <td style={{ ...TD, color: (s.failed_payments || 0) > 0 ? "#e63946" : "#3a2e50" }}>{s.failed_payments || 0}</td>
+                    </tr>
+                  )
+                })
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* COMMISSION STATEMENTS SECTION */}
+      <div>
+        <SectionHeader title="Estados de cuenta de comisiones" />
+        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "10px", marginBottom: "14px", alignItems: "center" }}>
+          <select value={filterStmtTenant} onChange={e => setFilterStmtTenant(e.target.value)} style={IS}>
+            <option value="">Todos los clientes</option>
+            {(stmtTenantNames as string[]).map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <select value={filterStmtStatus} onChange={e => setFilterStmtStatus(e.target.value)} style={IS}>
+            <option value="">Todos los estados</option>
+            <option value="sent">Enviado</option>
+            <option value="transfer_reported">Transferencia reportada</option>
+            <option value="paid">Pagado</option>
+            <option value="pending">Pendiente</option>
+          </select>
+          <span style={{ fontSize: "11px", color: "#3a2e50", marginLeft: "auto" }}>{filteredStmts.length} estados</span>
+        </div>
+        <div style={{ overflowX: "auto" as const, borderRadius: "14px", border: "1px solid #1e1428" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+            <thead>
+              <tr>
+                {["Cliente", "Período", "Reservas", "Total reservas", "Comisión %", "Comisión", "Estado", "Método pago", "Pagado"].map(h => <th key={h} style={TH}>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStmts.length === 0
+                ? <tr><td colSpan={9} style={{ ...TD, textAlign: "center" as const, padding: "32px", color: "#3a2e50" }}>Sin estados de cuenta</td></tr>
+                : filteredStmts.map((s: any) => (
+                  <tr key={s.id}>
+                    <td style={{ ...TD, color: "#9a78c8", fontSize: "11px" }}>{tenantMap[s.tenant_id] || s.tenant_id}</td>
+                    <td style={{ ...TD, fontFamily: "Georgia,serif", color: "#c8b878" }}>{MONTHS_ES[(s.period_month || 1) - 1]} {s.period_year}</td>
+                    <td style={TD}>{s.bookings_count}</td>
+                    <td style={{ ...TD, fontFamily: "Georgia,serif" }}>{fmtAmt(s.bookings_total, s.currency)}</td>
+                    <td style={TD}>{s.commission_rate != null ? s.commission_rate + "%" : "—"}</td>
+                    <td style={{ ...TD, fontFamily: "Georgia,serif", color: "#e8d5a3", fontWeight: 600 }}>{fmtAmt(s.commission_amount, s.currency)}</td>
+                    <td style={TD}>
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: stmtStatusColor(s.status), background: stmtStatusColor(s.status) + "15", border: "1px solid " + stmtStatusColor(s.status) + "30", padding: "2px 8px", borderRadius: "6px" }}>
+                        {stmtStatusLabel(s.status)}
+                      </span>
+                    </td>
+                    <td style={{ ...TD, fontSize: "11px" }}>{s.payment_method || "—"}</td>
+                    <td style={{ ...TD, fontSize: "11px", color: s.paid_at ? "#27ae60" : "#3a2e50" }}>{s.paid_at ? fmtDate(s.paid_at) : "—"}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
