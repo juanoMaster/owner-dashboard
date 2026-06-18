@@ -76,7 +76,8 @@ export async function POST(req: NextRequest) {
           .eq("id", stmt.tenant_id).single()
         if (tenant?.email_owner) {
           const monthLabel = `${String(stmt.period_month).padStart(2, "0")}/${stmt.period_year}`
-          const firstName = (tenant.owner_name ?? "").split(" ")[0] || "Hola"
+          const rawFirst = (tenant.owner_name ?? "").split(" ")[0] || "Hola"
+          const firstName = rawFirst.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
           const fmtAmt = stmt.currency === "USD"
             ? "USD $" + Number(stmt.commission_amount).toFixed(2)
             : stmt.currency === "COP"
