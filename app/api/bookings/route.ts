@@ -5,6 +5,7 @@ import { logAudit } from "@/lib/audit"
 import { generateBookingCode } from "@/lib/booking-code"
 import { getPriceForDates } from "@/lib/pricing"
 import { sendWhatsApp } from "@/lib/whatsapp"
+import { getBillingInfo, isBillingBlocked } from "@/lib/billing"
 
 export async function POST(req: Request) {
   let cabin_id: string | undefined
@@ -35,6 +36,12 @@ export async function POST(req: Request) {
     }
 
     const tenant_id = cabin.tenant_id
+
+    // Billing check — rechazar si el tenant está suspendido
+    const billing = await getBillingInfo(tenant_id)
+    if (isBillingBlocked(billing.billing_status, billing.manual_billing)) {
+      return NextResponse.json({ success: false, message: "Las reservas en línea no están disponibles temporalmente." }, { status: 503 })
+    }
 
     // Tenant conocido → cliente con contexto de sesión
     const supabase = await getSupabaseForTenant(tenant_id)
