@@ -8,6 +8,16 @@
 **Fecha:** 2026-06-18
 **Sesión:** Billing tab en panel admin + correcciones comisiones
 
+**Esta iteración del loop (2026-06-18 auditoria final + migraciones):**
+- `supabase/migrations/010_fix_season_prices_keys.sql`: migración para normalizar `season_prices` en cabañas creadas antes del fix (start_date/end_date → start_md/end_md). ⚠ APLICAR MANUALMENTE en Supabase SQL Editor.
+- `app/dashboard/facturacion/page.tsx`: precio en botón "Activar suscripción" ahora dinámico desde `sub.plan`/`sub.amount` en lugar de hardcoded $19.990
+- Auditadas y confirmadas sólidas (no requirieron cambios): billing/webhook.ts, billing/subscribe.ts, billing/status.ts, billing/commission-pay.ts, billing/ack/[token], billing/report-transfer.ts, cron/billing-check.ts, bookings/cancel.ts (orphaned blocks fix activo), bookings/route.ts (atomic RPC), lib/billing.ts, lib/parse-notes.ts, lib/booking-code.ts, lib/takai-token.ts, lib/resend.ts (emailReservaCancelada, emailNuevaReservaTurista, emailNuevaReservaDuena), dashboard/route.ts, admin/tenants/route.ts, tenant/[slug]/cabins/route.ts, vercel.json (2 crons: daily + resumen-semanal)
+- Estado: 47+ API routes ✅, 13 páginas ✅, todos los crons ✅, billing V1+V2 ✅, admin billing tab ✅, XSS hardening completo ✅
+
+**Pendientes (requieren Juan):**
+- Aplicar migración 009 y 010 manualmente en Supabase SQL Editor
+- [P3-4] Archivos muertos en raíz del repo (`diagnostico.txt`, `todo_el_sistema.txt`, `archivos_takai.txt`, etc.) — no borrar sin instrucción explícita
+
 **Esta iteración del loop (2026-06-18 billing admin tab):**
 - `app/api/admin/data/route.ts`: ahora retorna `subscriptions` y `statements` (últimos 2 años, máx 200 filas); tenants SELECT incluye `billing_status` y `manual_billing`
 - `app/api/cron/generate-commission-statements/route.ts`: cambiado filtro de reservas de `created_at` a `check_in` (fecha de estadía, correcta para el servicio); skip de statements con `commissionAmount === 0` — no se crean filas vacías
