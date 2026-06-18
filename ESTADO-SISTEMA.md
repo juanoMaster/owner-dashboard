@@ -6,7 +6,13 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** Auditoría completa de todas las rutas — 2 bugs correctivos nuevos encontrados y resueltos
+**Sesión:** Auditoría continua — 4 bugs encontrados y corregidos, sistema en estado muy sólido
+
+**Esta iteración del loop (2026-06-18 continuación final):**
+- `app/reservar/pago-fallido/page.tsx`: número Takai hardcodeado `56955230900` reemplazado por `owner_whatsapp` del tenant obtenido dinámicamente vía `/api/bookings/bank-info`; también agrega campo `owner_whatsapp` a la respuesta de `bank-info/route.ts`
+- `app/api/billing/webhook/route.ts`: email de confirmación de pago de comisión — `commission_amount` ahora formateado con `toLocaleString` según moneda (USD/COP/CLP), null guard en `owner_name.split()`
+- `app/api/bookings/confirm/route.ts` + `app/api/emails/reserva-confirmada/route.ts`: **BUG IMPORTANTE** — URL del manual de bienvenida usaba `NEXT_PUBLIC_RESERVAS_URL` (reservas.takai.cl) pero la página `/bienvenida/[booking_code]` vive en panel.takai.cl; corregido a `NEXT_PUBLIC_APP_URL`; todos los huéspedes recibían link 404
+- Auditados y confirmados sólidos: `pago-pendiente/page.tsx`, `pago-exitoso/page.tsx`, `pago-fallido/page.tsx`, `reservar/page.tsx`, `historial/page.tsx`, `facturacion/page.tsx`, `bookings/cancel/route.ts`, `bookings/confirm/route.ts`, `mp/create-preference/route.ts`, `mp/status/route.ts`, `billing/status/route.ts`, `billing/webhook/route.ts`, `twilio/webhook/route.ts`, `lib/whatsapp.ts`, `lib/billing.ts`, `lib/supabase-server.ts`, `lib/resend.ts`, `ManualBookingForm.tsx`, `HistorialPageClient.tsx`, `bank-info/route.ts`, `AdminDashboard.tsx`
 
 **Esta iteración del loop (2026-06-18 auditoría final rutas):**
 - `app/api/bookings/route.ts`: cascade tinaja estaba al revés (tenant antes que cabin); corregido a `cabin.tinaja_price || tenant.tinaja_price || 30000`
