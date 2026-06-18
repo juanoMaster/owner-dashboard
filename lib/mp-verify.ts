@@ -1,4 +1,4 @@
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 
 export function verifyMpSignature(
   secret: string,
@@ -16,5 +16,8 @@ export function verifyMpSignature(
   if (!ts || !v1) return false
   const manifest = "id:" + dataId + ";request-id:" + xRequestId + ";ts:" + ts + ";"
   const computed = createHmac("sha256", secret).update(manifest).digest("hex")
-  return computed === v1
+  const a = Buffer.from(computed)
+  const b = Buffer.from(v1)
+  if (a.length !== b.length) return false
+  return timingSafeEqual(a, b)
 }
