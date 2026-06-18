@@ -255,7 +255,7 @@ export async function POST(req: Request) {
 
   // ── Create subscription row ──────────────────────────────────────────────────
   const trialEndsAt = billing_mode === "subscription"
-    ? new Date(Date.now() + 30 * 86400 * 1000).toISOString()
+    ? (() => { const d = new Date(); d.setMonth(d.getMonth() + 3); return d.toISOString() })()
     : null
 
   const { error: subErr } = await supabase.from("subscriptions").insert([{
