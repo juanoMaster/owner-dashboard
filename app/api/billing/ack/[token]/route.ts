@@ -71,7 +71,7 @@ export async function GET(
           <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#111827;border:1px solid #1e2d40;border-radius:8px;">
             <tr><td style="background:#0a1520;padding:32px;text-align:center;">
               <p style="margin:0 0 8px;color:#C9A84C;font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; PAGO CONFIRMADO</p>
-              <h2 style="margin:0;font-family:Georgia,serif;font-size:24px;font-weight:400;color:#e8e8e8;">¡Gracias, ${tenant.owner_name.split(" ")[0]}!</h2>
+              <h2 style="margin:0;font-family:Georgia,serif;font-size:24px;font-weight:400;color:#e8e8e8;">¡Gracias, ${he(tenant.owner_name.split(" ")[0])}!</h2>
             </td></tr>
             <tr><td style="padding:32px;">
               <p style="color:#8892a4;font-size:14px;line-height:1.7;margin:0 0 16px;">
@@ -102,14 +102,18 @@ export async function GET(
   }
 }
 
+function he(s: string): string {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+}
+
 function htmlPage(title: string, message: string, success: boolean) {
   const color = success ? "#7ab87a" : "#e63946"
-  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${title}</title></head>
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${he(title)}</title></head>
 <body style="margin:0;padding:0;background:#0a1510;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">
   <div style="max-width:440px;padding:48px 32px;text-align:center;">
     <div style="font-size:48px;margin-bottom:16px;">${success ? "✓" : "✗"}</div>
-    <h1 style="font-family:Georgia,serif;font-size:24px;font-weight:400;color:${color};margin:0 0 16px;">${title}</h1>
-    <p style="color:#5a7058;font-size:14px;line-height:1.6;margin:0;">${message}</p>
+    <h1 style="font-family:Georgia,serif;font-size:24px;font-weight:400;color:${color};margin:0 0 16px;">${he(title)}</h1>
+    <p style="color:#5a7058;font-size:14px;line-height:1.6;margin:0;">${he(message)}</p>
     <p style="margin:32px 0 0;"><a href="https://panel.takai.cl" style="color:#7ab87a;font-size:12px;text-decoration:none;letter-spacing:2px;">VOLVER AL PANEL</a></p>
   </div>
 </body></html>`
