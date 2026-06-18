@@ -451,7 +451,19 @@ export default function HomeDashboardClient() {
             )
           })}
         </div>
-        <EmbedIframeSnippet slug={tenant?.slug} />
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {!tenant?.manual_billing && (
+            <a
+              href="/dashboard/facturacion"
+              style={{ color: "#4a6a48", fontSize: "11px", letterSpacing: "1px", textDecoration: "none", fontFamily: "sans-serif", textTransform: "uppercase" as const, transition: "color 0.15s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#7ab87a" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#4a6a48" }}
+            >
+              Facturación
+            </a>
+          )}
+          <EmbedIframeSnippet slug={tenant?.slug} />
+        </div>
       </nav>
 
       {/* Tab bar */}
