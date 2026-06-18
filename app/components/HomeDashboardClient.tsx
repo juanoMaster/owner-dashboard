@@ -428,7 +428,7 @@ export default function HomeDashboardClient() {
           </a>
         </div>
       )}
-      {!isSuspended && billingStatus === "past_due" && (
+      {!tenant?.manual_billing && !isSuspended && billingStatus === "past_due" && (
         <div style={{ background: "#2a1f00", borderBottom: "2px solid #f59e0b", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
           <span style={{ color: "#fbbf24", fontFamily: "sans-serif", fontSize: "14px" }}>
             Tuvimos un problema con tu último pago. Revisa tu suscripción para evitar interrupciones.
