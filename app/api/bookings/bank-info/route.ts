@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, transfer_timeout_hours, currency, owner_whatsapp")
+    .select("slug, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, transfer_timeout_hours, currency, owner_whatsapp")
     .eq("id", booking.tenant_id)
     .single()
 
@@ -61,5 +61,7 @@ export async function GET(req: Request) {
     whatsapp_number: whatsapp_number || null,
     // WhatsApp del propietario (para contacto directo en caso de error de pago)
     owner_whatsapp: (tenant as any).owner_whatsapp || null,
+    // Slug del tenant (para redirigir al turista de vuelta a la landing)
+    slug: (tenant as any).slug || null,
   })
 }

@@ -1,11 +1,21 @@
 "use client"
 export const dynamic = "force-dynamic"
 
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 
 function PagoExitosoInner() {
-  useSearchParams() // booking_id disponible si se necesita en el futuro
+  const params = useSearchParams()
+  const bookingId = params.get("booking_id") || params.get("external_reference") || ""
+  const [slug, setSlug] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!bookingId) return
+    fetch(`/api/bookings/bank-info?booking_id=${bookingId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.slug) setSlug(d.slug) })
+      .catch(() => {})
+  }, [bookingId])
 
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
@@ -27,7 +37,7 @@ function PagoExitosoInner() {
         </div>
 
         <a
-          href="/"
+          href={slug ? `/${slug}` : "/"}
           style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "#7ab87a", color: "#0d1a12", border: "none", borderRadius: "12px", padding: "16px", fontSize: "15px", fontWeight: 700, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
         >
           Volver al inicio
