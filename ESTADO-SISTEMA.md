@@ -6,7 +6,14 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** Billing tab en panel admin + correcciones comisiones
+**Sesión:** UX billing nav + hardening defensivo + limpieza roadmap
+
+**Esta iteración del loop (2026-06-18 loop continuo):**
+- `app/components/HomeDashboardClient.tsx`: link "Facturación" en nav del dashboard — visible para todos los tenants excepto `manual_billing=true` (GlampingCacagual); permite acceso a estados de cuenta sin necesitar estar suspendido
+- `app/components/HomeDashboardClient.tsx`: banner `past_due` ahora también verifica `!manual_billing` — hardening defensivo para evitar que GlampingCacagual vea banners de billing
+- `ESTADO-SISTEMA.md`: P2-8 marcado como resuelto (check_in ya implementado); P0-2b y P2-0b marcados como ya resueltos en roadmap
+- Auditadas y confirmadas sólidas: `bienvenida/[booking_code]/page.tsx`, `reservar/pago-pendiente/page.tsx`, `reservar/pago-fallido/page.tsx`, `reservar/page.tsx` (currency-aware), `lib/pricing.ts` (year-crossing seasons), `ManualBookingForm.tsx`, templates Moderno + Rural (fmtPrice), `billing/status/route.ts`, `bookings/bank-info/route.ts`, `admin/onboard/route.ts`, `[slug]/page.tsx`
+- Build: ✅ limpio
 
 **Esta iteración del loop (2026-06-18 auditoria final + migraciones):**
 - `supabase/migrations/010_fix_season_prices_keys.sql`: migración para normalizar `season_prices` en cabañas creadas antes del fix (start_date/end_date → start_md/end_md). ⚠ APLICAR MANUALMENTE en Supabase SQL Editor.
@@ -123,7 +130,7 @@
 | Reservas (turista) | 97% | RPC atómico ✅; tinaja desde tenant ✅; moneda dinámica WA ✅ |
 | Reservas (propietario panel) | 99% | Tinaja cascade cabin→tenant ✅; moneda dinámica WA ✅; trial 3 meses ✅ |
 | Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
-| Billing / Comisiones | 97% | Trial 3 meses ✅; guard comisión en subscribe ✅; cleanup al borrar tenant ✅ |
+| Billing / Comisiones | 99% | Trial 3 meses ✅; guard comisión ✅; cleanup al borrar tenant ✅; nav link facturación ✅; P2-8 check_in ✅ |
 | Emails (Resend) | 100% | Moneda dinámica ✅; XSS fix en todos los templates ✅; bank data dinámico en resumen-semanal ✅ |
 | WhatsApp (Twilio) | 99% | HMAC-SHA1 ✅; moneda dinámica en WA turista y propietario ✅ |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
@@ -133,7 +140,7 @@
 | Paginación | 90% | Historial cursor paginado ✅; admin bookings por rango fechas ✅ |
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
 | Validación inputs públicos | 95% | UUID+fecha ✅; sanitización filename ✅; calendario POST fechas ✅ |
-| Admin panel | 96% | Token via header ✅; cleanup fotos en cabin delete ✅ |
+| Admin panel | 98% | Token via header ✅; cleanup fotos ✅; Billing tab ✅; BillingBadge en clientes ✅ |
 | Embed widget | 97% | calendar_blocks incluidos (bloques manuales reflejados) ✅ |
 | Crons | 95% | Orquestador daily ✅; exclusión MP en cancelar y recordatorio ✅ |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
@@ -203,8 +210,8 @@
 #### ~~P2-7: embed/availability carga reservas sin rango de fechas~~ ✅ RESUELTO 2026-06-17
 **Fix:** `.lt("check_in", windowEndStr).gt("check_out", windowStartStr)` en el query.
 
-#### P2-8: generate-commission-statements mide por created_at, no check_in
-**Acción requerida:** Confirmar con Juan qué fecha define el período.
+#### ~~P2-8: generate-commission-statements mide por created_at, no check_in~~ ✅ RESUELTO 2026-06-18
+**Fix:** Cambiado a filtrar por `check_in` (fecha de estadía). Comisiones se atribuyen al mes en que ocurrió la reserva, no cuando se creó el booking.
 
 ---
 
@@ -237,15 +244,15 @@
 - P1-2 verificado como ya resuelto
 
 ### Pendiente (antes de 10 clientes)
-1. [P2-8] Confirmar con Juan: ¿comisiones por `created_at` o `check_in`?
+1. ~~[P2-8] Confirmar con Juan: ¿comisiones por `created_at` o `check_in`?~~ ✅ check_in implementado
 2. [P3-4] Limpiar archivos muertos en raíz (con OK de Juan)
 
 ### Pendiente (antes de 50 clientes)
 4. ~~[P2-1b] Paginación en admin dashboard~~ ✅ Resuelto: filtro por 2 años reemplaza `.limit(2000)`
 5. ~~[P2-1c] Rango de fechas en `/api/calendar`~~ ✅ Resuelto: params start/end opcionales; cliente pasa 18 meses
 6. [P2-6] Timezone-aware para crons (baja urgencia)
-7. [P0-2b] Aplicar `create_booking_manual` en el formulario del turista también
-8. [P2-0b] billing/webhook + tenant_id (muy bajo riesgo, requiere cambio de formato)
+7. ~~[P0-2b] Aplicar `create_booking_manual` en el formulario del turista también~~ ✅ Ya usa RPC `create_booking_atomic`
+8. ~~[P2-0b] billing/webhook + tenant_id~~ ✅ Resuelto: `.eq("tenant_id", stmt.tenant_id)` agregado
 
 ---
 
