@@ -20,6 +20,7 @@ interface BankInfo {
   bank_rut: string | null
   transfer_timeout_hours: number
   whatsapp_number: string | null
+  slug: string | null
 }
 
 function fmtMoney(n: number, currency: string) {
@@ -222,7 +223,7 @@ function PagoPendienteInner() {
           </a>
         )}
 
-        <a href="/" style={{ display: "block", textAlign: "center" as const, color: "#5a7058", fontSize: "13px", textDecoration: "underline" }}>
+        <a href={info!.slug ? `/${info!.slug}` : "/"} style={{ display: "block", textAlign: "center" as const, color: "#5a7058", fontSize: "13px", textDecoration: "underline" }}>
           Volver al inicio
         </a>
 
