@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           payment_method: "card",
           paid_at: now,
           updated_at: now,
-        }).eq("id", statementId)
+        }).eq("id", statementId).eq("tenant_id", stmt.tenant_id)
 
         await logAudit({
           tenant_id: stmt.tenant_id,

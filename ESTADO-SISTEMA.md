@@ -36,6 +36,15 @@
 - `app/[slug]/templates/TemplateClasico.tsx`: `extra_services` precio usa `fmt(svc.price)` en lugar de `es-CL` hardcodeado
 - Auditados y confirmados sólidos: `stats`, `historial`, `dashboard`, `calendar/delete`, `cron/daily`, `admin/tokens`, `admin/commissions`, `bookings/bank-info`, `tenant/[slug]/cabins`, `embed/[slug]/availability`, `tenant/bank`, `tenant/guidebook`, `cabins/update`, `billing.ts`, `reservar/page.tsx`, `HomeDashboardClient.tsx`, landing templates (Moderno, Rural)
 
+**Esta iteración del loop (2026-06-17 final):**
+- `lib/email-templates/resumen-semanal.ts`: eliminado `TAKAI_COMMISSION_RATE` hardcodeado, reemplazado `clp()` con `mkFmt(currency)` dinámico, todas las funciones internas usan `fmt` y `commissionRate` como parámetros
+- `app/api/emails/resumen-semanal/route.ts`: pasa `currency` y `commission_rate` a `generarResumenSemanal`
+- `app/api/admin/data/route.ts`: reemplaza `.limit(2000)` con filtro de 2 años (created_at >= año-anterior-01-01) — stats siempre correctas sin depender de límite arbitrario
+- `app/api/calendar/route.ts`: agrega params opcionales `start`/`end` para filtrar `calendar_blocks` por rango de fechas
+- `app/calendar/page.tsx`: pasa ventana de 18 meses (3 atrás + 15 adelante) al cargar bloques del calendario
+- `app/api/billing/webhook/route.ts`: agrega `.eq("tenant_id", stmt.tenant_id)` al UPDATE de commission_statements (P2-0b — defensa en profundidad)
+- Auditados y confirmados sólidos: `cancelar-pendientes`, `recordatorio-transferencia`, `bookings/route.ts`, `emails/recordatorio`, `admin/onboard`
+
 **Estado:** Build OK. Todo deployado en producción (Vercel auto-deploy)
 
 ---
@@ -44,21 +53,21 @@
 
 | Área | % Completo | Notas |
 |------|-----------|-------|
-| Reservas (turista) | 95% | Funcional; índices aplicados en producción |
-| Reservas (propietario panel) | 97% | Race condition resuelta vía RPC create_booking_manual atómico |
-| Calendario | 90% | Funcional; sin paginación en API |
-| Billing / Comisiones | 90% | Funcional; comisión dinámica en resumen-semanal |
-| Emails (Resend) | 98% | Loop resiliente; género por DB; comisión dinámica; moneda dinámica en emails turista |
+| Reservas (turista) | 96% | Funcional; RPC atómico; índices en producción |
+| Reservas (propietario panel) | 98% | Race condition resuelta vía RPC create_booking_manual atómico |
+| Calendario | 95% | Filtro de fechas en API ✅; ventana 18 meses en cliente ✅ |
+| Billing / Comisiones | 92% | P2-0b resuelto ✅; comisión y moneda dinámicas en emails |
+| Emails (Resend) | 99% | Moneda dinámica en todos los emails ✅; comisión dinámica ✅ |
 | WhatsApp (Twilio) | 95% | HMAC-SHA1 verificado; parámetros opcionales para evitar DB extra |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
-| MercadoPago (billing) | 90% | Funcional; webhook billing sin test end-to-end |
-| RLS / Seguridad BD | 95% | Todos los P0/P1 resueltos; P2-0b pendiente (bajo riesgo) |
+| MercadoPago (billing) | 92% | Webhook con tenant_id en UPDATE ✅ |
+| RLS / Seguridad BD | 97% | Todos los P0/P1 resueltos; P2-0b resuelto |
 | Índices BD | 95% | Índices aplicados en producción vía 008_indexes.sql |
-| Paginación | 70% | Historial paginado ✅; calendar y admin sin paginar |
+| Paginación | 85% | Historial paginado ✅; admin bookings por rango fechas ✅; calendar filtrado ✅ |
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
-| Validación inputs públicos | 80% | XSS contact resuelto; UUID validation en availability; TOCTOU foto corregido |
-| Admin panel | 90% | Token via header ✅; bug tenant_id resuelto ✅; sin paginación |
-| Crons | 90% | Orquestador daily ✅; funcionales; timezone risk bajo |
+| Validación inputs públicos | 85% | XSS contact resuelto; UUID validation en availability; TOCTOU foto corregido |
+| Admin panel | 92% | Token via header ✅; bookings query optimizada ✅ |
+| Crons | 92% | Orquestador daily ✅; funcionales; timezone risk bajo |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
 
 ---
@@ -101,8 +110,8 @@
 #### ~~P2-0a: embed/availability sin tenant_id explícito~~ ✅ RESUELTO 2026-06-17
 **Fix:** `.eq("tenant_id", tenant.id)` agregado al query de bookings.
 
-#### P2-0b: billing/webhook — query commission_statements sin tenant_id
-**Riesgo bajo** — compensado por HMAC de MP. Pendiente de decisión de arquitectura.
+#### ~~P2-0b: billing/webhook — query commission_statements sin tenant_id~~ ✅ RESUELTO 2026-06-17
+**Fix:** `.eq("tenant_id", stmt.tenant_id)` agregado al UPDATE — defensa en profundidad.
 
 #### ~~P2-1: Sin paginación en historial~~ ✅ RESUELTO 2026-06-17
 **Fix:** `/api/historial` acepta `cursor` (ISO timestamp) + `limit=100`, devuelve `next_cursor`. `HistorialPageClient` acumula páginas con botón "Cargar más".
@@ -164,8 +173,8 @@
 2. [P3-4] Limpiar archivos muertos en raíz (con OK de Juan)
 
 ### Pendiente (antes de 50 clientes)
-4. [P2-1b] Paginación en admin dashboard (`.limit(2000)` hardcodeado)
-5. [P2-1c] Rango de fechas en `/api/calendar` (sin filtro de fechas actualmente)
+4. ~~[P2-1b] Paginación en admin dashboard~~ ✅ Resuelto: filtro por 2 años reemplaza `.limit(2000)`
+5. ~~[P2-1c] Rango de fechas en `/api/calendar`~~ ✅ Resuelto: params start/end opcionales; cliente pasa 18 meses
 6. [P2-6] Timezone-aware para crons (baja urgencia)
 7. [P0-2b] Aplicar `create_booking_manual` en el formulario del turista también
 8. [P2-0b] billing/webhook + tenant_id (muy bajo riesgo, requiere cambio de formato)
@@ -196,3 +205,4 @@
 | 2026-06-13 | Corrección documentación: CLAUDE.md y ESTADO-SISTEMA.md con info correcta de clientes y modelo de negocio. |
 | 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado. Onboard crea subscription row. Bugfix crítico comisión ÷100. Fix moneda en emails turista (USD/COP/CLP dinámico en emailNuevaReservaTurista, emailNuevaReservaDuena, emailTrialEnding). P0-2b y P3-5 verificados como ya resueltos. |
 | 2026-06-17 | Auditoría completa de todas las rutas API. Fixes: TOCTOU en foto DELETE (verificar propiedad antes de borrar storage); currency_id dinámico en MP preference; UUID regex en availability visited param; extra_services fmt() en TemplateClasico. 40+ rutas verificadas y confirmadas sólidas. |
+| 2026-06-17 | Sprint final: resumen-semanal con moneda+comisión dinámicas; admin/data con filtro de 2 años (P2-1b); calendar API con start/end params (P2-1c); billing/webhook con tenant_id en UPDATE (P2-0b). Auditados: cancelar-pendientes, recordatorio-transferencia, bookings/route, recordatorio, admin/onboard — todos sólidos. |
