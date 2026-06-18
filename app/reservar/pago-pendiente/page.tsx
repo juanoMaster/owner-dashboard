@@ -12,6 +12,7 @@ interface BankInfo {
   check_out: string
   guest_name: string
   created_at: string
+  currency: string
   bank_name: string | null
   bank_account_type: string | null
   bank_account_number: string | null
@@ -21,7 +22,9 @@ interface BankInfo {
   whatsapp_number: string | null
 }
 
-function fmtCLP(n: number) {
+function fmtMoney(n: number, currency: string) {
+  if (currency === "USD") return "$" + n.toFixed(2)
+  if (currency === "COP") return "$" + Math.round(n).toLocaleString("es-CO")
   return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
@@ -122,6 +125,8 @@ function PagoPendienteInner() {
 
   const hasBankData = info && (info.bank_name || info.bank_account_number)
   const depositAmt = info!.deposit_amount || info!.total_amount
+  const currency = info!.currency || "CLP"
+  const fmt = (n: number) => fmtMoney(n, currency)
 
   return (
     <div style={{ background: "#0d1a12", minHeight: "100vh", fontFamily: "sans-serif", color: "#f0ede8", padding: "24px 16px" }}>
@@ -161,11 +166,11 @@ function PagoPendienteInner() {
           <div style={{ fontSize: "11px", letterSpacing: "1.5px", color: "#8a9e88", marginBottom: "10px" }}>MONTO A TRANSFERIR</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "13px", color: "#8a9e88" }}>Anticipo ({info!.deposit_amount && info!.total_amount ? Math.round((info!.deposit_amount / info!.total_amount) * 100) : 20}%)</span>
-            <span style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#e8d5a3", fontWeight: 700 }}>{fmtCLP(depositAmt)}</span>
+            <span style={{ fontFamily: "Georgia,serif", fontSize: "22px", color: "#e8d5a3", fontWeight: 700 }}>{fmt(depositAmt)}</span>
           </div>
           <div style={{ borderTop: "1px solid #2a3e28", marginTop: "10px", paddingTop: "10px", display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontSize: "12px", color: "#5a7058" }}>Total estadía</span>
-            <span style={{ fontSize: "14px", color: "#8a9e88" }}>{fmtCLP(info!.total_amount)}</span>
+            <span style={{ fontSize: "14px", color: "#8a9e88" }}>{fmt(info!.total_amount)}</span>
           </div>
         </div>
 
@@ -192,7 +197,7 @@ function PagoPendienteInner() {
         <div style={{ background: "#0a1510", border: "1px solid #2a3e28", borderRadius: "14px", padding: "18px", marginBottom: "24px" }}>
           <div style={{ fontSize: "11px", letterSpacing: "1.5px", color: "#8a9e88", marginBottom: "14px" }}>CÓMO CONFIRMAR TU RESERVA</div>
           {[
-            { n: "1", text: `Transfiere ${fmtCLP(depositAmt)} a la cuenta indicada` },
+            { n: "1", text: `Transfiere ${fmt(depositAmt)} a la cuenta indicada` },
             { n: "2", text: info!.whatsapp_number ? `Envía tu comprobante por WhatsApp al ${info!.whatsapp_number}` : "Envía tu comprobante por WhatsApp al propietario" },
             { n: "3", text: `Incluye tu código ${info!.booking_code} en el mensaje` },
             { n: "4", text: "Recibirás confirmación en minutos" },
