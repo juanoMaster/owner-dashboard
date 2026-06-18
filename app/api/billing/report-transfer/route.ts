@@ -60,6 +60,9 @@ export async function POST(req: Request) {
     const monthLabel = `${String(stmt.period_month).padStart(2, "0")}/${stmt.period_year}`
     const adminEmail = process.env.ADMIN_EMAIL ?? "contacto@takai.cl"
 
+    const escH = (s: string) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    const safeBiz = escH(tenant?.business_name ?? "")
+
     // Email al admin con link de acuse
     await getResend().emails.send({
       from: "Takai Billing <hola@takai.cl>",
@@ -71,7 +74,7 @@ export async function POST(req: Request) {
             <p style="margin:0;color:#e8d5a3;font-size:13px;letter-spacing:2px;text-transform:uppercase;">TAKAI &middot; BILLING</p>
           </td></tr>
           <tr><td style="padding:32px;">
-            <p style="color:#8a9e88;font-size:14px;margin:0 0 8px;">El tenant <strong style="color:#e8d5a3;">${tenant?.business_name ?? ""}</strong> reportó una transferencia.</p>
+            <p style="color:#8a9e88;font-size:14px;margin:0 0 8px;">El tenant <strong style="color:#e8d5a3;">${safeBiz}</strong> reportó una transferencia.</p>
             <p style="color:#8a9e88;font-size:13px;margin:0 0 24px;">Período: ${monthLabel} &nbsp;|&nbsp; Monto: ${stmt.commission_amount} ${stmt.currency}</p>
             <p style="color:#8a9e88;font-size:13px;margin:0 0 16px;">Cuando verifiques la transferencia en tu banco, haz click para confirmar:</p>
             <a href="${ackUrl}" style="display:inline-block;background:#7ab87a;color:#0a1510;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:14px;font-weight:700;letter-spacing:1px;">
