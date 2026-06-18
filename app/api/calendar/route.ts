@@ -102,6 +102,13 @@ export async function POST(req: Request) {
     if (!start_date || !end_date || !cabin_id || !token) {
       return NextResponse.json({ error: "start_date, end_date, cabin_id y token son requeridos" }, { status: 400 })
     }
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+    if (!DATE_RE.test(start_date) || !DATE_RE.test(end_date)) {
+      return NextResponse.json({ error: "Formato de fecha inválido (YYYY-MM-DD)" }, { status: 400 })
+    }
+    if (start_date >= end_date) {
+      return NextResponse.json({ error: "end_date debe ser posterior a start_date" }, { status: 400 })
+    }
 
     // Lookup inicial sin tenant conocido → admin
     const supabaseAdmin = getSupabaseAdmin()
