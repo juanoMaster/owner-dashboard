@@ -1,4 +1,3 @@
-const WISE_ACCOUNT_PLACEHOLDER = "WISE_ACCOUNT_PLACEHOLDER"
 const GREEN_GRAD = "linear-gradient(140deg,#1a6b45 0%,#25905e 60%,#1e7d52 100%)"
 const FONT = "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
 
@@ -26,6 +25,12 @@ export interface ResumenData {
   reservas: ResumenReserva[]
   currency?: string
   commission_rate?: number
+  takai_bank_name?: string
+  takai_bank_type?: string
+  takai_bank_number?: string
+  takai_bank_holder?: string
+  takai_bank_rut?: string
+  takai_bank_email?: string
 }
 
 function mkFmt(currency: string): (n: number) => string {
@@ -193,23 +198,28 @@ function renderTransferBox(data: ResumenData, fmt: (n: number) => string, commis
     </div>`
 }
 
-function renderBankData(): string {
+function renderBankData(data: ResumenData): string {
+  const b = {
+    name: data.takai_bank_name,
+    type: data.takai_bank_type,
+    number: data.takai_bank_number,
+    holder: data.takai_bank_holder,
+    rut: data.takai_bank_rut,
+    email: data.takai_bank_email,
+  }
+  if (!b.number) return ""
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:3px 16px 3px 0;font-size:13px;color:#94a3b8;font-family:${FONT};">${label}</td><td style="padding:3px 0;font-size:13px;color:#1e293b;font-weight:600;font-family:${FONT};">${esc(value)}</td></tr>`
   return `
     <div style="background:#f0f4ff;border:1px solid #d0d8f0;border-radius:12px;padding:18px 22px;margin-top:20px;">
       <p style="margin:0 0 10px;font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:0.14em;text-transform:uppercase;font-family:${FONT};">Datos para la transferencia</p>
       <table cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:#94a3b8;font-family:${FONT};">Banco</td>
-          <td style="padding:3px 0;font-size:13px;color:#1e293b;font-weight:600;font-family:${FONT};">Wise</td>
-        </tr>
-        <tr>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:#94a3b8;font-family:${FONT};">Titular</td>
-          <td style="padding:3px 0;font-size:13px;color:#1e293b;font-weight:600;font-family:${FONT};">Takayuki</td>
-        </tr>
-        <tr>
-          <td style="padding:3px 16px 3px 0;font-size:13px;color:#94a3b8;font-family:${FONT};">Cuenta</td>
-          <td style="padding:3px 0;font-size:13px;color:#1e293b;font-weight:600;font-family:${FONT};">${WISE_ACCOUNT_PLACEHOLDER}</td>
-        </tr>
+        ${b.name ? row("Banco", b.name) : ""}
+        ${b.type ? row("Tipo", b.type) : ""}
+        ${row("N° Cuenta", b.number)}
+        ${b.holder ? row("Titular", b.holder) : ""}
+        ${b.rut ? row("RUT", b.rut) : ""}
+        ${b.email ? row("Email", b.email) : ""}
       </table>
     </div>`
 }
@@ -226,7 +236,7 @@ export function generarResumenSemanal(data: ResumenData): string {
     ${renderBookings(data.reservas, fmt)}
     ${renderFinance(data, fmt, commRate)}
     ${hasWeb ? renderTransferBox(data, fmt, commRate) : ""}
-    ${hasWeb ? renderBankData() : ""}` : `
+    ${hasWeb ? renderBankData(data) : ""}` : `
     <p style="margin:0;padding:40px 0;text-align:center;font-size:15px;color:#94a3b8;font-family:${FONT};">No hubo reservas confirmadas esta semana.</p>`
 
   return `<!DOCTYPE html>

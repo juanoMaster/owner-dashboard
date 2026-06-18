@@ -128,6 +128,12 @@ export async function GET(req: Request) {
           reservas,
           currency: (tenant as any).currency || "CLP",
           commission_rate: sub?.billing_mode === "commission" ? Number(sub.commission_rate) : 0,
+          takai_bank_name: process.env.TAKAI_BANK_NAME,
+          takai_bank_type: process.env.TAKAI_BANK_ACCOUNT_TYPE,
+          takai_bank_number: process.env.TAKAI_BANK_ACCOUNT_NUMBER,
+          takai_bank_holder: process.env.TAKAI_BANK_HOLDER_NAME,
+          takai_bank_rut: process.env.TAKAI_BANK_HOLDER_RUT,
+          takai_bank_email: process.env.TAKAI_BANK_EMAIL,
         })
 
         await getResend().emails.send({
