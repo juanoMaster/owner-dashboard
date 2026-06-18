@@ -157,10 +157,13 @@ function CalendarContent() {
       else await loadEvents()
     } else {
       if (!confirm("¿Marcar como ocupado?")) return
+      const nextDay = new Date(clickedDate + "T12:00:00")
+      nextDay.setDate(nextDay.getDate() + 1)
+      const endDate = nextDay.toISOString().split("T")[0]
       const res = await fetch("/api/calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ start_date: clickedDate, end_date: clickedDate, cabin_id: cabinId, token }),
+        body: JSON.stringify({ start_date: clickedDate, end_date: endDate, cabin_id: cabinId, token }),
       })
       const data = await res.json()
       if (!res.ok) alert("Error al marcar el día: " + (data.error || res.status))

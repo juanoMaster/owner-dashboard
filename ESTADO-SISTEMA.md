@@ -6,7 +6,12 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** Auditoría continua — timing attack MP tenant webhook, trial 3 meses, MP exclusión en crons, tinaja cascade
+**Sesión:** Auditoría completa de todas las rutas — 2 bugs correctivos nuevos encontrados y resueltos
+
+**Esta iteración del loop (2026-06-18 auditoría final rutas):**
+- `app/api/bookings/route.ts`: cascade tinaja estaba al revés (tenant antes que cabin); corregido a `cabin.tinaja_price || tenant.tinaja_price || 30000`
+- `app/calendar/page.tsx`: `handleDateClick` enviaba `end_date === start_date` al crear bloque de un solo día; API lo rechazaba con 400; corregido calculando `end_date = start_date + 1 día`
+- Auditadas y confirmadas sólidas (no requerían cambios): `api/bookings`, `api/calendar`, `api/dashboard`, `api/historial`, `api/availability`, `api/tenant/[slug]/cabins`, `[slug]/page.tsx`, templates TemplateModerno + TemplateRural, `calendar/page.tsx`, `HomeDashboardClient.tsx`, `CabinPhotos.tsx`, emails `reserva-confirmada`, `resumen-semanal`, `solicitar-review`, `recordatorio`
 
 **Esta iteración del loop (2026-06-18 continuación):**
 - `app/api/mp/webhook/route.ts`: duplicado de `verifyMpSignature` usaba comparación directa de strings (timing attack); ahora importa de `lib/mp-verify.ts` (timingSafeEqual) — igual que el webhook de billing

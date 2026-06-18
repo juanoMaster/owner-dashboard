@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       .eq("id", tenant_id)
       .single()
 
-    const tinajaPrice = Number(tenantConfig?.tinaja_price) || Number(cabin.tinaja_price) || 30000
+    const tinajaPrice = Number(cabin.tinaja_price) || Number(tenantConfig?.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
     const minNights = Number(tenantConfig?.min_nights) || 1
     const tenantSlug = tenantConfig?.slug || "rsv"
