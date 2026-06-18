@@ -855,7 +855,12 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
     description: data.description || "",
     extras: (data.extras || []) as Array<{name: string; price: number}>,
     pricing_tiers: (data?.pricing_tiers || []) as Array<{min_guests: number; max_guests: number; price_per_night: number}>,
-    season_prices: (data?.season_prices || []) as Array<{name: string; start_date: string; end_date: string; price_per_night: number}>,
+    season_prices: (data?.season_prices || []).map((sp: any) => ({
+      name: sp.name || "",
+      start_date: sp.start_md ? ("2000-" + sp.start_md) : (sp.start_date || ""),
+      end_date: sp.end_md ? ("2000-" + sp.end_md) : (sp.end_date || ""),
+      price_per_night: sp.price_per_night || 0,
+    })) as Array<{name: string; start_date: string; end_date: string; price_per_night: number}>,
   })
   const set = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
   const [newExtraName, setNewExtraName] = useState("")
@@ -999,7 +1004,17 @@ function CabinModal({ data, saving, onSave, onClose, tenants }: any) {
           </button>
         </div>
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
-          <button onClick={() => onSave({ action: isNew ? "create" : "update", id: data.id, ...form })} disabled={saving}
+          <button onClick={() => onSave({
+            action: isNew ? "create" : "update",
+            id: data.id,
+            ...form,
+            season_prices: form.season_prices.map((sp: any) => ({
+              name: sp.name,
+              start_md: (sp.start_date || "").slice(5),
+              end_md: (sp.end_date || "").slice(5),
+              price_per_night: Number(sp.price_per_night),
+            })),
+          })} disabled={saving}
             style={{ flex: 1, padding: "12px", background: "#7a5a98", border: "none", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", fontFamily: "sans-serif" }}>
             {saving ? "Guardando..." : "Guardar"}
           </button>
