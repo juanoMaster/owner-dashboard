@@ -3,6 +3,10 @@ export const dynamic = "force-dynamic"
 import { generarResumenSemanal, type ResumenData } from "@/lib/email-templates/resumen-semanal"
 
 export async function GET() {
+  if (process.env.NODE_ENV !== "development") {
+    return new Response("Not Found", { status: 404 })
+  }
+
   const data: ResumenData = {
     business_name: "Rukatraro",
     owner_name: "Johanna Medina",
