@@ -32,7 +32,8 @@ export async function GET(req: Request) {
       const timeoutHours = Number(tenant.transfer_timeout_hours) || 12
       const cutoff = new Date(Date.now() - timeoutHours * 3600 * 1000).toISOString()
 
-      // Reservas draft vencidas: status='draft', no eliminadas, sin comprobante recibido
+      // Reservas draft vencidas: status='draft', no eliminadas, sin comprobante,
+      // y sin mp_preference_id (no cancelar flujos MP que esperan webhook)
       const { data: bookings, error: bookingsErr } = await supabase
         .from("bookings")
         .select("id, booking_code, cabin_id, check_in, check_out, guest_phone, guest_name, cabins(name)")
@@ -40,6 +41,7 @@ export async function GET(req: Request) {
         .eq("status", "draft")
         .is("deleted_at", null)
         .is("transfer_proof_received_at", null)
+        .is("mp_preference_id", null)
         .lt("created_at", cutoff)
 
       if (bookingsErr) {

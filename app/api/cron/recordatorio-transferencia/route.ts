@@ -44,6 +44,7 @@ export async function GET(req: Request) {
         .is("deleted_at", null)
         .is("transfer_proof_received_at", null)
         .is("reminder_sent_at", null)
+        .is("mp_preference_id", null)
         .gte("created_at", windowStart)
         .lte("created_at", windowEnd)
 
