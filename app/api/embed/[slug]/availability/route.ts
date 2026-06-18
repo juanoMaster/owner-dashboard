@@ -36,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: tenant, error: tenantErr } = await supabase
     .from("tenants")
-    .select("id, business_name, slug")
+    .select("id, business_name, slug, billing_status, manual_billing")
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle()
@@ -46,6 +46,11 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   }
   if (!tenant) {
     return NextResponse.json({ error: "Negocio no encontrado" }, { status: 404 })
+  }
+
+  const isSuspended = !tenant.manual_billing && tenant.billing_status === "suspended"
+  if (isSuspended) {
+    return NextResponse.json({ error: "Reservas no disponibles temporalmente" }, { status: 503 })
   }
 
   const { data: cabins, error: cabinsErr } = await supabase
