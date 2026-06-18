@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "La imagen no puede superar 5MB" }, { status: 400 })
     }
 
-    const fileName = `${cabin_id}/${Date.now()}-${file.name}`
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/\.{2,}/g, "_")
+    const fileName = `${cabin_id}/${Date.now()}-${safeName}`
     const buffer = new Uint8Array(await file.arrayBuffer())
 
     const { error: uploadError } = await supabase.storage

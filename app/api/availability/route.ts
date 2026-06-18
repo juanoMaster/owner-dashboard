@@ -10,11 +10,18 @@ export async function GET(req: Request) {
   const check_in = searchParams.get("check_in")
   const check_out = searchParams.get("check_out")
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
   const visited = (searchParams.get("visited") || "").split(",").filter(v => UUID_RE.test(v))
   const guests = parseInt(searchParams.get("guests") || "1") || 1
 
-  if (!cabin_id || !check_in || !check_out) {
-    return NextResponse.json({ available: false, error: "Faltan parametros" }, { status: 400 })
+  if (!cabin_id || !UUID_RE.test(cabin_id)) {
+    return NextResponse.json({ available: false, error: "cabin_id inválido" }, { status: 400 })
+  }
+  if (!check_in || !check_out || !DATE_RE.test(check_in) || !DATE_RE.test(check_out)) {
+    return NextResponse.json({ available: false, error: "Fechas inválidas" }, { status: 400 })
+  }
+  if (check_in >= check_out) {
+    return NextResponse.json({ available: false, error: "check_out debe ser posterior a check_in" }, { status: 400 })
   }
 
   const { data: cab } = await supabase
