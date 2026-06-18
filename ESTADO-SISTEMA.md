@@ -5,8 +5,15 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-06-17
-**Sesión:** Auditoría profunda — seguridad de inputs, limpieza de datos, guards de billing
+**Fecha:** 2026-06-18
+**Sesión:** Auditoría continua — XSS en emails, embed calendar_blocks, tinaja dinámica, validación calendario
+
+**Esta iteración del loop (2026-06-18):**
+- `app/api/emails/solicitar-review/route.ts`: XSS fix — `guest_name`, `business_name` y `review_url` ahora escapan HTML con función `esc()` y `encodeURI()`
+- `app/api/admin/cabins/route.ts` DELETE: limpia fotos de Supabase Storage antes de borrar la cabaña (fotos huérfanas eliminadas)
+- `app/api/embed/[slug]/availability/route.ts`: bug crítico — el widget embebible solo chequeaba `bookings`, no `calendar_blocks`; los bloques manuales (mantenimiento, uso personal) ahora se reflejan correctamente
+- `app/api/bookings/route.ts`: `tinaja_price` leído desde `tenants.tinaja_price` (no hardcodeado 30000 que fallaba para USD); moneda dinámica en mensajes WA al turista y propietario
+- `app/api/calendar/route.ts` POST: validación de formato `YYYY-MM-DD` y orden `start_date < end_date` — bloques corruptos ya no pueden crearse
 
 **Esta iteración del loop (2026-06-17 última):**
 - `app/api/mp/webhook/route.ts`: moneda dinámica en WhatsApp al propietario (USD/COP/CLP) — `currency` agregado al SELECT del tenant
@@ -63,20 +70,21 @@
 
 | Área | % Completo | Notas |
 |------|-----------|-------|
-| Reservas (turista) | 96% | Funcional; RPC atómico; índices en producción |
+| Reservas (turista) | 97% | RPC atómico ✅; tinaja desde tenant ✅; moneda dinámica WA ✅ |
 | Reservas (propietario panel) | 98% | Race condition resuelta vía RPC create_booking_manual atómico |
-| Calendario | 95% | Filtro de fechas en API ✅; ventana 18 meses en cliente ✅ |
+| Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
 | Billing / Comisiones | 96% | Guard comisión en subscribe ✅; cleanup de datos al borrar tenant ✅ |
-| Emails (Resend) | 99% | Moneda dinámica en todos los emails ✅; comisión dinámica ✅ |
-| WhatsApp (Twilio) | 98% | HMAC-SHA1 ✅; moneda dinámica en WA propietario ✅ |
+| Emails (Resend) | 99% | Moneda dinámica en todos los emails ✅; XSS fix en solicitar-review ✅ |
+| WhatsApp (Twilio) | 99% | HMAC-SHA1 ✅; moneda dinámica en WA turista y propietario ✅ |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
 | MercadoPago (billing) | 96% | Webhook con tenant_id en UPDATE ✅; guard commission en subscribe ✅ |
 | RLS / Seguridad BD | 98% | Todos los P0/P1 resueltos; UUID validation en availability ✅ |
 | Índices BD | 95% | Índices aplicados en producción vía 008_indexes.sql |
-| Paginación | 88% | Historial paginado ✅; admin bookings por rango fechas ✅; calendar filtrado ✅ |
+| Paginación | 90% | Historial cursor paginado ✅; admin bookings por rango fechas ✅ |
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
-| Validación inputs públicos | 92% | UUID+fecha validation en availability ✅; sanitización filename fotos ✅ |
-| Admin panel | 95% | Token via header ✅; cleanup completo al borrar tenant ✅ |
+| Validación inputs públicos | 95% | UUID+fecha ✅; sanitización filename ✅; calendario POST fechas ✅ |
+| Admin panel | 96% | Token via header ✅; cleanup fotos en cabin delete ✅ |
+| Embed widget | 97% | calendar_blocks incluidos (bloques manuales reflejados) ✅ |
 | Crons | 92% | Orquestador daily ✅; funcionales; timezone risk bajo |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
 
@@ -216,3 +224,4 @@
 | 2026-06-17 | Sprint optimización: P2-0a, P2-1 (paginación), P2-2/P3-3 (comisión/género dinámico), P2-3 (whatsapp), P2-4 (audit), P2-5 (health), P2-7 (embed fechas), P3-2 (admin bug). P1-2 verificado. Onboard crea subscription row. Bugfix crítico comisión ÷100. Fix moneda en emails turista (USD/COP/CLP dinámico en emailNuevaReservaTurista, emailNuevaReservaDuena, emailTrialEnding). P0-2b y P3-5 verificados como ya resueltos. |
 | 2026-06-17 | Auditoría completa de todas las rutas API. Fixes: TOCTOU en foto DELETE (verificar propiedad antes de borrar storage); currency_id dinámico en MP preference; UUID regex en availability visited param; extra_services fmt() en TemplateClasico. 40+ rutas verificadas y confirmadas sólidas. |
 | 2026-06-17 | Sprint final: resumen-semanal con moneda+comisión dinámicas; admin/data con filtro de 2 años (P2-1b); calendar API con start/end params (P2-1c); billing/webhook con tenant_id en UPDATE (P2-0b). Auditados: cancelar-pendientes, recordatorio-transferencia, bookings/route, recordatorio, admin/onboard — todos sólidos. |
+| 2026-06-18 | XSS fix en solicitar-review (esc() en guest_name/business_name/review_url); cabin delete limpia Storage; embed widget ahora incluye calendar_blocks (bloques manuales se mostraban como disponibles — bug crítico); tinaja_price desde tenants (no hardcoded 30000); moneda dinámica en WA de nueva reserva turista y propietario; validación fecha POST /api/calendar. |
