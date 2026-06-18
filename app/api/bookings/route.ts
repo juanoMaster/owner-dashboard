@@ -41,11 +41,11 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency, dashboard_token")
+      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency, dashboard_token, tinaja_price")
       .eq("id", tenant_id)
       .single()
 
-    const tinajaPrice = Number(cabin.tinaja_price) || 30000
+    const tinajaPrice = Number(tenantConfig?.tinaja_price) || Number(cabin.tinaja_price) || 30000
     const depositPercent = Number(tenantConfig?.deposit_percent) || 20
     const minNights = Number(tenantConfig?.min_nights) || 1
     const tenantSlug = tenantConfig?.slug || "rsv"
@@ -159,16 +159,23 @@ export async function POST(req: Request) {
     }
 
     if (guest_phone) {
-      const currencyLabel = currency
-      const guestMsg = `Hola ${guest_name} 👋 Recibimos tu solicitud de reserva en ${businessName}.\n📅 Check-in: ${check_in} | Check-out: ${check_out}\n💰 Total: ${currencyLabel} ${total} | Anticipo: ${currencyLabel} ${deposit}\nTu propietario revisará tu solicitud y te contactará para coordinar el pago.\nCódigo de reserva: ${bookingCode}`
+      const fmtAmt = (n: number) =>
+        currency === "USD" ? "$" + n.toFixed(2) + " USD"
+        : currency === "COP" ? "$" + Math.round(n).toLocaleString("es-CO") + " COP"
+        : "$" + Math.round(n).toLocaleString("es-CL")
+      const guestMsg = `Hola ${guest_name} 👋 Recibimos tu solicitud de reserva en ${businessName}.\n📅 Check-in: ${check_in} | Check-out: ${check_out}\n💰 Total: ${fmtAmt(total)} | Anticipo: ${fmtAmt(deposit)}\nTu propietario revisará tu solicitud y te contactará para coordinar el pago.\nCódigo de reserva: ${bookingCode}`
       sendWhatsApp({ to: guest_phone, message: guestMsg, tenantId: tenant_id }).catch(() => {})
     }
 
     if (tenantConfig?.owner_whatsapp) {
+      const fmtAmt = (n: number) =>
+        currency === "USD" ? "$" + n.toFixed(2) + " USD"
+        : currency === "COP" ? "$" + Math.round(n).toLocaleString("es-CO") + " COP"
+        : "$" + Math.round(n).toLocaleString("es-CL")
       const panelUrl = tenantConfig.dashboard_token
         ? `https://panel.takai.cl/?token=${tenantConfig.dashboard_token}`
         : "https://panel.takai.cl"
-      const ownerMsg = `🏡 Nueva reserva en ${cabin.name}\n👤 ${guest_name}\n📅 Check-in: ${check_in} → Check-out: ${check_out}\n💰 Total: ${currency} ${total}\nVer reserva: ${panelUrl}`
+      const ownerMsg = `🏡 Nueva reserva en ${cabin.name}\n👤 ${guest_name}\n📅 Check-in: ${check_in} → Check-out: ${check_out}\n💰 Total: ${fmtAmt(total)}\nVer reserva: ${panelUrl}`
       sendWhatsApp({ to: tenantConfig.owner_whatsapp, message: ownerMsg, tenantId: tenant_id }).catch(() => {})
     }
 
