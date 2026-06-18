@@ -45,9 +45,9 @@ export async function POST(req: Request) {
         weekday: "long", year: "numeric", month: "long", day: "numeric"
       })
 
-    const reservasUrl = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
     const guidebookHasContent = t.guidebook && Object.values(t.guidebook).some((v: any) => v && String(v).trim().length > 0)
-    const guidebookUrl = guidebookHasContent ? `${reservasUrl}/bienvenida/${booking.booking_code}` : undefined
+    const guidebookUrl = guidebookHasContent ? `${appUrl}/bienvenida/${booking.booking_code}` : undefined
 
     await getResend().emails.send({
       from: `${t.business_name} <reservas@takai.cl>`,

@@ -95,8 +95,8 @@ export async function POST(req: Request) {
         .eq("id", tenant_id)
         .maybeSingle()
       const businessName = tenantData?.business_name || ""
-      const reservasUrl = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"
-      const msg = `✅ ¡Reserva confirmada! ${businessName}\n📅 Check-in: ${booking.check_in} | Check-out: ${booking.check_out}\nNos vemos pronto 🏡\nCódigo: ${booking.booking_code}\n📖 Manual de bienvenida: ${reservasUrl}/bienvenida/${booking.booking_code}`
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+      const msg = `✅ ¡Reserva confirmada! ${businessName}\n📅 Check-in: ${booking.check_in} | Check-out: ${booking.check_out}\nNos vemos pronto 🏡\nCódigo: ${booking.booking_code}\n📖 Manual de bienvenida: ${appUrl}/bienvenida/${booking.booking_code}`
       sendWhatsApp({ to: booking.guest_phone, message: msg, tenantId: tenant_id }).catch(() => {})
     }
 
