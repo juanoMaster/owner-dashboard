@@ -131,7 +131,7 @@ export async function POST(req: Request) {
       await supabase.from("calendar_blocks").delete().eq("tenant_id", id)
       await supabase.from("commission_statements").delete().eq("tenant_id", id)
       await supabase.from("subscriptions").delete().eq("tenant_id", id)
-      await supabase.from("bookings").delete().eq("tenant_id", id)
+      await supabase.from("bookings").update({ deleted_at: new Date().toISOString(), deleted_by: "admin_tenant_delete" }).eq("tenant_id", id).is("deleted_at", null)
       await supabase.from("cabins").delete().eq("tenant_id", id)
       const { error } = await supabase.from("tenants").delete().eq("id", id)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
