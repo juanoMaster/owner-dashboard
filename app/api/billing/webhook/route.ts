@@ -76,11 +76,17 @@ export async function POST(req: NextRequest) {
           .eq("id", stmt.tenant_id).single()
         if (tenant?.email_owner) {
           const monthLabel = `${String(stmt.period_month).padStart(2, "0")}/${stmt.period_year}`
+          const firstName = (tenant.owner_name ?? "").split(" ")[0] || "Hola"
+          const fmtAmt = stmt.currency === "USD"
+            ? "USD $" + Number(stmt.commission_amount).toFixed(2)
+            : stmt.currency === "COP"
+            ? "COP $" + Math.round(Number(stmt.commission_amount)).toLocaleString("es-CO")
+            : "$" + Math.round(Number(stmt.commission_amount)).toLocaleString("es-CL")
           getResend().emails.send({
             from: "Takai <hola@takai.cl>",
             to: tenant.email_owner,
             subject: `Pago confirmado — Comisión Takai ${monthLabel}`,
-            html: `<p>Gracias ${tenant.owner_name.split(" ")[0]}, confirmamos el pago de tu comisión de ${stmt.commission_amount} ${stmt.currency} por tarjeta (período ${monthLabel}).</p>`,
+            html: `<p>Gracias ${firstName}, confirmamos el pago de tu comisión de ${fmtAmt} por tarjeta (período ${monthLabel}).</p>`,
           }).catch(() => {})
         }
       }
