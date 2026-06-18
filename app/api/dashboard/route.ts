@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const [tenantRes, cabinsRes, bookingsRes] = await Promise.all([
       supabase
         .from("tenants")
-        .select("owner_name, business_name, slug, deposit_percent, currency, guidebook, google_review_url, billing_status, manual_billing, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email")
+        .select("owner_name, business_name, slug, deposit_percent, currency, guidebook, google_review_url, billing_status, manual_billing, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, tinaja_price, has_tinaja")
         .eq("id", tenantId)
         .maybeSingle(),
       supabase

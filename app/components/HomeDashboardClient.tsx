@@ -25,6 +25,8 @@ type TenantRow = {
   bank_account_holder?: string | null
   bank_rut?: string | null
   bank_email?: string | null
+  tinaja_price?: number | null
+  has_tinaja?: boolean | null
 }
 
 type SeasonPrice = {
@@ -501,8 +503,8 @@ export default function HomeDashboardClient() {
                 capacity: c.capacity,
                 base_price_night: Number(c.base_price_night),
                 pricing_tiers: c.pricing_tiers ?? null,
-                has_tinaja: c.has_tinaja ?? true,
-                tinaja_price: c.tinaja_price ?? 30000,
+                has_tinaja: c.has_tinaja ?? (tenant?.has_tinaja ?? true),
+                tinaja_price: c.tinaja_price || tenant?.tinaja_price || 30000,
               }))}
               tenantId={payload.tenant_id}
               token={sessionToken}
