@@ -41,10 +41,18 @@ export async function GET(req: Request) {
     ? await supabase.from("tenants").select("business_name, currency").eq("id", cabin.tenant_id).maybeSingle()
     : { data: null }
 
-  const { data: blocks, error } = await supabase
+  const rangeStart = searchParams.get("start")
+  const rangeEnd   = searchParams.get("end")
+
+  let blocksQuery = supabase
     .from("calendar_blocks")
     .select("id, start_date, end_date, booking_id, reason")
     .eq("cabin_id", cabinId)
+
+  if (rangeStart) blocksQuery = blocksQuery.gte("end_date", rangeStart)
+  if (rangeEnd)   blocksQuery = blocksQuery.lte("start_date", rangeEnd)
+
+  const { data: blocks, error } = await blocksQuery
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

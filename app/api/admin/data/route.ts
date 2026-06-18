@@ -11,6 +11,10 @@ export async function GET(req: Request) {
   }
 
   const supabase = getSupabaseAdmin()
+  const thisYear = new Date().getFullYear()
+  // Fetch 2 full years so stats are accurate for current + previous year.
+  // As old bookings age beyond 2 years, the query stays bounded regardless of total booking count.
+  const statsWindowStart = `${thisYear - 1}-01-01`
 
   const [
     { data: tenants },
@@ -40,8 +44,8 @@ export async function GET(req: Request) {
       .select(
         "id, tenant_id, cabin_id, check_in, check_out, nights, guests, total_amount, deposit_amount, balance_amount, commission_amount, commission_status, status, notes, created_at, deleted_at"
       )
-      .order("created_at", { ascending: false })
-      .limit(2000),
+      .gte("created_at", statsWindowStart)
+      .order("created_at", { ascending: false }),
     supabase
       .from("audit_log")
       .select(
@@ -50,8 +54,6 @@ export async function GET(req: Request) {
       .order("created_at", { ascending: false })
       .limit(1000),
   ])
-
-  const thisYear = new Date().getFullYear()
   const allBookings = (bookings || []) as any[]
   const confirmed = allBookings.filter((b: any) => b.status === "confirmed" && !b.deleted_at)
   const thisYearConfirmed = confirmed.filter(

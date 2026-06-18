@@ -41,7 +41,12 @@ function CalendarContent() {
   async function loadEvents() {
     if (!cabinId) return
     const tokenQ = token ? "&token=" + encodeURIComponent(token) : ""
-    const res = await fetch("/api/calendar?cabin_id=" + cabinId + tokenQ)
+    // Load 3 months back + 15 months forward (18-month window) to cover all visible calendar navigation
+    const now = new Date()
+    const rangeStart = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString().slice(0, 10)
+    const rangeEnd   = new Date(now.getFullYear(), now.getMonth() + 16, 0).toISOString().slice(0, 10)
+    const rangeQ = `&start=${rangeStart}&end=${rangeEnd}`
+    const res = await fetch("/api/calendar?cabin_id=" + cabinId + tokenQ + rangeQ)
     const data = await res.json()
     if (data.cabin_name) setCabinName(data.cabin_name)
     if (data.business_name) setBusinessName(data.business_name)
