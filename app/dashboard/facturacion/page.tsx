@@ -328,7 +328,7 @@ function FacturacionInner() {
         {canSubscribe && (
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: "12px", padding: "28px", marginBottom: "20px" }}>
             <p style={{ color: GOLD, fontFamily: "Georgia,serif", fontSize: "18px", marginBottom: "8px" }}>
-              Plan Fundador — $19.990 CLP/mes
+              {sub ? `Plan ${sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1)} — ${formatCurrency(sub.amount, sub.currency)}/mes` : "Plan Fundador — $19.990 CLP/mes"}
             </p>
             <p style={{ color: MUTED, fontSize: "13px", lineHeight: 1.7, marginBottom: "24px" }}>
               Precio congelado de por vida para clientes fundadores. Incluye panel de reservas completo, MercadoPago nativo, calendario, emails y soporte.
