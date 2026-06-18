@@ -6,7 +6,14 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** Auditoría continua — XSS fix en resumen-semanal.ts
+**Sesión:** Auditoría continua — XSS hardening completo
+
+**Esta iteración del loop (2026-06-18 hardening final):**
+- `lib/resend.ts`: `header()` y `footer()` ahora usan `esc(business_name)` — las funciones compartidas no escapaban antes; también `esc(data.cabin_name)` en todos los `detailRow("Cabaña", ...)` (5 ocurrencias); `esc(owner_name.split(" ")[0])` en `emailTrialEnding` y `emailPastDue`
+- `app/api/billing/ack/[token]/route.ts`: XSS fix — `htmlPage()` no escapaba `title`/`message`; `tenant.owner_name` en email de confirmación al tenant sin escapar → añadida función `he()` y usada en todos los puntos
+- `app/api/billing/report-transfer/route.ts`: XSS fix — `tenant.business_name` sin escapar en email HTML al admin → `escH()` + `safeBiz`
+- `app/api/billing/webhook/route.ts`: XSS fix — `owner_name` en email inline de pago de comisión sin escapar; `commission_amount` formateado con `toLocaleString` según moneda
+- `app/api/bookings/cancel/route.ts`: fix — segunda limpieza de `calendar_blocks` podía borrar bloques de OTRAS reservas con mismas fechas; agregado `.is("booking_id", null)` para solo eliminar bloques huérfanos
 
 **Esta iteración del loop (2026-06-18 loop continuo):**
 - `lib/email-templates/resumen-semanal.ts`: XSS fix — `r.guest_name` y `data.owner_name` se renderizaban sin escapar; añadida función `esc()`
@@ -252,3 +259,4 @@
 | 2026-06-18 | XSS fix en solicitar-review (esc() en guest_name/business_name/review_url); cabin delete limpia Storage; embed widget ahora incluye calendar_blocks (bloques manuales se mostraban como disponibles — bug crítico); tinaja_price desde tenants (no hardcoded 30000); moneda dinámica en WA de nueva reserva turista y propietario; validación fecha POST /api/calendar. |
 | 2026-06-18 (cont.) | Timing attack en mp/webhook tenant (duplicate verifyMpSignature → ahora importa timingSafeEqual de lib/mp-verify); trial 3 meses en onboard (era 30 días); tinaja cascade cabin→tenant en bookings/manual; moneda dinámica en WA de reserva manual; exclusión mp_preference_id en crons cancelar-pendientes y recordatorio-transferencia (evita cancelar reservas MP con webhook demorado). |
 | 2026-06-18 (loop) | XSS fix en resumen-semanal (guest_name sin escapar); WISE_ACCOUNT_PLACEHOLDER reemplazado por TAKAI_BANK_* env vars; preview email protegido con NODE_ENV check. Auditoría final: admin/page, [slug]/page, pago-pendiente/page, facturacion/page, historial/page, dashboard/route, generate-commission-statements, billing/status, vercel.json — todos sólidos. Zero dangerouslySetInnerHTML en el codebase. |
+| 2026-06-18 (hardening) | XSS fix en billing/ack (htmlPage sin escapar title/message/owner_name); billing/report-transfer (business_name en email admin); billing/webhook (owner_name en email de pago); fix bookings/cancel (limpieza secundaria de calendar_blocks podía borrar bloques de OTRAS reservas con mismas fechas — .is("booking_id", null) agregado). Hardening final lib/resend.ts: header()/footer() ahora usan esc(business_name), detailRow("Cabaña") usa esc(cabin_name) en los 5 templates, emailTrialEnding/emailPastDue usan esc(owner_name) — XSS audit de lib/resend.ts 100% completo. |

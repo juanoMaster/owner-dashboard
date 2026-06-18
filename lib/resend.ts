@@ -33,7 +33,7 @@ function header(business_name: string) {
       <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
         <img src="${LOGO_URL}" alt="Takai" width="156" height="156" style="display:block;margin:0 auto 20px;border-radius:16px;" />
         <div style="width:40px;height:2px;background:${GOLD};margin:0 auto 16px;"></div>
-        <p style="margin:0;color:${TEXT_LIGHT};font-family:${FONT};font-size:22px;font-weight:400;letter-spacing:2px;">${business_name}</p>
+        <p style="margin:0;color:${TEXT_LIGHT};font-family:${FONT};font-size:22px;font-weight:400;letter-spacing:2px;">${esc(business_name)}</p>
         <p style="margin:6px 0 0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">Reservas · Chile</p>
       </td>
     </tr>
@@ -48,7 +48,7 @@ function footer(business_name: string) {
           <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:12px;letter-spacing:3px;text-transform:uppercase;">TAKAI.CL</p>
         </a>
         <p style="margin:8px 0 0;color:${TEXT_MUTED};font-family:${FONT_SANS};font-size:11px;line-height:1.6;">
-          Enviado en nombre de ${business_name}<br/>Sistema de reservas para cabañas en Chile
+          Enviado en nombre de ${esc(business_name)}<br/>Sistema de reservas para cabañas en Chile
         </p>
         <p style="margin:12px 0 0;color:#2d3d50;font-family:${FONT_SANS};font-size:10px;letter-spacing:2px;text-transform:uppercase;">Creado por TAKAI</p>
       </td>
@@ -138,7 +138,7 @@ export function emailNuevaReservaTurista(data: {
       <td style="padding:0 40px 32px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
           ${codeBlock(data.booking_code)}
-          ${detailRow("Cabaña", data.cabin_name)}
+          ${detailRow("Cabaña", esc(data.cabin_name))}
           ${detailRow("Check-in", data.check_in)}
           ${detailRow("Check-out", data.check_out)}
           ${detailRow("Noches", `${data.nights} noches`)}
@@ -221,7 +221,7 @@ export function emailNuevaReservaDuena(data: {
         <p style="margin:0 0 10px;font-family:${FONT_SANS};font-size:10px;color:${GOLD};text-transform:uppercase;letter-spacing:2px;">Detalle de la reserva</p>
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
           ${codeBlock(data.booking_code)}
-          ${detailRow("Cabaña", data.cabin_name)}
+          ${detailRow("Cabaña", esc(data.cabin_name))}
           ${detailRow("Check-in / Check-out", `${data.check_in} → ${data.check_out}`)}
           ${detailRow("Noches", `${data.nights} noches`)}
           ${data.has_tinaja && data.tinaja_amount ? detailRow("Tinaja", fmt(data.tinaja_amount)) : ""}
@@ -278,7 +278,7 @@ export function emailReservaConfirmada(data: {
       <td style="padding:0 40px 32px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
           ${codeBlock(data.booking_code)}
-          ${detailRow("Cabaña", data.cabin_name)}
+          ${detailRow("Cabaña", esc(data.cabin_name))}
           ${detailRow("Check-in", data.check_in)}
           ${detailRow("Check-out", data.check_out, false, true)}
         </table>
@@ -415,7 +415,7 @@ export function emailRecordatorio48h(data: {
       <td style="padding:0 40px 32px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
           ${codeBlock(data.booking_code)}
-          ${detailRow("Cabaña", data.cabin_name)}
+          ${detailRow("Cabaña", esc(data.cabin_name))}
           ${detailRow("Check-in", data.check_in)}
           ${detailRow("Check-out", data.check_out, false, true)}
         </table>
@@ -460,7 +460,7 @@ export function emailReservaCancelada(data: {
       <td style="padding:0 40px 32px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:6px;overflow:hidden;border:1px solid #1e2d40;">
           ${codeBlock(data.booking_code)}
-          ${detailRow("Cabaña", data.cabin_name)}
+          ${detailRow("Cabaña", esc(data.cabin_name))}
           ${detailRow("Check-in", data.check_in)}
           ${detailRow("Check-out", data.check_out, false, true)}
         </table>
@@ -504,7 +504,7 @@ export function emailTrialEnding(data: {
       <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
         <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; FACTURACIÓN</p>
         <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:28px;font-weight:400;color:${TEXT_LIGHT};">Tu prueba termina en ${data.days_left} días</h1>
-        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${data.owner_name.split(" ")[0]}, esto es lo que lograste durante el período de prueba:</p>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${esc(data.owner_name.split(" ")[0])}, esto es lo que lograste durante el período de prueba:</p>
       </td>
     </tr>
     <tr>
@@ -595,7 +595,7 @@ export function emailPastDue(data: {
       <td style="background:${BG_LOGO};padding:40px 40px 32px;text-align:center;">
         <p style="margin:0;color:#f87171;font-family:${FONT_SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;">TAKAI &middot; AVISO DE PAGO</p>
         <h1 style="margin:20px 0 8px;font-family:${FONT};font-size:26px;font-weight:400;color:${TEXT_LIGHT};">Problema con tu pago</h1>
-        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${data.owner_name.split(" ")[0]}, tuvimos un inconveniente.</p>
+        <p style="margin:0;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};">Hola ${esc(data.owner_name.split(" ")[0])}, tuvimos un inconveniente.</p>
       </td>
     </tr>
     <tr>
