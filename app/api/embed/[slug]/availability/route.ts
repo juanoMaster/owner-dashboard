@@ -84,20 +84,32 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   const windowStartMs = parseYmd(windowStartStr)
   const windowEndMs = parseYmd(windowEndStr)
 
-  const { data: bookingRows, error: bookErr } = await supabase
-    .from("bookings")
-    .select("cabin_id, check_in, check_out, status")
-    .in("cabin_id", cabinIds)
-    .eq("tenant_id", tenant.id)
-    .is("deleted_at", null)
-    .lt("check_in", windowEndStr)
-    .gt("check_out", windowStartStr)
+  const [bookingsResult, blocksResult] = await Promise.all([
+    supabase
+      .from("bookings")
+      .select("cabin_id, check_in, check_out, status")
+      .in("cabin_id", cabinIds)
+      .eq("tenant_id", tenant.id)
+      .is("deleted_at", null)
+      .lt("check_in", windowEndStr)
+      .gt("check_out", windowStartStr),
+    supabase
+      .from("calendar_blocks")
+      .select("cabin_id, start_date, end_date")
+      .in("cabin_id", cabinIds)
+      .eq("tenant_id", tenant.id)
+      .lt("start_date", windowEndStr)
+      .gt("end_date", windowStartStr),
+  ])
 
-  if (bookErr) {
+  if (bookingsResult.error) {
     return NextResponse.json({ error: "Error al cargar reservas" }, { status: 500 })
   }
+  if (blocksResult.error) {
+    return NextResponse.json({ error: "Error al cargar bloques" }, { status: 500 })
+  }
 
-  const activeBookings = (bookingRows ?? []).filter((b) => String(b.status || "").toLowerCase() !== "cancelled")
+  const activeBookings = (bookingsResult.data ?? []).filter((b) => String(b.status || "").toLowerCase() !== "cancelled")
 
   const overlapWindow = activeBookings.filter((b) => {
     const ci = parseYmd(b.check_in)
@@ -114,6 +126,18 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     const set = byCabin[b.cabin_id]
     if (!set) continue
     for (const day of expandOccupiedNightDates(b.check_in, b.check_out)) {
+      const t = parseYmd(day)
+      if (t >= windowStartMs && t < windowEndMs) {
+        set.add(day)
+      }
+    }
+  }
+
+  // Agregar bloques manuales del calendario (mantenimiento, uso personal, etc.)
+  for (const blk of blocksResult.data ?? []) {
+    const set = byCabin[blk.cabin_id]
+    if (!set) continue
+    for (const day of expandOccupiedNightDates(blk.start_date, blk.end_date)) {
       const t = parseYmd(day)
       if (t >= windowStartMs && t < windowEndMs) {
         set.add(day)

@@ -62,6 +62,10 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent })
 }
 
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+}
+
 function buildReviewEmail(data: {
   business_name: string
   guest_name: string
@@ -75,6 +79,9 @@ function buildReviewEmail(data: {
   const LIGHT = "#e8e8e8"
   const FONT_SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif"
   const FONT = "Georgia, 'Times New Roman', serif"
+  const safeGuest = esc(data.guest_name)
+  const safeBiz = esc(data.business_name)
+  const safeUrl = encodeURI(data.review_url).replace(/"/g, "%22")
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -86,10 +93,10 @@ function buildReviewEmail(data: {
         <tr>
           <td style="padding:40px 40px 24px;text-align:center;">
             <p style="margin:0 0 6px;font-family:${FONT_SANS};font-size:11px;color:${GOLD};text-transform:uppercase;letter-spacing:3px;">Tu opinión importa</p>
-            <h2 style="margin:0 0 16px;font-family:${FONT};font-size:28px;font-weight:400;color:${LIGHT};">Hola, ${data.guest_name}</h2>
+            <h2 style="margin:0 0 16px;font-family:${FONT};font-size:28px;font-weight:400;color:${LIGHT};">Hola, ${safeGuest}</h2>
             <p style="margin:0;font-family:${FONT_SANS};font-size:15px;color:${MUTED};line-height:1.8;">
               Esperamos que hayas disfrutado tu estadía en
-              <span style="color:${LIGHT};font-weight:600;">${data.business_name}</span>.
+              <span style="color:${LIGHT};font-weight:600;">${safeBiz}</span>.
               Si tienes un momento, tu reseña nos ayuda a seguir mejorando.
             </p>
           </td>
@@ -106,7 +113,7 @@ function buildReviewEmail(data: {
                 </td>
               </tr>
             </table>
-            <a href="${data.review_url}" style="display:inline-block;background:${GOLD};color:#0a0700;text-decoration:none;padding:16px 48px;border-radius:4px;font-family:${FONT_SANS};font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Dejar reseña en Google →</a>
+            <a href="${safeUrl}" style="display:inline-block;background:${GOLD};color:#0a0700;text-decoration:none;padding:16px 48px;border-radius:4px;font-family:${FONT_SANS};font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Dejar reseña en Google →</a>
             <p style="margin:32px 0 0;font-family:${FONT_SANS};font-size:13px;color:#2d3d50;">
               ¡Gracias por elegirnos! 🌿
             </p>
@@ -116,7 +123,7 @@ function buildReviewEmail(data: {
           <td style="background:#0d1520;padding:28px 40px;text-align:center;border-top:1px solid #1e2d40;">
             <p style="margin:0;color:${GOLD};font-family:${FONT_SANS};font-size:12px;letter-spacing:3px;text-transform:uppercase;">TAKAI.CL</p>
             <p style="margin:8px 0 0;color:${MUTED};font-family:${FONT_SANS};font-size:11px;line-height:1.6;">
-              Enviado en nombre de ${data.business_name}
+              Enviado en nombre de ${safeBiz}
             </p>
           </td>
         </tr>

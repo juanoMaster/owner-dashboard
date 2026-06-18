@@ -52,6 +52,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, cabin: data })
     }
     if (action === "delete") {
+      // Limpiar fotos del storage antes de eliminar la cabaña
+      const { data: cabinRow } = await supabase.from("cabins").select("photos").eq("id", id).single()
+      if (cabinRow?.photos?.length) {
+        const marker = "/cabin-photos/"
+        const paths = (cabinRow.photos as string[]).map((url: string) => {
+          const idx = url.indexOf(marker)
+          return idx !== -1 ? url.slice(idx + marker.length) : null
+        }).filter(Boolean) as string[]
+        if (paths.length) {
+          await supabase.storage.from("cabin-photos").remove(paths)
+        }
+      }
       await supabase.from("calendar_blocks").delete().eq("cabin_id", id)
       await supabase.from("bookings").delete().eq("cabin_id", id)
       const { error } = await supabase.from("cabins").delete().eq("id", id)
