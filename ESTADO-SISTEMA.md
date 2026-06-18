@@ -6,7 +6,16 @@
 
 ## Última actualización
 **Fecha:** 2026-06-18
-**Sesión:** UX billing nav + hardening defensivo + limpieza roadmap
+**Sesión:** Fix preview reserva manual + soft-delete en admin + auditoría final completa
+
+**Esta iteración del loop (2026-06-18 sesión final):**
+- `app/components/ManualBookingForm.tsx`: bug crítico en `calcTotal()` — `extras = extra * 0 * n` siempre devolvía 0; corregido. Ahora usa `getPriceForDates` (season-aware) en lugar de `getPriceForGuests`. Agrega `season_prices` y `extra_person_price` al interface `Cabin`.
+- `app/components/HomeDashboardClient.tsx`: pasa `extra_person_price` y `season_prices` al `ManualBookingForm`; agrega `extra_person_price` al interface de cabins
+- `app/api/dashboard/route.ts`: agrega `extra_person_price` al SELECT de cabins (era omitido)
+- `app/api/admin/cabins/route.ts`: DELETE de cabaña usaba hard-delete en bookings → corregido a soft-delete (`deleted_by="admin_cabin_delete"`)
+- `app/api/admin/tenants/route.ts`: DELETE de tenant usaba hard-delete en bookings → corregido a soft-delete (`deleted_by="admin_tenant_delete"`)
+- Auditadas y confirmadas sólidas: `cancelar-pendientes` (exclusión mp_preference_id ✅), `recordatorio-transferencia` (exclusión mp_preference_id ✅), `reservar/page.tsx` (usa apiSubtotal de availability API ✅), `bookings/cancel` (soft-delete + email + WA ✅), `mp/webhook` (timingSafeEqual via lib/mp-verify ✅), `billing-check` (solo suspende subscription ✅), `generate-commission-statements` (skip si 0 reservas ✅), `facturacion/page.tsx` (canSubscribe logic ✅), `/bienvenida/[booking_code]` link usa NEXT_PUBLIC_APP_URL ✅, `lib/mp-verify.ts` shared ✅, `vercel.json` (2 crons: daily orquestador + resumen-semanal) ✅
+- Build: ✅ limpio. Commits: a3c6281 (ManualBookingForm) + 6b6b12c (soft-delete admin)
 
 **Esta iteración del loop (2026-06-18 loop continuo):**
 - `app/components/HomeDashboardClient.tsx`: link "Facturación" en nav — visible para todos los tenants excepto `manual_billing=true`; banner `past_due` también verifica `!manual_billing`
@@ -132,7 +141,7 @@
 | Área | % Completo | Notas |
 |------|-----------|-------|
 | Reservas (turista) | 99% | RPC atómico ✅; tinaja desde tenant ✅; moneda dinámica ✅; billing guard 503 ✅; redirect pago ✅ |
-| Reservas (propietario panel) | 99% | Tinaja cascade cabin→tenant ✅; moneda dinámica WA ✅; trial 3 meses ✅ |
+| Reservas (propietario panel) | 100% | Preview season-aware ✅; extras fix ✅; tinaja cascade ✅; moneda dinámica WA ✅ |
 | Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
 | Billing / Comisiones | 99% | Trial 3 meses ✅; guard comisión ✅; cleanup al borrar tenant ✅; nav link facturación ✅; P2-8 check_in ✅ |
 | Emails (Resend) | 100% | Moneda dinámica ✅; XSS fix en todos los templates ✅; bank data dinámico en resumen-semanal ✅ |
@@ -144,7 +153,7 @@
 | Paginación | 90% | Historial cursor paginado ✅; admin bookings por rango fechas ✅ |
 | Zonas horarias | 60% | Todos los cálculos en UTC; Chile/Ecuador pueden tener desfases |
 | Validación inputs públicos | 95% | UUID+fecha ✅; sanitización filename ✅; calendario POST fechas ✅ |
-| Admin panel | 98% | Token via header ✅; cleanup fotos ✅; Billing tab ✅; BillingBadge en clientes ✅ |
+| Admin panel | 99% | Token via header ✅; cleanup fotos ✅; Billing tab ✅; soft-delete en delete ✅ |
 | Embed widget | 99% | calendar_blocks incluidos ✅; 503 si suspendido ✅ |
 | Crons | 95% | Orquestador daily ✅; exclusión MP en cancelar y recordatorio ✅ |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
