@@ -5,10 +5,10 @@
 
 ## Acciones humanas requeridas (HUMAN_TODO)
 
-### Migraciones SQL a aplicar manualmente en Supabase SQL Editor
-Por seguridad NO se aplicaron automáticamente a producción (RLS mal aplicado deja la app sin acceso; no hay espejo de prueba). Revisar y aplicar en orden:
-- `011_pgcron_autocancel_3h.sql` — **requiere editar el CRON_SECRET y la URL** antes de aplicar (ver comentarios en el archivo). Configura pg_cron + pg_net para llamar al endpoint cada 15 min.
-- (se irán agregando las migraciones de fases siguientes: afiliados, reseñas, whatsapp_conversations, email_opt_out, booking_source)
+### Migraciones SQL
+- ✅ **`012_rls_verification.sql` APLICADA a producción** (2026-06-19, idempotente, sin cambios destructivos).
+- ✅ **`013_motor_reservas.sql` APLICADA a producción** (2026-06-19). Verificado: 2 columnas nuevas en `bookings` (31 reservas existentes backfilled a `owner_direct`), 4 tablas nuevas con RLS, 3 columnas nuevas en `tenants`. Datos intactos.
+- ⏳ **`011_pgcron_autocancel_3h.sql` PENDIENTE** — **requiere el `CRON_SECRET` real y la URL** (embebe el secreto; no lo tengo). Juan debe editarlo y aplicarlo en Supabase SQL Editor para activar el pg_cron de 15 min. Mientras tanto la auto-cancelación a 3h corre vía el orquestador diario (una vez al día) — funcional pero no garantiza la ventana de 3h hasta aplicar 011.
 
 ### Env vars que Juan debe configurar (sin esto, la fase relacionada queda inerte)
 - `LLM_API_KEY`, `LLM_API_URL`, `LLM_MODEL` — Fase 6 (agente WhatsApp). Sin esto el agente no responde (cae al handoff al dueño).
