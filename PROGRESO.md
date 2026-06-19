@@ -52,4 +52,21 @@
 
 **Pendiente de verificación humana:** correr el **Rich Results Test** de Google sobre una URL real desplegada (no se puede ejecutar offline). Anotado en BLOCKERS.
 
-### FASE 4–11 — pendientes
+### FASE 7 (foundation) — booking_source + tablas — ✅ PARCIAL
+- Migración 013 (booking_source, affiliate_id, tablas affiliates/reviews/email_opt_out/whatsapp_conversations con RLS, campos agent/GBP).
+- `bookings` POST captura `source`/`ref` (best-effort, valida ref contra affiliates).
+- **Conflicto comisión fundadores documentado en BLOCKERS** (no se tocó el cron heredado). Falta: dashboard de afiliado + statements de afiliado (pendiente).
+
+### FASE 9 — Reseñas con moderación + schema — ✅ COMPLETA (UI de moderación: API lista, falta tab admin)
+**Construido:**
+- `app/api/reviews/route.ts`: POST público (valida booking_code existe, confirmado, post check-out, sin duplicado → status `pending`); GET reseñas aprobadas por cabaña con promedio.
+- `app/api/admin/reviews/route.ts`: GET (moderar) + PATCH (approve/reject), auth `x-admin-token`.
+- `app/resena/[booking_code]/page.tsx`: formulario público de estrellas + comentario (paleta del proyecto, sin Tailwind).
+- `app/api/emails/solicitar-review/route.ts`: ahora envía SIEMPRE (no requiere google_review_url); CTA principal a nuestra página de reseña (alimenta el schema); botón Google opcional.
+- `app/api/tenant/[slug]/cabins/route.ts`: adjunta `review_summary` (count, average, reviews aprobadas) por cabaña.
+- `app/[slug]/page.tsx`: pasa `review_summary` → `aggregateRating`+`review` en el JSON-LD.
+
+**Criterios:** ✅ huésped deja reseña con booking_code (validado); ✅ no aprobadas no entran al schema (GET filtra `approved`); ✅ aprobadas alimentan el JSON-LD. Build: ✅.
+**Falta (no bloqueante):** tab de moderación en `AdminDashboard.tsx` (la API ya funciona; se puede aprobar vía PATCH). Display de reseñas en las 3 templates de landing (el schema/Rich Results ya las lleva). Anotado en BLOCKERS.
+
+### FASE 4–6, 8, 10, 11 — pendientes

@@ -32,9 +32,14 @@ export async function GET(req: NextRequest) {
   let sent = 0
   const resend = getResend()
 
+  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+
   for (const booking of bookings) {
     const t = booking.tenants as any
-    if (!t?.google_review_url || !booking.guest_email) continue
+    if (!booking.guest_email || !booking.booking_code) continue
+
+    // Reseña en nuestra plataforma (alimenta el schema/Rich Results, Fase 9).
+    const reviewUrl = `${appBase}/resena/${encodeURIComponent(booking.booking_code)}`
 
     try {
       await resend.emails.send({
@@ -44,7 +49,8 @@ export async function GET(req: NextRequest) {
         html: buildReviewEmail({
           business_name: t.business_name,
           guest_name: booking.guest_name,
-          review_url: t.google_review_url,
+          review_url: reviewUrl,
+          google_url: t?.google_review_url || null,
         }),
       })
 
@@ -70,6 +76,7 @@ function buildReviewEmail(data: {
   business_name: string
   guest_name: string
   review_url: string
+  google_url?: string | null
 }) {
   const GOLD = "#C9A84C"
   const BG = "#0d1117"
@@ -82,6 +89,10 @@ function buildReviewEmail(data: {
   const safeGuest = esc(data.guest_name)
   const safeBiz = esc(data.business_name)
   const safeUrl = encodeURI(data.review_url).replace(/"/g, "%22")
+  const safeGoogleUrl = data.google_url ? encodeURI(data.google_url).replace(/"/g, "%22") : ""
+  const googleButton = safeGoogleUrl
+    ? `<p style="margin:20px 0 0;"><a href="${safeGoogleUrl}" style="color:${MUTED};font-family:${FONT_SANS};font-size:12px;text-decoration:underline;">o déjanos una reseña en Google →</a></p>`
+    : ""
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -113,7 +124,8 @@ function buildReviewEmail(data: {
                 </td>
               </tr>
             </table>
-            <a href="${safeUrl}" style="display:inline-block;background:${GOLD};color:#0a0700;text-decoration:none;padding:16px 48px;border-radius:4px;font-family:${FONT_SANS};font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Dejar reseña en Google →</a>
+            <a href="${safeUrl}" style="display:inline-block;background:${GOLD};color:#0a0700;text-decoration:none;padding:16px 48px;border-radius:4px;font-family:${FONT_SANS};font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Dejar mi reseña →</a>
+            ${googleButton}
             <p style="margin:32px 0 0;font-family:${FONT_SANS};font-size:13px;color:#2d3d50;">
               ¡Gracias por elegirnos! 🌿
             </p>

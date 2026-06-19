@@ -38,3 +38,7 @@ El plan (Fase 7) pide: "el 10% se aplique SOLO a reservas generadas por Takai (d
 **Cambiar el cron rompería la facturación de los fundadores** (pasarían a 0% en sus reservas directas).
 **Decisión autónoma tomada:** NO se modifica el cron de comisiones de los fundadores (gana el guardrail inviolable). La atribución por `booking_source` y la comisión del 10% Takai-generado se implementan como sistema **aditivo de afiliados** (payout al afiliado desde reservas con `booking_source='affiliate'`), sin tocar el modelo comisión heredado.
 **Juan decide:** cuando los fundadores migren a suscripción, ahí sí se activa el modelo "10% solo en Takai-generado" para ellos. Mientras tanto, coexisten. Confirmar si esta lectura es correcta.
+
+### Fase 9 — follow-ups no bloqueantes
+- Tab de moderación de reseñas en `app/components/AdminDashboard.tsx`. La API `/api/admin/reviews` (GET/PATCH) ya funciona; falta solo la UI. Mientras tanto se puede aprobar con un PATCH manual.
+- Mostrar las reseñas aprobadas en las 3 templates de landing (`TemplateClasico/Moderno/Rural`). El JSON-LD/Rich Results ya las incluye; falta la sección visual en la página.

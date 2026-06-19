@@ -12,6 +12,7 @@ interface Cabin {
   extra_person_price: number; photos?: string[]; description?: string
   amenities?: string; extras?: Array<{ name: string; price: number }>
   pricing_tiers?: Array<{ min_guests: number; max_guests: number; price_per_night: number }>
+  review_summary?: { count: number; average: number; reviews: Array<{ author: string; rating: number; body: string; date?: string }> } | null
 }
 interface TenantData {
   business_name: string; slug?: string; facebook_url?: string | null; instagram_url?: string | null
@@ -40,6 +41,9 @@ function LandingSchema({ tenant, cabins, slug }: { tenant: TenantData; cabins: C
         url,
         checkinTime: tenant.guidebook?.checkin_time || null,
         checkoutTime: tenant.guidebook?.checkout_time || null,
+        reviews: c.review_summary && c.review_summary.count > 0
+          ? { ratingValue: c.review_summary.average, reviewCount: c.review_summary.count, reviews: c.review_summary.reviews }
+          : null,
       }
     )
     if (node) nodes.push(node)
