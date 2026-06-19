@@ -69,4 +69,14 @@
 **Criterios:** ✅ huésped deja reseña con booking_code (validado); ✅ no aprobadas no entran al schema (GET filtra `approved`); ✅ aprobadas alimentan el JSON-LD. Build: ✅.
 **Falta (no bloqueante):** tab de moderación en `AdminDashboard.tsx` (la API ya funciona; se puede aprobar vía PATCH). Display de reseñas en las 3 templates de landing (el schema/Rich Results ya las lleva). Anotado en BLOCKERS.
 
-### FASE 4–6, 8, 10, 11 — pendientes
+### FASE 8 — Retargeting por email + opt-out — ✅ COMPLETA
+**Construido:**
+- `lib/unsubscribe.ts`: tokens de baja firmados con HMAC (sin tabla extra); `unsubscribeUrl()`.
+- `app/api/email/unsubscribe/route.ts`: GET verifica HMAC → upsert en `email_opt_out` (idempotente) → página de confirmación.
+- `app/api/cron/retargeting/route.ts`: cohorte de aniversario (check-out hace ~330 días) → email "¿Volvemos a {destino}?" con link `?source=directory` (atribución). **Respeta opt-out** y **cap de frecuencia 90 días** (vía `audit_log` `action='retargeting_sent'`). Auto-regulado (un cohorte/día).
+- `app/api/cron/daily/route.ts`: agrega `/api/cron/retargeting` al orquestador diario.
+- Email con `esc()` (XSS), link de baja en el footer, sin `dangerouslySetInnerHTML`.
+
+**Criterios:** ✅ segmenta por tenant/destino y envía; ✅ opt-out respetado; ✅ baja funcional (HMAC); ✅ link con `source` para atribuir. Build: ✅.
+
+### FASE 4–6, 10, 11 — pendientes

@@ -30,6 +30,7 @@ export async function GET(req: Request) {
     "/api/cron/cancelar-pendientes",
     "/api/cron/recordatorio-transferencia",
     "/api/cron/billing-check",
+    "/api/cron/retargeting",
   ]
 
   // Solo el 1° de cada mes
