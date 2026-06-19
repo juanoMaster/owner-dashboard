@@ -79,4 +79,13 @@
 
 **Criterios:** ✅ segmenta por tenant/destino y envía; ✅ opt-out respetado; ✅ baja funcional (HMAC); ✅ link con `source` para atribuir. Build: ✅.
 
-### FASE 4–6, 10, 11 — pendientes
+### FASE 11 — Asistente de Ficha de Google — ✅ COMPLETA
+**Construido:**
+- `app/api/tenant/gbp/route.ts`: GET (devuelve place_id/url + reseñas Google **solo si** `GOOGLE_PLACES_API_KEY` está seteada) y PATCH (guarda place_id/url, auth por token dashboard).
+- `app/dashboard/google/page.tsx`: wizard paso a paso (5 pasos) + formulario para pegar enlace de ficha y Place ID. Lee token con `getPersistedToken`. Paleta del proyecto, sin Tailwind.
+- Campos `google_place_id`/`google_business_url` ya en migración 013.
+
+**Criterios:** ✅ guía clara; ✅ guarda place_id si lo pegan; ✅ reseñas Google opcionales tras env var (no rompe si falta). Build: ✅.
+**Nota realista (del plan):** no se auto-crea la ficha (Google exige verificación por local). Es un asistente, como pide el plan.
+
+### FASE 4–6, 10 — pendientes
