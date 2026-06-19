@@ -154,7 +154,7 @@
 1. **Aplicar migraciones** `011`, `012`, `013` en Supabase (revisión + 011 lleva secreto).
 2. **Env vars:** `LLM_API_KEY`/`LLM_API_URL`/`LLM_MODEL` (agente), `DIRECTORY_DOMAIN`, `SEARCH_CONSOLE_VERIFICATION`, `GOOGLE_PLACES_API_KEY` (opcional).
 3. **Directorio:** `cd directorio && npm install && npm run build` + deploy a Vercel aparte con su dominio.
-4. **DECISIÓN de Juan (Fase 7):** conflicto comisión fundadores vs "10% solo Takai-generado" — NO se tocó el cron heredado (guardrail inviolable). Ver BLOCKERS.
+4. **DECISIÓN de Juan (Fase 7) — ✅ RESUELTA 2026-06-19:** 10% sobre toda reserva generada por Takai (directorio/agente/afiliado); hasta 5% cedible a afiliados; los 3 clientes actuales NO cambian hasta vencer plazos. Implementado en `lib/commission.ts` + cap en API/BD/stats. Cron de fundadores intacto.
 5. **Verificación humana:** Rich Results Test (Fase 3), verificar Search Console, crear Fichas Google.
 
 ## CHECKLIST FINAL

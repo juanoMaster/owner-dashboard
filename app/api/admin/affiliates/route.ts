@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
+import { MAX_AFFILIATE_RATE } from "@/lib/commission"
 import crypto from "crypto"
 
 function authed(req: Request): boolean {
@@ -29,7 +30,10 @@ export async function POST(req: Request) {
   const code = String(body.code || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32)
   const rate = Number(body.commission_rate)
   if (!name || !code) return NextResponse.json({ error: "name y code son obligatorios" }, { status: 400 })
-  if (!Number.isFinite(rate) || rate < 0 || rate > 100) return NextResponse.json({ error: "commission_rate inválido" }, { status: 400 })
+  // El afiliado recibe parte del 10% de Takai → se topa en 5% (decisión 2026-06-19).
+  if (!Number.isFinite(rate) || rate < 0 || rate > MAX_AFFILIATE_RATE) {
+    return NextResponse.json({ error: `commission_rate debe estar entre 0 y ${MAX_AFFILIATE_RATE}% (sale del 10% de Takai)` }, { status: 400 })
+  }
 
   const token = crypto.randomBytes(24).toString("hex")
   const tokenHash = crypto.createHash("sha256").update(token, "utf8").digest("hex")

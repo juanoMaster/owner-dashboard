@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
+import { clampAffiliateRate } from "@/lib/commission"
 import crypto from "crypto"
 
 // GET /api/affiliate/stats?token=... — el afiliado ve SUS reservas referidas y
@@ -31,7 +32,8 @@ export async function GET(req: Request) {
     .order("created_at", { ascending: false })
     .limit(500)
 
-  const rate = Number(affiliate.commission_rate) || 0
+  // Tope defensivo: el afiliado nunca recibe más del 5% (sale del 10% de Takai).
+  const rate = clampAffiliateRate(Number(affiliate.commission_rate) || 0)
   let confirmedTotal = 0
   let earned = 0
   const rows = (bookings || []).map((b) => {

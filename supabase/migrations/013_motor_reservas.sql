@@ -22,7 +22,9 @@ CREATE TABLE IF NOT EXISTS affiliates (
   code            text NOT NULL UNIQUE,          -- va en ?ref=
   name            text NOT NULL,
   contact         text,
-  commission_rate numeric NOT NULL DEFAULT 5,    -- % del valor de la reserva (mitad del 10% de Takai)
+  commission_rate numeric NOT NULL DEFAULT 5
+                    CHECK (commission_rate >= 0 AND commission_rate <= 5),
+                    -- % cedido al afiliado; sale del 10% de Takai → tope 5% (decisión 2026-06-19)
   token_hash      text UNIQUE,                   -- SHA-256 para el dashboard del afiliado
   active          boolean NOT NULL DEFAULT true,
   created_at      timestamptz DEFAULT now()

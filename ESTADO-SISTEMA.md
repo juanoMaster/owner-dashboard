@@ -15,14 +15,15 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 - **Fase 3:** `lib/schema.ts` VacationRental JSON-LD + `JsonLd.tsx`, inyectado en landing.
 - **Fases 4/5:** directorio B2C en `directorio/` (proyecto Next.js separado, excluido del build de takai.cl): SSG/ISR, schema, sitemap dinámico, robots, páginas de destino con contenido único + teletrabajo.
 - **Fase 6:** agente IA WhatsApp (`lib/agent.ts`) extendiendo el webhook Twilio; tools de disponibilidad/precio reales; inerte sin `LLM_API_KEY`.
-- **Fase 7:** `booking_source`/`affiliate_id`, afiliados (admin + dashboard + stats), atribución cross-domain. **Conflicto comisión fundadores documentado — NO se tocó el cron heredado.**
+- **Fase 7:** `booking_source`/`affiliate_id`, afiliados (admin + dashboard + stats), atribución cross-domain.
+- **Modelo de comisión (decisión de Juan 2026-06-19):** 10% sobre toda reserva generada por Takai (directorio/agente/afiliado); de ese 10%, hasta 5% cedible a afiliados (cap aplicado en BD+API+stats vía `lib/commission.ts`); los 3 clientes actuales NO cambian hasta vencer plazos (cron de comisión heredado intacto).
 - **Fase 8:** retargeting (`/api/cron/retargeting`) + opt-out HMAC (`/api/email/unsubscribe`).
 - **Fase 9:** reseñas (público + moderación admin + `/resena/[code]`) que alimentan el schema.
 - **Fase 10:** `lib/cabin-validation.ts` + `/api/admin/cabins/readiness` (gating de publicación).
 - **Fase 11:** asistente Ficha de Google (`/api/tenant/gbp` + `/dashboard/google`).
 - Migración 013: tablas nuevas (affiliates, reviews, email_opt_out, whatsapp_conversations) todas con RLS desde creación.
 - Build owner-dashboard: ✅ (27 páginas). Directorio: revisado, no buildeado (deps no instaladas).
-- **PENDIENTE DE JUAN:** aplicar migraciones 011/012/013; env vars LLM_*, DIRECTORY_DOMAIN, SEARCH_CONSOLE_VERIFICATION; deploy del directorio; decisión sobre comisión fundadores; merge de la rama a main.
+- **PENDIENTE DE JUAN:** aplicar migraciones 011/012/013; env vars LLM_*, DIRECTORY_DOMAIN, SEARCH_CONSOLE_VERIFICATION; deploy del directorio; merge de la rama a main. (Modelo de comisión: ✅ RESUELTO 2026-06-19 — ver arriba.)
 
 **Sesión anterior (2026-06-18):** Fix preview reserva manual + soft-delete en admin + auditoría final completa
 

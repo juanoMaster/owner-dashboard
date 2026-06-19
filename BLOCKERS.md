@@ -34,12 +34,13 @@ Por seguridad NO se aplicaron automáticamente a producción (RLS mal aplicado d
 ### Fase 3
 - Verificar el JSON-LD con el **Rich Results Test** de Google (https://search.google.com/test/rich-results) sobre una URL real desplegada. No se puede ejecutar offline. Requiere cabaña con ≥8 fotos y geo válida; si no, el schema se omite por diseño.
 
-### Fase 7 — ⚠ DECISIÓN QUE REQUIERE A JUAN (conflicto de directivas)
-El plan (Fase 7) pide: "el 10% se aplique SOLO a reservas generadas por Takai (directory/whatsapp_agent/affiliate) y 0% a directas; si hoy cobra sobre todas, corrígelo."
-**PERO** el cron `generate-commission-statements` HOY suma TODAS las reservas confirmadas de los tenants `billing_mode='commission'` — y eso es **exactamente el trato de los 3 clientes fundadores** (el-mirador, majoaal, cacagual): mensualidad bonificada a cambio de comisión sobre SUS reservas. CLAUDE.md lo marca sagrado ("NO se toca hasta que migren") y el plan tiene como regla inviolable "No revertir trabajo de sesiones anteriores".
-**Cambiar el cron rompería la facturación de los fundadores** (pasarían a 0% en sus reservas directas).
-**Decisión autónoma tomada:** NO se modifica el cron de comisiones de los fundadores (gana el guardrail inviolable). La atribución por `booking_source` y la comisión del 10% Takai-generado se implementan como sistema **aditivo de afiliados** (payout al afiliado desde reservas con `booking_source='affiliate'`), sin tocar el modelo comisión heredado.
-**Juan decide:** cuando los fundadores migren a suscripción, ahí sí se activa el modelo "10% solo en Takai-generado" para ellos. Mientras tanto, coexisten. Confirmar si esta lectura es correcta.
+### Fase 7 — ✅ RESUELTO POR JUAN (2026-06-19)
+**Decisión final de Juan:**
+- Takai cobra **10% sobre TODA reserva generada por Takai** (`booking_source IN directory, whatsapp_agent, affiliate`). Reservas directas (`owner_direct`, `manual`) → 0%.
+- De ese 10%, **hasta 5% puede cederse a afiliados/influencers** (el resto queda para Takai). → el `commission_rate` de un afiliado se topa en 5%.
+- Los **3 clientes actuales NO cambian** hasta que venzan sus plazos (`el-mirador`, `cabanas-majoaal-licanray`, `glamping-cacagual`): se mantienen exactamente como están. Su cron `generate-commission-statements` **NO se toca** (sigue tal cual).
+**Implementado:** `lib/commission.ts` (constantes `TAKAI_COMMISSION_RATE=10`, `MAX_AFFILIATE_RATE=5`, `isTakaiGenerated`, `clampAffiliateRate`); cap de 5% en `/api/admin/affiliates` POST + clamp defensivo en `/api/affiliate/stats` + CHECK en migración 013.
+**Pendiente (escala, no urgente):** mecanismo para facturar el 10% de Takai a los clientes en **suscripción** sobre sus reservas Takai-generadas (hoy el cron de statements solo cubre a los fundadores en modo comisión). Cuando haya clientes nuevos con reservas vía directorio/agente, definir cómo se les cobra ese 10%.
 
 ### Fase 9 — follow-ups no bloqueantes
 - Tab de moderación de reseñas en `app/components/AdminDashboard.tsx`. La API `/api/admin/reviews` (GET/PATCH) ya funciona; falta solo la UI. Mientras tanto se puede aprobar con un PATCH manual.
