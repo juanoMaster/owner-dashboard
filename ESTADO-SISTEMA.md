@@ -5,8 +5,26 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-06-18
-**Sesión:** Fix preview reserva manual + soft-delete en admin + auditoría final completa
+**Fecha:** 2026-06-19
+**Sesión:** Motor de Reservas (PLAN_NOCHE_TAKAI.md) — rama `feature/motor-reservas` (NO en main)
+
+**Tanda nocturna 2026-06-19 — Motor de Reservas (rama feature/motor-reservas, sin tocar main):**
+Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO.md`; pendientes humanos en `BLOCKERS.md`. Resumen:
+- **Fase 1:** auto-cancelación a 3h (`AUTO_CANCEL_HOURS=3` + migración 011 pg_cron/pg_net cada 15 min). Validado con dry-run read-only contra producción.
+- **Fase 2:** auditoría RLS — 15/15 tablas con RLS habilitado (verificado en BD). Migración 012 (verificación idempotente + guard). NO se tocaron políticas existentes.
+- **Fase 3:** `lib/schema.ts` VacationRental JSON-LD + `JsonLd.tsx`, inyectado en landing.
+- **Fases 4/5:** directorio B2C en `directorio/` (proyecto Next.js separado, excluido del build de takai.cl): SSG/ISR, schema, sitemap dinámico, robots, páginas de destino con contenido único + teletrabajo.
+- **Fase 6:** agente IA WhatsApp (`lib/agent.ts`) extendiendo el webhook Twilio; tools de disponibilidad/precio reales; inerte sin `LLM_API_KEY`.
+- **Fase 7:** `booking_source`/`affiliate_id`, afiliados (admin + dashboard + stats), atribución cross-domain. **Conflicto comisión fundadores documentado — NO se tocó el cron heredado.**
+- **Fase 8:** retargeting (`/api/cron/retargeting`) + opt-out HMAC (`/api/email/unsubscribe`).
+- **Fase 9:** reseñas (público + moderación admin + `/resena/[code]`) que alimentan el schema.
+- **Fase 10:** `lib/cabin-validation.ts` + `/api/admin/cabins/readiness` (gating de publicación).
+- **Fase 11:** asistente Ficha de Google (`/api/tenant/gbp` + `/dashboard/google`).
+- Migración 013: tablas nuevas (affiliates, reviews, email_opt_out, whatsapp_conversations) todas con RLS desde creación.
+- Build owner-dashboard: ✅ (27 páginas). Directorio: revisado, no buildeado (deps no instaladas).
+- **PENDIENTE DE JUAN:** aplicar migraciones 011/012/013; env vars LLM_*, DIRECTORY_DOMAIN, SEARCH_CONSOLE_VERIFICATION; deploy del directorio; decisión sobre comisión fundadores; merge de la rama a main.
+
+**Sesión anterior (2026-06-18):** Fix preview reserva manual + soft-delete en admin + auditoría final completa
 
 **Esta iteración del loop (2026-06-18 sesión final):**
 - `app/components/ManualBookingForm.tsx`: bug crítico en `calcTotal()` — `extras = extra * 0 * n` siempre devolvía 0; corregido. Ahora usa `getPriceForDates` (season-aware) en lugar de `getPriceForGuests`. Agrega `season_prices` y `extra_person_price` al interface `Cabin`.

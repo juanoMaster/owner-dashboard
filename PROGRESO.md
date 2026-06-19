@@ -132,3 +132,45 @@
 
 **Criterios:** ✅ una cabaña completa aparece en directorio + schema + sitemap sin tocar código; ✅ las validaciones impiden publicar incompletas (no pasan `isPublishable` → no se renderizan). Build: ✅.
 **Follow-up:** integrar la llamada a `/readiness` en el formulario visual de `NewClientOnboarding.tsx`/admin (la API y la regla ya existen; falta el indicador en la UI).
+
+---
+
+## RESUMEN FINAL
+
+**Rama:** `feature/motor-reservas` (NUNCA se tocó `main`, ningún push/merge).
+**Commits de la tanda:**
+- `bc85a54` Fase 1 (auto-cancel 3h + pg_cron)
+- `faecbd1` Fase 2 (auditoría/verificación RLS)
+- `298fe73` Fase 3 (schema VacationRental)
+- `c292011` Fase 7-foundation (migración 013 + booking_source)
+- `623da5e` Fase 9 (reseñas)
+- `4ea5d21` Fase 8 (retargeting + opt-out)
+- `e47c803` Fase 11 (asistente GBP)
+- `b43b8de` Fase 6 (agente WhatsApp)
+- `93dbb33` Fase 7 (afiliados dashboard + atribución)
+- `48174e1` Fases 4/5/10 (directorio B2C + onboarding validación)
+
+**Las 11 fases tienen implementación.** Lo que queda NO se pudo cerrar en sesión por requerir acción humana o env vars (todo en `BLOCKERS.md`):
+1. **Aplicar migraciones** `011`, `012`, `013` en Supabase (revisión + 011 lleva secreto).
+2. **Env vars:** `LLM_API_KEY`/`LLM_API_URL`/`LLM_MODEL` (agente), `DIRECTORY_DOMAIN`, `SEARCH_CONSOLE_VERIFICATION`, `GOOGLE_PLACES_API_KEY` (opcional).
+3. **Directorio:** `cd directorio && npm install && npm run build` + deploy a Vercel aparte con su dominio.
+4. **DECISIÓN de Juan (Fase 7):** conflicto comisión fundadores vs "10% solo Takai-generado" — NO se tocó el cron heredado (guardrail inviolable). Ver BLOCKERS.
+5. **Verificación humana:** Rich Results Test (Fase 3), verificar Search Console, crear Fichas Google.
+
+## CHECKLIST FINAL
+- [x] Todo el trabajo en `feature/motor-reservas`, **NO** en `main`.
+- [x] `npm run build` del owner-dashboard pasa (27 páginas). Directorio: revisado, sin buildear (deps no instaladas).
+- [x] Fase 1: auto-cancelación a 3h (constante única + pg_cron; validado dry-run read-only).
+- [x] Fase 2: RLS auditado (15/15 tablas con RLS) **sin romper accesos** (no se tocaron políticas existentes).
+- [x] Fase 3: schema VacationRental (pendiente Rich Results Test sobre URL real → BLOCKERS).
+- [x] Fase 4: directorio lista cabañas y canaliza al motor con atribución.
+- [x] Fase 5: sitemap dinámico, meta tags, páginas por destino.
+- [x] Fase 6: agente WhatsApp con datos reales (inerte hasta `LLM_API_KEY` → BLOCKERS).
+- [x] Fase 7: afiliados con atribución cross-domain (decisión comisión fundadores → BLOCKERS).
+- [x] Fase 8: retargeting con opt-out.
+- [x] Fase 9: reseñas con moderación + schema.
+- [x] Fase 10: onboarding autogenera (data-driven) + validación de mínimos.
+- [x] Fase 11: asistente de Ficha de Google.
+- [x] `BLOCKERS.md` lista todo lo pendiente por humano/env vars.
+- [x] `PROGRESO.md` documenta fase por fase.
+- [x] `CLAUDE.md` actualizado con la arquitectura nueva.

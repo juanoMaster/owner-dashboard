@@ -486,3 +486,40 @@ Nota: `@vercel/analytics` está en dependencies y en `app/layout.tsx`.
 |-----|---------|-----|
 | RLS `OR current_tenant_id() IS NULL` permitía ver todos los datos si no había contexto de sesión | `supabase/migrations/004_rls_policies.sql` | Eliminada la cláusula; policies ahora usan solo `tenant_id = current_tenant_id()` |
 | `tinaja_price` en reservas manuales usaba hardcode `30000` en lugar del valor del tenant | `app/api/bookings/manual/route.ts` | Ahora lee `tenants.tinaja_price` vía `tenantConfig` |
+
+---
+
+## Motor de Reservas (rama feature/motor-reservas — junio 2026, pendiente de merge)
+
+Construido en la tanda nocturna del `PLAN_NOCHE_TAKAI.md`. **NO está en main aún.** Detalle en `PROGRESO.md` y pendientes en `BLOCKERS.md`.
+
+### Tablas nuevas (migración 013, aplicar manual)
+- `affiliates` — programa de afiliados. `code` (va en `?ref=`), `commission_rate`, `token_hash` (dashboard). RLS default-deny (acceso server-side por token).
+- `reviews` — reseñas de huéspedes. `status` pending/approved/rejected (moderación). RLS `tenant_isolation`. Alimentan el schema/Rich Results.
+- `email_opt_out` — bajas de retargeting (por email global). RLS default-deny.
+- `whatsapp_conversations` — memoria del agente IA por `(tenant_id, phone)`. RLS `tenant_isolation`.
+- `bookings.booking_source` (`directory`/`whatsapp_agent`/`affiliate`/`owner_direct`/`manual`) + `bookings.affiliate_id`. Generadas por Takai = 10%; directas = 0%.
+- `tenants.agent_system_prompt` (persona del agente), `tenants.google_place_id`, `tenants.google_business_url`.
+
+### Auto-cancelación a 3h (Fase 1)
+`AUTO_CANCEL_HOURS = 3` (constante única) en `/api/cron/cancelar-pendientes`. Para garantizar la ventana de 3h corre cada 15 min vía **pg_cron + pg_net** (migración 011, embebe el secreto → aplicar manual). El orquestador diario se mantiene como respaldo.
+
+### Schema SEO (Fase 3) — `lib/schema.ts`
+`buildVacationRental()` + `buildBreadcrumb()` generan JSON-LD desde datos reales. Inyectado por `app/components/JsonLd.tsx` (única excepción sancionada a "cero dangerouslySetInnerHTML": data propia, `<` escapado). Se omite si la cabaña no tiene 8 fotos o geo válida.
+
+### Agente IA de WhatsApp (Fase 6) — `lib/agent.ts`
+Extiende `/api/twilio/webhook` (rama "sin código"; la de booking codes quedó intacta). OpenAI-compatible vía `LLM_API_URL`/`LLM_API_KEY`/`LLM_MODEL`. Tools `check_availability`/`get_price` con datos reales (anti-alucinación). Identifica cabaña por tag `[C:<id>]` o memoria. Sin `LLM_API_KEY` → handoff al dueño. Botón en `WhatsAppAgentButton.tsx`.
+
+### Afiliados (Fase 7) — atribución cross-domain
+`/reservar` y la landing `[slug]` propagan `source`/`ref` vía `sessionStorage`. `/api/admin/affiliates` (crea+token), `/api/affiliate/stats` + `/dashboard/afiliado`. **Decisión pendiente de Juan:** el cron de comisión de los fundadores NO se tocó (ver BLOCKERS); el modelo "10% solo Takai-generado" se implementó como sistema aditivo de afiliados.
+
+### Retargeting (Fase 8), Reseñas (Fase 9), GBP (Fase 11)
+- `/api/cron/retargeting` (cohorte aniversario, opt-out + cap 90d) + `/api/email/unsubscribe` (HMAC, `lib/unsubscribe.ts`). En el orquestador `daily`.
+- `/api/reviews` (público) + `/api/admin/reviews` (moderar) + `/resena/[booking_code]`. `solicitar-review` ahora apunta a nuestra página.
+- `/api/tenant/gbp` + `/dashboard/google` (wizard). Reseñas Google opcionales tras `GOOGLE_PLACES_API_KEY`.
+
+### Directorio B2C (Fases 4/5) — carpeta `directorio/`
+Proyecto Next.js **separado** (dominio aparte, mantiene takai.cl B2B). Lee la misma BD Supabase, SSG/ISR, schema VacationRental, sitemap dinámico, robots, páginas de destino con contenido único. **Excluido del build de takai.cl** (`tsconfig` root `exclude: ["directorio"]`). Botón "Reservar" → `reservas.takai.cl/reservar?...&source=directory`. Requiere `npm install` + deploy aparte.
+
+### Onboarding (Fase 10) — `lib/cabin-validation.ts`
+`cabinPublishReadiness()` exige mínimos (8 fotos, geo 5+ decimales, etc.). `/api/admin/cabins/readiness`. El directorio sólo renderiza cabañas publicables → una cabaña completa aparece sola (sin código nuevo).
