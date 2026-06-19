@@ -42,6 +42,15 @@
 **Implementado:** `lib/commission.ts` (constantes `TAKAI_COMMISSION_RATE=10`, `MAX_AFFILIATE_RATE=5`, `isTakaiGenerated`, `clampAffiliateRate`); cap de 5% en `/api/admin/affiliates` POST + clamp defensivo en `/api/affiliate/stats` + CHECK en migración 013.
 **Pendiente (escala, no urgente):** mecanismo para facturar el 10% de Takai a los clientes en **suscripción** sobre sus reservas Takai-generadas (hoy el cron de statements solo cubre a los fundadores en modo comisión). Cuando haya clientes nuevos con reservas vía directorio/agente, definir cómo se les cobra ese 10%.
 
-### Fase 9 — follow-ups no bloqueantes
-- Tab de moderación de reseñas en `app/components/AdminDashboard.tsx`. La API `/api/admin/reviews` (GET/PATCH) ya funciona; falta solo la UI. Mientras tanto se puede aprobar con un PATCH manual.
-- Mostrar las reseñas aprobadas en las 3 templates de landing (`TemplateClasico/Moderno/Rural`). El JSON-LD/Rich Results ya las incluye; falta la sección visual en la página.
+### Fase 9 — follow-ups — ✅ HECHOS
+- ✅ Tab "Reseñas" de moderación en `AdminDashboard.tsx` (aprobar/rechazar + filtros).
+- ✅ Display de promedio de reseñas en las 3 templates de landing (`ReviewStars`).
+
+### Fase 10 — follow-up — ✅ HECHO
+- ✅ Panel "Directorio: X/Y listas" en el tab Cabañas del admin (`DirectoryReadiness`), muestra qué falta por cabaña.
+
+### Fase 6 — follow-up (cosmético, NO hecho a propósito)
+- Botón WhatsApp **por cabaña** dentro de las cards de las templates. Se dejó el botón flotante (con la 1ª cabaña), que ya cubre el caso (casi todos los tenants tienen 1 cabaña). En el directorio sí hay botón por cabaña. Bajo valor; no se invirtió en cablear el número de agente a las 3 templates.
+
+### Directorio — follow-up (no hecho)
+- El directorio B2C no muestra reseñas todavía (su `lib/data.ts` no las consulta). La landing del owner sí. Mejora menor cuando el directorio esté en producción.

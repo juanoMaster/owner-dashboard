@@ -174,3 +174,21 @@
 - [x] `BLOCKERS.md` lista todo lo pendiente por humano/env vars.
 - [x] `PROGRESO.md` documenta fase por fase.
 - [x] `CLAUDE.md` actualizado con la arquitectura nueva.
+
+---
+
+## ADDENDUM (2026-06-19, post-plan) — "haz todos los pendientes"
+
+Tras las 11 fases, Juan pidió cerrar todos los pendientes técnicos a mi alcance:
+- ✅ **Mecanismo de cobro 10% en suscripción:** `generate-commission-statements` ahora tiene 2 pasadas — fundadores (sin cambios) + suscripción (10% solo sobre reservas Takai-generadas). Helper compartido `processTenant()`. Commit `b6405de`.
+- ✅ **Migraciones 012 y 013 APLICADAS a producción** (vía Supabase MCP, verificadas: 31 reservas backfilled a `owner_direct`, 4 tablas nuevas con RLS, columnas nuevas OK). Commit `b6405de`.
+- ✅ **Decisión de comisión de Juan** implementada (10% Takai-generado, ≤5% afiliados, fundadores intactos): `lib/commission.ts` + caps en API/BD/stats. Commit `7126be1`.
+- ✅ **Tab de moderación de reseñas** + **panel de readiness de directorio** en el admin. Commit `03ca81a`.
+- ✅ **Display de reseñas** en las 3 templates de landing. Commit `4281325`.
+
+**Sigue pendiente SOLO lo que requiere a Juan (en BLOCKERS.md):**
+1. Aplicar migración **011** (pg_cron) — necesita el `CRON_SECRET` real (lo edita Juan).
+2. Env vars: `LLM_API_KEY`/`LLM_API_URL`/`LLM_MODEL`, `DIRECTORY_DOMAIN`, `SEARCH_CONSOLE_VERIFICATION`, `GOOGLE_PLACES_API_KEY` (opcional).
+3. Comprar dominio del directorio, `npm install && build` del directorio, deploy en Vercel aparte.
+4. Verificar Rich Results Test, Search Console, crear Fichas Google.
+5. Revisar y **mergear `feature/motor-reservas` a `main`**.
