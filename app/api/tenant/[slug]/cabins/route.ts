@@ -8,7 +8,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified, currency, location_text, location_maps_url, tagline, activities, page_rules, latitude, longitude, extra_services, template, billing_status, manual_billing")
+    .select("id, slug, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified, currency, country, location_text, location_maps_url, tagline, activities, page_rules, latitude, longitude, extra_services, template, billing_status, manual_billing, guidebook")
     .eq("slug", params.slug)
     .eq("active", true)
     .maybeSingle()
@@ -27,8 +27,11 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   return NextResponse.json({
     tenant: {
       id: tenant.id,
+      slug: tenant.slug,
       business_name: tenant.business_name,
       owner_name: tenant.owner_name,
+      country: tenant.country || null,
+      guidebook: tenant.guidebook || null,
       owner_whatsapp: tenant.owner_whatsapp,
       facebook_url: tenant.facebook_url || null,
       instagram_url: tenant.instagram_url || null,

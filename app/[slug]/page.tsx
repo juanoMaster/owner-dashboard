@@ -4,6 +4,8 @@ import { useParams } from "next/navigation"
 import TemplateClasico from "./templates/TemplateClasico"
 import TemplateModerno from "./templates/TemplateModerno"
 import TemplateRural from "./templates/TemplateRural"
+import JsonLd from "../components/JsonLd"
+import { buildVacationRental, buildBreadcrumb } from "../../lib/schema"
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
@@ -12,15 +14,42 @@ interface Cabin {
   pricing_tiers?: Array<{ min_guests: number; max_guests: number; price_per_night: number }>
 }
 interface TenantData {
-  business_name: string; facebook_url?: string | null; instagram_url?: string | null
-  verified?: boolean; currency?: string; location_text?: string | null
+  business_name: string; slug?: string; facebook_url?: string | null; instagram_url?: string | null
+  verified?: boolean; currency?: string; country?: string | null; location_text?: string | null
   location_maps_url?: string | null; tagline?: string | null
   activities?: Array<{ icon: string; name: string } | string>; page_rules?: Array<string | Record<string, string>>
   owner_whatsapp?: string | null
   latitude?: number | null; longitude?: number | null
   extra_services?: Array<{ name: string; price: number }>
   template?: string | null
+  guidebook?: { checkin_time?: string; checkout_time?: string } | null
   suspended?: boolean
+}
+
+const APP_BASE = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"
+
+// JSON-LD VacationRental + BreadcrumbList por cada cabaña, desde datos reales.
+function LandingSchema({ tenant, cabins, slug }: { tenant: TenantData; cabins: Cabin[]; slug: string }) {
+  const nodes: Array<Record<string, any>> = []
+  for (const c of cabins) {
+    const url = `${APP_BASE}/${slug}#${c.id}`
+    const node = buildVacationRental(
+      { id: c.id, name: c.name, capacity: c.capacity, base_price_night: c.base_price_night, photos: c.photos, description: c.description, amenities: c.amenities },
+      { business_name: tenant.business_name, currency: tenant.currency, location_text: tenant.location_text, country: tenant.country, latitude: tenant.latitude, longitude: tenant.longitude },
+      {
+        url,
+        checkinTime: tenant.guidebook?.checkin_time || null,
+        checkoutTime: tenant.guidebook?.checkout_time || null,
+      }
+    )
+    if (node) nodes.push(node)
+  }
+  if (nodes.length === 0) return null
+  nodes.push(buildBreadcrumb([
+    { name: "Inicio", url: APP_BASE },
+    { name: tenant.business_name, url: `${APP_BASE}/${slug}` },
+  ]))
+  return <JsonLd data={nodes} />
 }
 
 function SlugInner() {
@@ -79,9 +108,10 @@ function SlugInner() {
   )
 
   const template = tenant.template ?? "clasico"
-  if (template === "moderno") return <TemplateModerno tenant={tenant} cabins={cabins} />
-  if (template === "rural") return <TemplateRural tenant={tenant} cabins={cabins} />
-  return <TemplateClasico tenant={tenant} cabins={cabins} />
+  const schema = <LandingSchema tenant={tenant} cabins={cabins} slug={slug} />
+  if (template === "moderno") return <>{schema}<TemplateModerno tenant={tenant} cabins={cabins} /></>
+  if (template === "rural") return <>{schema}<TemplateRural tenant={tenant} cabins={cabins} /></>
+  return <>{schema}<TemplateClasico tenant={tenant} cabins={cabins} /></>
 }
 
 export default function SlugPage() {

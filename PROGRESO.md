@@ -40,4 +40,16 @@
 
 **Conclusión:** RLS está **completo y correcto**. No se requieren cambios riesgosos sobre tablas existentes. La acción de la Fase 2 es: (a) documentar (hecho), (b) garantizar RLS desde la creación en las tablas nuevas de fases siguientes (afiliados, reseñas, whatsapp_conversations, email_opt_out). Ningún flujo existente se toca → cero riesgo de bloqueo de acceso.
 
-### FASE 3–11 — pendientes
+### FASE 3 — Schema VacationRental JSON-LD — ✅ COMPLETA
+
+**Construido:**
+- `lib/schema.ts`: `buildVacationRental(cabin, tenant, opts)` genera JSON-LD `schema.org/VacationRental` desde datos reales (nombre, descripción, fotos absolutas, geo a 6 decimales, `PostalAddress`, `containsPlace/Accommodation` con `occupancy` + `amenityFeature[]`, `offers` con precio/moneda, `checkinTime`/`checkoutTime`, `petsAllowed`). Acepta `aggregateRating`+`review` (los alimentará la Fase 9; si no hay reseñas se omiten, no se inventan). `buildBreadcrumb()` para `BreadcrumbList`. `checkSchemaValidity()` devuelve warnings (mín. 8 fotos, geo válida). **Devuelve null si no hay fotos o geo** → nunca emite schema inválido.
+- `app/components/JsonLd.tsx`: inyecta `<script type="application/ld+json">`. Única excepción sancionada a la regla "cero dangerouslySetInnerHTML" — patrón estándar Next.js/Google; seguro porque el payload es data propia (`JSON.stringify`) con `<`→`<` escapado, nunca HTML de usuario. Documentado en el archivo.
+- `app/[slug]/page.tsx`: componente `LandingSchema` que emite un nodo por cabaña + breadcrumb.
+- `app/api/tenant/[slug]/cabins/route.ts`: agrega `slug`, `country`, `guidebook` al SELECT/respuesta (necesarios para `addressCountry` y check-in/out times del schema).
+
+**Nota de altitud:** la landing `/[slug]` es Client Component (fetch client-side), así que el JSON-LD se renderiza con JS. Google ejecuta JS al indexar, pero el SEO fuerte vendrá del directorio SSR (Fase 4), que reusa `lib/schema.ts`. Build: ✅.
+
+**Pendiente de verificación humana:** correr el **Rich Results Test** de Google sobre una URL real desplegada (no se puede ejecutar offline). Anotado en BLOCKERS.
+
+### FASE 4–11 — pendientes

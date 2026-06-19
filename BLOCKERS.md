@@ -28,3 +28,6 @@ Por seguridad NO se aplicaron automáticamente a producción (RLS mal aplicado d
 
 ### Fase 1
 - pg_cron requiere aplicación manual (embebe el secreto). Ver migración `011`.
+
+### Fase 3
+- Verificar el JSON-LD con el **Rich Results Test** de Google (https://search.google.com/test/rich-results) sobre una URL real desplegada. No se puede ejecutar offline. Requiere cabaña con ≥8 fotos y geo válida; si no, el schema se omite por diseño.
