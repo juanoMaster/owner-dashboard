@@ -1,11 +1,13 @@
 "use client"
 import { useState } from "react"
+import ReviewStars from "@/app/components/ReviewStars"
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
   extra_person_price: number; photos?: string[]; description?: string
   amenities?: string; extras?: Array<{ name: string; price: number }>
   pricing_tiers?: Array<{ min_guests: number; max_guests: number; price_per_night: number }>
+  review_summary?: { count: number; average: number } | null
 }
 interface TenantData {
   business_name: string; facebook_url?: string | null; instagram_url?: string | null
@@ -135,6 +137,7 @@ export default function TemplateModerno({ tenant, cabins }: { tenant: TenantData
                       Hasta {cabin.capacity} pers.
                     </span>
                   </div>
+                  <ReviewStars summary={cabin.review_summary} textColor="#888" />
                   {cabin.description && (
                     <p style={{ fontSize: "14px", color: "#555", lineHeight: 1.7, marginBottom: "16px" }}>{cabin.description}</p>
                   )}

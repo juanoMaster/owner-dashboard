@@ -3,12 +3,14 @@ import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 
 const MapaUbicacion = dynamic(() => import("@/app/components/MapaUbicacion"), { ssr: false })
+import ReviewStars from "@/app/components/ReviewStars"
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
   extra_person_price: number; photos?: string[]; description?: string
   amenities?: string; extras?: Array<{ name: string; price: number }>
   pricing_tiers?: Array<{ min_guests: number; max_guests: number; price_per_night: number }>
+  review_summary?: { count: number; average: number } | null
 }
 interface TenantData {
   business_name: string; facebook_url?: string | null; instagram_url?: string | null
@@ -220,6 +222,7 @@ export default function TemplateClasico({ tenant, cabins }: { tenant: TenantData
                     <div className="tk-card-body" style={{ padding: "20px 24px 24px" }}>
                       <div style={{ fontFamily: SERIF, fontSize: "26px", fontWeight: 400, color: TEXT, letterSpacing: "-0.2px", lineHeight: 1.15, marginBottom: "12px", wordBreak: "break-word" as const }}>{cabin.name}</div>
                       <div style={{ fontSize: "13px", color: "#bbb", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "14px" }}>Hasta {cabin.capacity} personas</div>
+                      <ReviewStars summary={cabin.review_summary} textColor="#999" />
                       {cabin.description && (
                         <div style={{ fontSize: "14px", color: "#aaa", lineHeight: 1.8, marginBottom: "16px", fontWeight: 300, wordBreak: "break-word" as const }}>{cabin.description}</div>
                       )}

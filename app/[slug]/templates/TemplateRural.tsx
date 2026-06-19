@@ -1,11 +1,13 @@
 "use client"
 import { useState } from "react"
+import ReviewStars from "@/app/components/ReviewStars"
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
   extra_person_price: number; photos?: string[]; description?: string
   amenities?: string; extras?: Array<{ name: string; price: number }>
   pricing_tiers?: Array<{ min_guests: number; max_guests: number; price_per_night: number }>
+  review_summary?: { count: number; average: number } | null
 }
 interface TenantData {
   business_name: string; facebook_url?: string | null; instagram_url?: string | null
@@ -146,6 +148,7 @@ export default function TemplateRural({ tenant, cabins }: { tenant: TenantData; 
                       Hasta {cabin.capacity} personas
                     </span>
                   </div>
+                  <ReviewStars summary={cabin.review_summary} color="#b5803a" textColor={MUTED} />
                   {cabin.description && (
                     <p style={{ fontSize: "14px", color: "#5a4a38", lineHeight: 1.75, marginBottom: "16px" }}>{cabin.description}</p>
                   )}
