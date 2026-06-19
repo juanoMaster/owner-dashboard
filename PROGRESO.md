@@ -98,4 +98,14 @@
 **Criterios:** ✅ responde con datos reales (tools), nunca inventados; ✅ link con `source=whatsapp_agent`; ✅ booking codes siguen funcionando; ✅ sin `LLM_API_KEY` se salta y hace handoff (anotado en BLOCKERS). Build: ✅.
 **Blocker:** requiere `LLM_API_KEY`/`LLM_API_URL`/`LLM_MODEL` (endpoint OpenAI-compatible). Sin esto el agente no corre (handoff al dueño). Botón por-cabaña en cards de templates = follow-up (hoy 1 botón flotante con la 1ª cabaña).
 
-### FASE 4–5, 7-dashboard, 10 — pendientes
+### FASE 7 — Afiliados (dashboard + atribución) — ✅ COMPLETA
+**Construido (aditivo, sin tocar el cron de comisión de los fundadores):**
+- `app/api/admin/affiliates/route.ts`: GET/POST/PATCH. POST crea afiliado + genera token (SHA-256, patrón `dashboard_links`), devuelve token en claro UNA vez + `dashboard_url` + `?ref=code`.
+- `app/api/affiliate/stats/route.ts`: valida `token_hash` → reservas atribuidas a ESE afiliado + comisión ganada (`total_amount * rate/100` en confirmadas). No expone otros.
+- `app/dashboard/afiliado/page.tsx`: panel con resumen (referidas, confirmadas, generado, comisión) + tabla.
+- **Atribución cross-domain:** `bookings` POST ya captura `source`/`ref` (commit anterior). `/reservar` ahora envía `source`/`ref` desde URL o `sessionStorage`; la landing `[slug]` persiste `source`/`ref` en `sessionStorage` al llegar del directorio/agente → sobrevive el salto landing→/reservar. El directorio (Fase 4) enlazará directo a `/reservar?...&source=directory&ref=...`.
+
+**Criterios:** ✅ turista con `?ref=CODIGO` → `booking_source='affiliate'` + `affiliate_id`; ✅ afiliado ve solo SUS reservas; ✅ atribución sobrevive cross-page. Build: ✅.
+**Nota:** statement mensual de afiliado = cálculo en vivo en el endpoint (el pago es manual/fuera de alcance, como dice el plan). Comisión 10% Takai vs fundadores: ver decisión en BLOCKERS.
+
+### FASE 4–5, 10 — pendientes (4/5 = proyecto directorio separado)

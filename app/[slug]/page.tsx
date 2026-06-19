@@ -66,6 +66,18 @@ function SlugInner() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  // Atribución cross-página (Fases 4/6/7): persiste source/ref del directorio o
+  // agente para que /reservar los recupere aunque no estén en su URL.
+  useEffect(function() {
+    if (typeof window === "undefined") return
+    try {
+      const usp = new URLSearchParams(window.location.search)
+      const src = usp.get("source"); const rf = usp.get("ref")
+      if (src) sessionStorage.setItem("takai_source", src)
+      if (rf) sessionStorage.setItem("takai_ref", rf)
+    } catch { /* modo privado */ }
+  }, [])
+
   useEffect(function() {
     if (!slug) return
     let cancelled = false

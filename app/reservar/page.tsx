@@ -10,6 +10,12 @@ function fmtCurrency(n: number, currency: string) {
   return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
+// Lee atribución persistida por la landing (sessionStorage). undefined si falta.
+function readAttr(key: string): string | undefined {
+  if (typeof window === "undefined") return undefined
+  try { return sessionStorage.getItem(key) || undefined } catch { return undefined }
+}
+
 function LogoNegocio({ businessName }: { businessName: string }) {
   const parts = businessName.split(" ")
   const first = parts[0] || "Takai"
@@ -192,6 +198,10 @@ function ReservarInner() {
           check_in: checkIn, check_out: checkOut, guests, nights: noches,
           subtotal, total, deposit: deposito, tinaja_days: tinajaDias,
           nombre: nombre.trim(), whatsapp: whatsapp.trim(), email: email.trim(), metodo_pago: metodoPago,
+          // Atribución de origen (Fases 4/6/7) — de la URL o de sessionStorage
+          // (persistido por la landing al llegar del directorio/agente)
+          source: params.get("source") || readAttr("takai_source"),
+          ref: params.get("ref") || readAttr("takai_ref"),
         }),
       })
       const data = await res.json()
