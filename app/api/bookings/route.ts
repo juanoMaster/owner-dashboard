@@ -147,6 +147,26 @@ export async function POST(req: Request) {
 
     const bookingId = rpc.booking_id!
 
+    // Atribución de origen (Fases 4/6/7). Best-effort: NUNCA rompe la reserva
+    // (la columna puede no existir aún si la migración 013 no se aplicó).
+    try {
+      const allowedSources = ["directory", "whatsapp_agent", "affiliate", "owner_direct", "manual"]
+      const rawSource = String(body.source || "").toLowerCase()
+      let bookingSource = allowedSources.includes(rawSource) ? rawSource : "owner_direct"
+      let affiliateId: string | null = null
+      const ref = typeof body.ref === "string" ? body.ref.trim().slice(0, 64) : ""
+      if (ref && /^[A-Za-z0-9_-]+$/.test(ref)) {
+        const { data: aff } = await supabaseAdmin
+          .from("affiliates").select("id").eq("code", ref).eq("active", true).maybeSingle()
+        if (aff) { affiliateId = aff.id; bookingSource = "affiliate" }
+      }
+      if (bookingSource !== "owner_direct" || affiliateId) {
+        await supabaseAdmin.from("bookings")
+          .update({ booking_source: bookingSource, affiliate_id: affiliateId })
+          .eq("id", bookingId).eq("tenant_id", tenant_id)
+      }
+    } catch { /* columna aún no migrada → no romper la reserva */ }
+
     await logAudit({
       tenant_id,
       cabin_id,

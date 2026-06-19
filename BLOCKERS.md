@@ -31,3 +31,10 @@ Por seguridad NO se aplicaron automáticamente a producción (RLS mal aplicado d
 
 ### Fase 3
 - Verificar el JSON-LD con el **Rich Results Test** de Google (https://search.google.com/test/rich-results) sobre una URL real desplegada. No se puede ejecutar offline. Requiere cabaña con ≥8 fotos y geo válida; si no, el schema se omite por diseño.
+
+### Fase 7 — ⚠ DECISIÓN QUE REQUIERE A JUAN (conflicto de directivas)
+El plan (Fase 7) pide: "el 10% se aplique SOLO a reservas generadas por Takai (directory/whatsapp_agent/affiliate) y 0% a directas; si hoy cobra sobre todas, corrígelo."
+**PERO** el cron `generate-commission-statements` HOY suma TODAS las reservas confirmadas de los tenants `billing_mode='commission'` — y eso es **exactamente el trato de los 3 clientes fundadores** (el-mirador, majoaal, cacagual): mensualidad bonificada a cambio de comisión sobre SUS reservas. CLAUDE.md lo marca sagrado ("NO se toca hasta que migren") y el plan tiene como regla inviolable "No revertir trabajo de sesiones anteriores".
+**Cambiar el cron rompería la facturación de los fundadores** (pasarían a 0% en sus reservas directas).
+**Decisión autónoma tomada:** NO se modifica el cron de comisiones de los fundadores (gana el guardrail inviolable). La atribución por `booking_source` y la comisión del 10% Takai-generado se implementan como sistema **aditivo de afiliados** (payout al afiliado desde reservas con `booking_source='affiliate'`), sin tocar el modelo comisión heredado.
+**Juan decide:** cuando los fundadores migren a suscripción, ahí sí se activa el modelo "10% solo en Takai-generado" para ellos. Mientras tanto, coexisten. Confirmar si esta lectura es correcta.
