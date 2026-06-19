@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import AuditClient from "./AuditClient"
 import NewClientOnboarding from "./NewClientOnboarding"
 import TenantFormFields, { tenantFormFromData, tenantFormToPayload, type TenantFormState } from "./TenantFormFields"
@@ -170,7 +170,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error al eliminar")
   }
 
-  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing"]
+  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing", "Reseñas"]
 
   return (
     <div style={{ background: "#09070a", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8d5f8" }}>
@@ -339,6 +339,8 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                 + Nueva cabaña
               </button>
             } />
+
+            <DirectoryReadiness adminToken={adminToken} />
 
             <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px", marginBottom: "18px", alignItems: "flex-end" }}>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: "5px" }}>
@@ -524,6 +526,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
 
         {/* ══ TAB 7: BILLING ══ */}
         {tab === 7 && <BillingTab subscriptions={subscriptions} statements={statements} tenants={tenants} tenantMap={tenantMap} />}
+
+        {/* ══ TAB 8: RESEÑAS (moderación) ══ */}
+        {tab === 8 && <ReviewsTab adminToken={adminToken} />}
 
       </main>
 
@@ -1190,6 +1195,112 @@ function BillingTab({ subscriptions, statements, tenants, tenantMap }: any) {
           </table>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ══ TAB 8: Moderación de reseñas (Fase 9) ══
+function ReviewsTab({ adminToken }: any) {
+  const [filter, setFilter] = useState("pending")
+  const [reviews, setReviews] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  function load() {
+    setLoading(true)
+    fetch(`/api/admin/reviews?status=${filter}`, { headers: { "x-admin-token": adminToken } })
+      .then((r) => r.json())
+      .then((d) => setReviews(d.reviews || []))
+      .catch(() => setReviews([]))
+      .finally(() => setLoading(false))
+  }
+  useEffect(load, [filter])
+
+  function moderate(id: string, status: string) {
+    setBusy(id)
+    fetch("/api/admin/reviews", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+      body: JSON.stringify({ id, status }),
+    })
+      .then((r) => r.json())
+      .then(() => setReviews((p) => p.filter((rv) => rv.id !== id)))
+      .finally(() => setBusy(null))
+  }
+
+  const card: React.CSSProperties = { background: "#1a1228", border: "1px solid #2d1f44", borderRadius: "10px", padding: "16px", marginBottom: "12px" }
+  const btn = (bg: string): React.CSSProperties => ({ background: bg, color: "#fff", border: "none", borderRadius: "6px", padding: "8px 16px", fontSize: "12px", fontWeight: 700, cursor: "pointer", marginRight: "8px" })
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        {["pending", "approved", "rejected", "all"].map((f) => (
+          <button key={f} onClick={() => setFilter(f)}
+            style={{ background: filter === f ? "#c8b878" : "transparent", color: filter === f ? "#1a1228" : "#8a7ca8", border: "1px solid #2d1f44", borderRadius: "50px", padding: "6px 16px", fontSize: "12px", cursor: "pointer", textTransform: "capitalize" }}>
+            {f === "pending" ? "Pendientes" : f === "approved" ? "Aprobadas" : f === "rejected" ? "Rechazadas" : "Todas"}
+          </button>
+        ))}
+      </div>
+
+      {loading ? <p style={{ color: "#8a7ca8" }}>Cargando…</p> : reviews.length === 0 ? (
+        <p style={{ color: "#8a7ca8" }}>No hay reseñas {filter === "pending" ? "pendientes" : ""}.</p>
+      ) : reviews.map((rv) => (
+        <div key={rv.id} style={card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
+            <div>
+              <div style={{ color: "#e8b84c", fontSize: "16px" }}>{"★".repeat(rv.rating)}{"☆".repeat(5 - rv.rating)}</div>
+              <div style={{ color: "#c8b878", fontSize: "14px", marginTop: "4px" }}>
+                {rv.guest_name || "Huésped"} · {(rv.cabins as any)?.name || ""} · <span style={{ color: "#8a7ca8" }}>{(rv.tenants as any)?.business_name || ""}</span>
+              </div>
+              <div style={{ color: "#8a7ca8", fontSize: "11px" }}>{rv.booking_code} · {(rv.created_at || "").split("T")[0]} · {rv.status}</div>
+            </div>
+            <div>
+              {rv.status !== "approved" && <button disabled={busy === rv.id} onClick={() => moderate(rv.id, "approved")} style={btn("#27ae60")}>Aprobar</button>}
+              {rv.status !== "rejected" && <button disabled={busy === rv.id} onClick={() => moderate(rv.id, "rejected")} style={btn("#e63946")}>Rechazar</button>}
+            </div>
+          </div>
+          {rv.comment && <p style={{ color: "#cbbfe0", fontSize: "14px", lineHeight: 1.6, margin: "12px 0 0" }}>{rv.comment}</p>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Estado de publicación en el directorio (Fase 10): qué cabañas están listas y qué les falta.
+function DirectoryReadiness({ adminToken }: any) {
+  const [data, setData] = useState<any>(null)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/admin/cabins/readiness", { headers: { "x-admin-token": adminToken } })
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => setData(null))
+  }, [])
+
+  if (!data || !data.cabins) return null
+  const notReady = data.cabins.filter((c: any) => !c.ready)
+
+  return (
+    <div style={{ background: "#1a1228", border: "1px solid #2d1f44", borderRadius: "10px", padding: "14px 16px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setOpen((o) => !o)}>
+        <span style={{ color: "#c8b878", fontSize: "13px", fontWeight: 700 }}>
+          Directorio: {data.ready_count}/{data.total} cabañas listas para publicar
+        </span>
+        <span style={{ color: "#8a7ca8", fontSize: "12px" }}>{open ? "▲ ocultar" : "▼ ver detalle"}</span>
+      </div>
+      {open && (
+        <div style={{ marginTop: "12px" }}>
+          {notReady.length === 0 ? (
+            <p style={{ color: "#27ae60", fontSize: "13px", margin: 0 }}>Todas las cabañas activas están listas. 🎉</p>
+          ) : notReady.map((c: any) => (
+            <div key={c.cabin_id} style={{ borderTop: "1px solid #2d1f44", padding: "8px 0", fontSize: "13px" }}>
+              <span style={{ color: "#e8d5a3" }}>{c.cabin_name}</span> <span style={{ color: "#8a7ca8" }}>({c.business_name})</span>
+              <div style={{ color: "#e6a23c", fontSize: "12px", marginTop: "2px" }}>Falta: {c.missing.join(" · ")}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
