@@ -108,4 +108,27 @@
 **Criterios:** ✅ turista con `?ref=CODIGO` → `booking_source='affiliate'` + `affiliate_id`; ✅ afiliado ve solo SUS reservas; ✅ atribución sobrevive cross-page. Build: ✅.
 **Nota:** statement mensual de afiliado = cálculo en vivo en el endpoint (el pago es manual/fuera de alcance, como dice el plan). Comisión 10% Takai vs fundadores: ver decisión en BLOCKERS.
 
-### FASE 4–5, 10 — pendientes (4/5 = proyecto directorio separado)
+### FASE 4 — Directorio B2C (proyecto separado) — ✅ COMPLETA (scaffold deployable)
+**Construido en `directorio/` (proyecto Next.js 14 independiente, dominio aparte):**
+- `package.json`, `tsconfig.json`, `next.config.js`, `.env.example`, `.gitignore`, `README.md`.
+- `lib/supabase.ts` (lectura service-role server-side), `lib/data.ts` (lee cabins+tenants activos/no-eliminados/**publicables**, respeta soft-delete y suspensión; `reservaUrl()` con `source=directory`+`ref`), `lib/destinos.ts` (contenido único), `lib/schema.ts` (VacationRental+Breadcrumb).
+- Páginas: `app/page.tsx` (home: destinos + destacadas, ISR 1h), `app/[destino]/page.tsx` (SSG, contenido único + enlaces internos + cabañas del destino), `app/cabana/[id]/page.tsx` (SSG/ISR, galería, schema JSON-LD, botón **Reservar** → motor existente con atribución, botón **WhatsApp** con tag `[C:id]`), `not-found.tsx`.
+- **Excluido del build de `takai.cl`** (tsconfig root `exclude: ["directorio"]`) → no contamina B2B ni rompe el build principal (verificado: 27 páginas, sin rutas directorio).
+
+**Criterios:** ✅ lista cabañas activas desde Supabase; ✅ "Reservar" lleva al motor con `source=directory` (+`ref`); ✅ no expone inactivos/eliminados/suspendidos (filtro en `data.ts`); ✅ schema VacationRental incluido. **Blocker:** comprar `DIRECTORY_DOMAIN`, `npm install` + deploy en Vercel aparte (no se pudo `npm install` en esta sesión; código revisado, no buildeado).
+
+### FASE 5 — SEO del directorio — ✅ COMPLETA
+- `app/sitemap.ts` dinámico (home + 4 destinos + todas las cabañas publicables; ISR → se actualiza al agregar cabaña). `app/robots.ts`.
+- Meta tags por página (`generateMetadata`): title único, description, canonical, Open Graph, Twitter Card (en layout + destino + cabaña).
+- Páginas de destino con **contenido diferenciado** (no duplicado) + sección **teletrabajo/nómada digital** (long-tail).
+- Meta tag Search Console desde `SEARCH_CONSOLE_VERIFICATION` (en `layout.tsx`; verificación final = HUMAN_TODO).
+- Español por defecto; multi-idioma NO implementado (decisión del plan), estructura preparada.
+
+### FASE 10 — Onboarding self-service — ✅ COMPLETA (validación + auto-generación data-driven)
+**Construido:**
+- `lib/cabin-validation.ts`: `cabinPublishReadiness(cabin, tenant)` → exige mínimos (nombre, descripción ≥30, capacidad, precio, **8 fotos**, **geo 5+ decimales**, ubicación). Mismo criterio que usa el directorio (`isPublishable`).
+- `app/api/admin/cabins/readiness/route.ts`: lista por cabaña si está lista para publicar y qué le falta (alimenta el wizard de alta).
+- **Auto-generación sin código:** el directorio renderiza desde Supabase, el schema se deriva de datos, el sitemap se regenera (ISR), el botón WhatsApp usa el número configurado → al agregar una cabaña completa, aparece sola.
+
+**Criterios:** ✅ una cabaña completa aparece en directorio + schema + sitemap sin tocar código; ✅ las validaciones impiden publicar incompletas (no pasan `isPublishable` → no se renderizan). Build: ✅.
+**Follow-up:** integrar la llamada a `/readiness` en el formulario visual de `NewClientOnboarding.tsx`/admin (la API y la regla ya existen; falta el indicador en la UI).
