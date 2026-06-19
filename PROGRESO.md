@@ -1,0 +1,43 @@
+# PROGRESO — Motor de Reservas (rama `feature/motor-reservas`)
+
+> Bitácora de la ejecución nocturna autónoma del `PLAN_NOCHE_TAKAI.md`.
+> Inicio: 2026-06-18. Ejecutor: Claude Code (Opus 4.8), modo autónomo.
+
+## Decisiones de ejecución (tomadas autónomamente)
+
+1. **Migraciones NO se aplican a producción automáticamente.** El plan advierte que RLS mal aplicado deja la app sin acceso y pide probar contra un espejo (no existe espejo). El patrón del repo (migraciones 009/010) es que Juan las aplica manualmente. → Escribo los archivos `.sql` numerados y los anoto en `BLOCKERS.md` para aplicación manual revisada. La **auditoría** del estado real sí se hizo (read-only vía Supabase MCP), así que las decisiones se basan en datos reales, no en suposiciones.
+2. **Umbral de auto-cancelación = 3 horas flat.** El plan es la autoridad y dice 3h explícito ("los clientes lo pidieron a 3h"). El código existente usaba `transfer_timeout_hours` por tenant (default 12h). Decisión: constante única `AUTO_CANCEL_HOURS = 3` como fuente de verdad, reemplazando el default de 12h. Documentado abajo.
+3. **Directorio B2C (Fase 4/5) = carpeta separada `directorio/`**, no se cablea al build de `takai.cl` (mantiene B2B limpio, decisión del plan). Sus env vars (`DIRECTORY_DOMAIN`) son HUMAN_TODO.
+
+---
+
+## Estado por fase
+
+### FASE 1 — Auto-cancelación a 3h vía pg_cron — ✅ COMPLETA
+
+**Auditoría del estado actual (lo que YA existe):**
+- `/api/cron/cancelar-pendientes/route.ts` existe y funciona. Cancela bookings `status='draft'`, no eliminados, sin `transfer_proof_received_at`, **ya excluye `mp_preference_id IS NULL`** (correcto), vía **soft-delete** (`deleted_at` + `deleted_by='cron_auto_cancel'`), libera `calendar_blocks`, registra en `audit_log` y notifica al turista por WhatsApp.
+- **Problema confirmado:** corre vía orquestador `/api/cron/daily` **una vez al día** (Vercel cron). Una ventana de 3h es imposible con cadencia diaria.
+- Usaba umbral por tenant `transfer_timeout_hours` (default **12h**), no 3h.
+
+**Cambios:**
+- `app/api/cron/cancelar-pendientes/route.ts`: umbral cambiado de `transfer_timeout_hours` (default 12h) a constante única `AUTO_CANCEL_HOURS = 3`. Todo lo demás intacto (soft-delete, libera blocks, audit, WhatsApp, exclusión mp_preference_id).
+- `supabase/migrations/011_pgcron_autocancel_3h.sql`: configura `pg_cron` + `pg_net` para invocar el endpoint cada 15 min. Reutiliza el endpoint existente (cero duplicación de lógica). Embebe el secreto → **aplicación manual** (BLOCKERS.md). Job idempotente (unschedule previo). Orquestador diario se mantiene como respaldo.
+
+**Validación (read-only contra producción):** dry-run de la query del cron con umbral 3h → `would_cancel=0` (ningún draft viejo ahora mismo), `protected_mp=0`, `protected_confirmed=13` (no se tocan), `already_softdeleted=18`. Columnas y lógica confirmadas. Build: ✅.
+
+**Criterios de aceptación:** ✅ draft >3h sin mp_preference_id se cancela (≤15 min con pg_cron); ✅ con mp_preference_id NO se cancela; ✅ confirmada NO se toca; ✅ libera calendar_blocks. Aplicación de pg_cron a prod = manual (BLOCKERS).
+
+### FASE 2 — Auditoría RLS — AUDITORÍA COMPLETA
+
+**Hallazgo (verificado read-only contra la BD de producción `reservas_engine_v1`):**
+- Las **15 tablas** del esquema `public` tienen `RLS ENABLED`: `tenants, cabins, bookings, calendar_blocks, dashboard_links, audit_log, subscriptions, commission_statements, commissions, conversations, leads, messages, passengers, payments, tenant_users`.
+- Coexisten **dos patrones de política** (esperado, el proyecto `reservas_engine_v1` precede al owner-dashboard):
+  - `current_tenant_id()` — lee `app.tenant_id` de la sesión (lo inyecta `getSupabaseForTenant`). Definido en migración 004. Usado por: `tenants, cabins, bookings, calendar_blocks, dashboard_links, audit_log, subscriptions, commission_statements`.
+  - `is_tenant_member(tenant_id)` — basado en `auth.uid()` + tabla `tenant_users`. Usado por: `bookings, cabins, tenants, commissions, conversations, messages, passengers, payments`.
+- `cabins` tiene además `"Permitir lectura publica" (SELECT true)` — lectura pública intencional para landings.
+- **Única brecha:** `leads` tiene RLS habilitado pero **0 políticas** → default-deny (seguro: nadie con anon key lee; service role bypassa). `leads` **no tiene columna `tenant_id`**, así que no aplica `tenant_isolation`. Se deja default-deny (correcto).
+
+**Conclusión:** RLS está **completo y correcto**. No se requieren cambios riesgosos sobre tablas existentes. La acción de la Fase 2 es: (a) documentar (hecho), (b) garantizar RLS desde la creación en las tablas nuevas de fases siguientes (afiliados, reseñas, whatsapp_conversations, email_opt_out). Ningún flujo existente se toca → cero riesgo de bloqueo de acceso.
+
+### FASE 3–11 — pendientes

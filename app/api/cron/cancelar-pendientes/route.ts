@@ -5,6 +5,13 @@ import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { sendWhatsApp } from "@/lib/whatsapp"
 
+// Fuente única de verdad del umbral de auto-cancelación.
+// Los clientes pidieron 3h (antes el default por-tenant era 12h). El plan
+// PLAN_NOCHE_TAKAI.md es autoridad y fija 3h flat. Para garantizar la ventana
+// de 3h, este endpoint debe invocarse cada ~15 min (vía pg_cron + pg_net,
+// migración 011), no solo en el orquestador diario.
+const AUTO_CANCEL_HOURS = 3
+
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -29,7 +36,7 @@ export async function GET(req: Request) {
     }
 
     for (const tenant of tenants) {
-      const timeoutHours = Number(tenant.transfer_timeout_hours) || 12
+      const timeoutHours = AUTO_CANCEL_HOURS
       const cutoff = new Date(Date.now() - timeoutHours * 3600 * 1000).toISOString()
 
       // Reservas draft vencidas: status='draft', no eliminadas, sin comprobante,
