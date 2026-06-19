@@ -40,7 +40,7 @@
 - De ese 10%, **hasta 5% puede cederse a afiliados/influencers** (el resto queda para Takai). → el `commission_rate` de un afiliado se topa en 5%.
 - Los **3 clientes actuales NO cambian** hasta que venzan sus plazos (`el-mirador`, `cabanas-majoaal-licanray`, `glamping-cacagual`): se mantienen exactamente como están. Su cron `generate-commission-statements` **NO se toca** (sigue tal cual).
 **Implementado:** `lib/commission.ts` (constantes `TAKAI_COMMISSION_RATE=10`, `MAX_AFFILIATE_RATE=5`, `isTakaiGenerated`, `clampAffiliateRate`); cap de 5% en `/api/admin/affiliates` POST + clamp defensivo en `/api/affiliate/stats` + CHECK en migración 013.
-**Pendiente (escala, no urgente):** mecanismo para facturar el 10% de Takai a los clientes en **suscripción** sobre sus reservas Takai-generadas (hoy el cron de statements solo cubre a los fundadores en modo comisión). Cuando haya clientes nuevos con reservas vía directorio/agente, definir cómo se les cobra ese 10%.
+**✅ Mecanismo de cobro 10% en suscripción — IMPLEMENTADO (commit b6405de):** `generate-commission-statements` tiene una 2ª pasada para `billing_mode='subscription'` (status active/trial/past_due, nunca `manual_billing`) que factura 10% SOLO sobre reservas `booking_source IN (directory, whatsapp_agent, affiliate)`. La pasada 1 (fundadores en modo comisión) quedó intacta. Aún no hay clientes en suscripción con reservas Takai-generadas, así que en la práctica todavía no genera statements de este tipo, pero la lógica ya está lista.
 
 ### Fase 9 — follow-ups — ✅ HECHOS
 - ✅ Tab "Reseñas" de moderación en `AdminDashboard.tsx` (aprobar/rechazar + filtros).

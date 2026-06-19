@@ -30,10 +30,17 @@ CREATE TABLE IF NOT EXISTS affiliates (
   created_at      timestamptz DEFAULT now()
 );
 ALTER TABLE affiliates ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bookings
-  ADD CONSTRAINT bookings_affiliate_fk
-  FOREIGN KEY (affiliate_id) REFERENCES affiliates(id) ON DELETE SET NULL
-  NOT VALID;  -- NOT VALID: no re-valida filas viejas (todas tienen affiliate_id NULL)
+-- FK idempotente (ADD CONSTRAINT no soporta IF NOT EXISTS → guard explícito).
+-- Así coincide EXACTO con lo aplicado a producción el 2026-06-19.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'bookings_affiliate_fk') THEN
+    ALTER TABLE bookings
+      ADD CONSTRAINT bookings_affiliate_fk
+      FOREIGN KEY (affiliate_id) REFERENCES affiliates(id) ON DELETE SET NULL
+      NOT VALID;  -- NOT VALID: no re-valida filas viejas (todas tienen affiliate_id NULL)
+  END IF;
+END $$;
 
 -- ── 3. Reseñas (Fase 9) ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reviews (
