@@ -11,7 +11,9 @@ Por seguridad NO se aplicaron automáticamente a producción (RLS mal aplicado d
 - (se irán agregando las migraciones de fases siguientes: afiliados, reseñas, whatsapp_conversations, email_opt_out, booking_source)
 
 ### Env vars que Juan debe configurar (sin esto, la fase relacionada queda inerte)
-- `LLM_API_KEY`, `LLM_API_URL`, `LLM_MODEL` — Fase 6 (agente WhatsApp). Sin esto el agente no responde.
+- `LLM_API_KEY`, `LLM_API_URL`, `LLM_MODEL` — Fase 6 (agente WhatsApp). Sin esto el agente no responde (cae al handoff al dueño).
+  - **`LLM_API_URL` debe ser un endpoint OpenAI-compatible** (`.../chat/completions`) con soporte de `tools`/function-calling. Compatible con OpenAI, Gemini (vía gateway), Anthropic (endpoint compat) o cualquier proxy OpenAI-compatible. `LLM_MODEL` = nombre del modelo (ej. un modelo barato tipo Haiku/Flash).
+  - `TWILIO_WHATSAPP_FROM` ya existe (número compartido del sistema). El botón click-to-WhatsApp apunta ahí con el tag `[C:<cabin_id>]`.
 - `DIRECTORY_DOMAIN` — Fase 4/5 (dominio del directorio B2C). Comprar dominio aparte.
 - `SEARCH_CONSOLE_VERIFICATION` — Fase 5 (meta tag de verificación Google).
 - `GOOGLE_PLACES_API_KEY` (opcional) — Fase 11 (mostrar reseñas de Google). Si falta, la sección no se muestra.

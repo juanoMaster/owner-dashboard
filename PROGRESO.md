@@ -88,4 +88,14 @@
 **Criterios:** ✅ guía clara; ✅ guarda place_id si lo pegan; ✅ reseñas Google opcionales tras env var (no rompe si falta). Build: ✅.
 **Nota realista (del plan):** no se auto-crea la ficha (Google exige verificación por local). Es un asistente, como pide el plan.
 
-### FASE 4–6, 10 — pendientes
+### FASE 6 — Agente IA de WhatsApp — ✅ COMPLETA (inerte hasta tener LLM_API_KEY)
+**Auditoría:** `/api/twilio/webhook` detecta booking codes y registra comprobantes. El agente **EXTIENDE** la rama "sin código" sin tocar la de códigos.
+**Construido:**
+- `lib/agent.ts`: agente provider-agnóstico (endpoint OpenAI-compatible vía `LLM_API_URL`/`LLM_API_KEY`/`LLM_MODEL`). Function-calling con 2 tools: `check_availability` (consulta real bookings+calendar_blocks) y `get_price` (`getPriceForDates`, season-aware). **Anti-alucinación dura** en el system prompt. Persona configurable por tenant (`agent_system_prompt`) o default. Output limitado a 320 tokens (costo). `agentConfigured()` decide si corre.
+- `app/api/twilio/webhook/route.ts`: rama "sin código" → identifica cabaña por tag `[C:<uuid>]` del mensaje pre-llenado o por memoria de conversación; carga contexto; corre el agente; guarda conversación en `whatsapp_conversations`; handoff al dueño si el turista pide humano. **Todo best-effort** (sin LLM_API_KEY / tabla / datos → cae al handoff existente). La rama de booking codes quedó intacta.
+- `app/components/WhatsAppAgentButton.tsx` + wiring en `[slug]/page.tsx`: botón flotante click-to-WhatsApp al número del sistema con tag de cabaña. `agent_whatsapp` expuesto por la API.
+
+**Criterios:** ✅ responde con datos reales (tools), nunca inventados; ✅ link con `source=whatsapp_agent`; ✅ booking codes siguen funcionando; ✅ sin `LLM_API_KEY` se salta y hace handoff (anotado en BLOCKERS). Build: ✅.
+**Blocker:** requiere `LLM_API_KEY`/`LLM_API_URL`/`LLM_MODEL` (endpoint OpenAI-compatible). Sin esto el agente no corre (handoff al dueño). Botón por-cabaña en cards de templates = follow-up (hoy 1 botón flotante con la 1ª cabaña).
+
+### FASE 4–5, 7-dashboard, 10 — pendientes

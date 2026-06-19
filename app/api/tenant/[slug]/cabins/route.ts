@@ -74,6 +74,8 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       extra_services: tenant.extra_services || [],
       template: tenant.template || "clasico",
       suspended: !tenant.manual_billing && tenant.billing_status === "suspended",
+      // Número del agente WhatsApp (compartido del sistema). null si no hay agente.
+      agent_whatsapp: (process.env.TWILIO_WHATSAPP_FROM || "").replace("whatsapp:", "") || null,
     },
     cabins: cabinsWithReviews,
   })

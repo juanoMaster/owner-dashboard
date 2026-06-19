@@ -5,6 +5,7 @@ import TemplateClasico from "./templates/TemplateClasico"
 import TemplateModerno from "./templates/TemplateModerno"
 import TemplateRural from "./templates/TemplateRural"
 import JsonLd from "../components/JsonLd"
+import WhatsAppAgentButton from "../components/WhatsAppAgentButton"
 import { buildVacationRental, buildBreadcrumb } from "../../lib/schema"
 
 interface Cabin {
@@ -24,6 +25,7 @@ interface TenantData {
   extra_services?: Array<{ name: string; price: number }>
   template?: string | null
   guidebook?: { checkin_time?: string; checkout_time?: string } | null
+  agent_whatsapp?: string | null
   suspended?: boolean
 }
 
@@ -113,9 +115,12 @@ function SlugInner() {
 
   const template = tenant.template ?? "clasico"
   const schema = <LandingSchema tenant={tenant} cabins={cabins} slug={slug} />
-  if (template === "moderno") return <>{schema}<TemplateModerno tenant={tenant} cabins={cabins} /></>
-  if (template === "rural") return <>{schema}<TemplateRural tenant={tenant} cabins={cabins} /></>
-  return <>{schema}<TemplateClasico tenant={tenant} cabins={cabins} /></>
+  const waButton = cabins.length > 0
+    ? <WhatsAppAgentButton agentWhatsapp={tenant.agent_whatsapp} cabinId={cabins[0].id} cabinName={cabins[0].name} businessName={tenant.business_name} />
+    : null
+  if (template === "moderno") return <>{schema}<TemplateModerno tenant={tenant} cabins={cabins} />{waButton}</>
+  if (template === "rural") return <>{schema}<TemplateRural tenant={tenant} cabins={cabins} />{waButton}</>
+  return <>{schema}<TemplateClasico tenant={tenant} cabins={cabins} />{waButton}</>
 }
 
 export default function SlugPage() {
