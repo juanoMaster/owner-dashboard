@@ -60,7 +60,7 @@ export async function GET(
       .single()
 
     const monthLabel = `${String(stmt.period_month).padStart(2, "0")}/${stmt.period_year}`
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
 
     if (tenant?.email_owner) {
       getResend().emails.send({
@@ -114,7 +114,7 @@ function htmlPage(title: string, message: string, success: boolean) {
     <div style="font-size:48px;margin-bottom:16px;">${success ? "✓" : "✗"}</div>
     <h1 style="font-family:Georgia,serif;font-size:24px;font-weight:400;color:${color};margin:0 0 16px;">${he(title)}</h1>
     <p style="color:#5a7058;font-size:14px;line-height:1.6;margin:0;">${he(message)}</p>
-    <p style="margin:32px 0 0;"><a href="https://panel.takai.cl" style="color:#7ab87a;font-size:12px;text-decoration:none;letter-spacing:2px;">VOLVER AL PANEL</a></p>
+    <p style="margin:32px 0 0;"><a href="https://owner-dashboard-navy.vercel.app" style="color:#7ab87a;font-size:12px;text-decoration:none;letter-spacing:2px;">VOLVER AL PANEL</a></p>
   </div>
 </body></html>`
 }

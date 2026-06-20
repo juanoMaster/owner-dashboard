@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
                 owner_name: tenant.owner_name,
                 plan: sub2?.plan ?? "fundador",
                 amount: sub2?.amount ?? 19990,
-                facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`,
+                facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`,
               }),
             }).catch(() => {})
           }
@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
               business_name: tFail.business_name,
               owner_name: tFail.owner_name,
               failed_payments: failed,
-              facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`,
+              facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`,
             }),
           }).catch(() => {})
         }

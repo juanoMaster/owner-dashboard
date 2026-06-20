@@ -163,8 +163,8 @@ export async function POST(req: Request) {
     // WhatsApp al propietario
     if (tenantConfig?.owner_whatsapp) {
       const panelUrl = tenantConfig.dashboard_token
-        ? `https://panel.takai.cl/?token=${tenantConfig.dashboard_token}`
-        : "https://panel.takai.cl"
+        ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${tenantConfig.dashboard_token}`
+        : (process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app")
       const ownerMsg = `🏡 Nueva reserva manual en ${cabin.name}\n👤 ${guest_name}\n📅 Check-in: ${check_in} → Check-out: ${check_out}\n💰 Total: ${fmtAmt(total)}\nVer reserva: ${panelUrl}`
       sendWhatsApp({ to: tenantConfig.owner_whatsapp, message: ownerMsg, tenantId: tenant_id }).catch(() => {})
     }

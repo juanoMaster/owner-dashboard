@@ -316,7 +316,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                             </a>
                           )}
                           {t.dashboard_token && (
-                            <a href={(process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                            <a href={(process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app") + "/?token=" + t.dashboard_token} target="_blank" rel="noopener noreferrer" style={{ ...BTN("#c8b878"), textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
                               Abrir panel
                             </a>
                           )}
@@ -452,12 +452,12 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                   <input
                     readOnly
-                    value={`https://panel.takai.cl/?token=${newTokenValue}`}
+                    value={`${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${newTokenValue}`}
                     style={{ fontFamily: "monospace", fontSize: "12px", color: "#7ab87a", background: "#060e06", padding: "10px 14px", borderRadius: "8px", border: "1px solid #27ae6040", flex: 1, outline: "none" }}
                   />
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://panel.takai.cl/?token=${newTokenValue}`)
+                      navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${newTokenValue}`)
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}

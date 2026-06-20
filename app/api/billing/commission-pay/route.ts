@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       .eq("id", tenant_id)
       .single()
 
-    const backUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`
+    const backUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`
     const monthLabel = `${stmt.period_year}-${String(stmt.period_month).padStart(2, "0")}`
 
     // Crear preference de pago único en MercadoPago

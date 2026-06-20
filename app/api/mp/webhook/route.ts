@@ -99,8 +99,8 @@ export async function POST(req: NextRequest) {
       // WhatsApp al propietario
       if (tenant?.owner_whatsapp) {
         const panelUrl = tenant.dashboard_token
-          ? `https://panel.takai.cl/?token=${tenant.dashboard_token}`
-          : "https://panel.takai.cl"
+          ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${tenant.dashboard_token}`
+          : (process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app")
         const cabinName = (booking.cabins as any)?.name || "Cabaña"
         const cur = (tenant as any).currency || "CLP"
         const totalFmt = cur === "USD"

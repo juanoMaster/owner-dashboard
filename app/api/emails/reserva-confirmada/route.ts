@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         weekday: "long", year: "numeric", month: "long", day: "numeric"
       })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
     const guidebookHasContent = t.guidebook && Object.values(t.guidebook).some((v: any) => v && String(v).trim().length > 0)
     const guidebookUrl = guidebookHasContent ? `${appUrl}/bienvenida/${booking.booking_code}` : undefined
 

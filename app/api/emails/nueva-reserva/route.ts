@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const t = booking.tenants
     const nights = booking.nights
     const depositAmount = booking.deposit_amount
-    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://panel.takai.cl"}/?token=${t.dashboard_token}`
+    const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://owner-dashboard-navy.vercel.app"}/?token=${t.dashboard_token}`
 
     const formatDate = (d: string) =>
       new Date(d + "T12:00:00").toLocaleDateString("es-CL", {

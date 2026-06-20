@@ -178,7 +178,7 @@ export async function POST(req: Request) {
     })
 
     if (guest_email) {
-      fetch((process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl") + "/api/emails/nueva-reserva", {
+      fetch((process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app") + "/api/emails/nueva-reserva", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET}` },
         body: JSON.stringify({ booking_id: bookingId })
@@ -200,8 +200,8 @@ export async function POST(req: Request) {
         : currency === "COP" ? "$" + Math.round(n).toLocaleString("es-CO") + " COP"
         : "$" + Math.round(n).toLocaleString("es-CL")
       const panelUrl = tenantConfig.dashboard_token
-        ? `https://panel.takai.cl/?token=${tenantConfig.dashboard_token}`
-        : "https://panel.takai.cl"
+        ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${tenantConfig.dashboard_token}`
+        : (process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app")
       const ownerMsg = `🏡 Nueva reserva en ${cabin.name}\n👤 ${guest_name}\n📅 Check-in: ${check_in} → Check-out: ${check_out}\n💰 Total: ${fmtAmt(total)}\nVer reserva: ${panelUrl}`
       sendWhatsApp({ to: tenantConfig.owner_whatsapp, message: ownerMsg, tenantId: tenant_id }).catch(() => {})
     }

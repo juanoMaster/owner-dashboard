@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     const amount = sub?.amount ?? 19990
     const currency = sub?.currency ?? "CLP"
     const plan = sub?.plan ?? "fundador"
-    const backUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`
+    const backUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`
 
     const mpToken = process.env.MP_PLATFORM_ACCESS_TOKEN
     if (!mpToken) return NextResponse.json({ error: "Billing no configurado" }, { status: 500 })

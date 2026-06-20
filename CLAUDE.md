@@ -140,7 +140,7 @@ Los cron jobs se autentican con `Authorization: Bearer CRON_SECRET`.
 | `RESEND_API_KEY` | API key de Resend para emails | Sí |
 | `ADMIN_TOKEN` | Token para acceder al panel admin global | Sí |
 | `CRON_SECRET` | Bearer token para autenticar cron jobs de Vercel | Sí |
-| `NEXT_PUBLIC_APP_URL` | URL base del panel (default: `https://panel.takai.cl`) | Sí |
+| `NEXT_PUBLIC_APP_URL` | URL base del panel. Fallback en código: `https://owner-dashboard-navy.vercel.app` (estable). Setear a `https://panel.takai.cl` solo cuando ese dominio esté bien asignado en Vercel. `middleware.ts` mantiene `panel.takai.cl` en `PASSTHROUGH_HOSTS` para el ruteo del host. | Sí |
 | `NEXT_PUBLIC_RESERVAS_URL` | URL del sitio de reservas (default: `https://reservas.takai.cl`) | Sí |
 | `TWILIO_ACCOUNT_SID` | Account SID de Twilio para WhatsApp saliente | Sí |
 | `TWILIO_AUTH_TOKEN` | Auth token de Twilio | Sí |

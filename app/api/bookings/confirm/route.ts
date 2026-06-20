@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       performed_by: "owner_panel",
     })
 
-    fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/api/emails/reserva-confirmada`, {
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/api/emails/reserva-confirmada`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.CRON_SECRET}` },
       body: JSON.stringify({ booking_id })
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         .eq("id", tenant_id)
         .maybeSingle()
       const businessName = tenantData?.business_name || ""
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
       const msg = `✅ ¡Reserva confirmada! ${businessName}\n📅 Check-in: ${booking.check_in} | Check-out: ${booking.check_out}\nNos vemos pronto 🏡\nCódigo: ${booking.booking_code}\n📖 Manual de bienvenida: ${appUrl}/bienvenida/${booking.booking_code}`
       sendWhatsApp({ to: booking.guest_phone, message: msg, tenantId: tenant_id }).catch(() => {})
     }

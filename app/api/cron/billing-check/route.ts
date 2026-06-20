@@ -162,7 +162,7 @@ export async function GET(req: Request) {
             reservas_count: reservasCount,
             monto_total: montoTotal,
             currency: tenant.currency || "CLP",
-            facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`,
+            facturacion_url: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`,
           }),
         })
 

@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       .eq("id", tenant_id)
       .single()
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
     const ackUrl = `${appUrl}/api/billing/ack/${ackToken}`
     const monthLabel = `${String(stmt.period_month).padStart(2, "0")}/${stmt.period_year}`
     const adminEmail = process.env.ADMIN_EMAIL ?? "contacto@takai.cl"

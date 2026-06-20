@@ -99,7 +99,7 @@ export async function GET(req: Request) {
     })
 
     if (commissionAmount > 0 && tenant.email_owner && !tenant.manual_billing) {
-      const facturacionUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"}/dashboard/facturacion`
+      const facturacionUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`
       const mpEnabled = currency === "CLP" && !!process.env.MP_PLATFORM_ACCESS_TOKEN
       await resend.emails.send({
         from: "Takai <hola@takai.cl>",

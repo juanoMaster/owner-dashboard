@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
 
 async function callEndpoint(path: string, secret: string) {
   try {

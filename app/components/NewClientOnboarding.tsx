@@ -7,7 +7,7 @@ import TenantFormFields, {
   type TenantFormState,
 } from "./TenantFormFields"
 
-const PANEL_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+const PANEL_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
 const RESERVAS_BASE = "https://reservas.takai.cl"
 
 type Extra = { name: string; price: string }

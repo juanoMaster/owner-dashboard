@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   let sent = 0
   const resend = getResend()
 
-  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
 
   for (const booking of bookings) {
     const t = booking.tenants as any

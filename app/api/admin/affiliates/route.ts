@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     if (error.code === "23505") return NextResponse.json({ error: "Ese code ya existe" }, { status: 409 })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
   return NextResponse.json({
     success: true,
     affiliate: data,

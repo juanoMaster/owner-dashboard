@@ -97,8 +97,8 @@ export async function POST(req: Request) {
 
     if (tenantMeta?.owner_whatsapp) {
       const panelUrl = tenantMeta.dashboard_token
-        ? `https://panel.takai.cl/?token=${tenantMeta.dashboard_token}`
-        : "https://panel.takai.cl"
+        ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${tenantMeta.dashboard_token}`
+        : (process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app")
       const cabinName = (booking.cabins as any)?.name || "Cabaña"
       const ownerMsg =
         `📎 Comprobante recibido — Reserva ${bookingCode}\n` +
@@ -170,7 +170,7 @@ export async function POST(req: Request) {
 
               // Handoff a humano si el turista lo pidió
               if (result.handoff && tenant.owner_whatsapp) {
-                const panelUrl = tenant.dashboard_token ? `https://panel.takai.cl/?token=${tenant.dashboard_token}` : "https://panel.takai.cl"
+                const panelUrl = tenant.dashboard_token ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${tenant.dashboard_token}` : (process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app")
                 sendWhatsApp({ to: tenant.owner_whatsapp, message: `🙋 Un turista pide hablar contigo sobre ${cabin.name} (${guestPhone}):\n"${body.slice(0, 200)}"\n${panelUrl}`, tenantId: tenant.id }).catch(() => {})
               }
 
@@ -203,8 +203,8 @@ export async function POST(req: Request) {
 
     if (tenantMeta?.owner_whatsapp) {
       const panelUrl = tenantMeta.dashboard_token
-        ? `https://panel.takai.cl/?token=${tenantMeta.dashboard_token}`
-        : "https://panel.takai.cl"
+        ? `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/?token=${tenantMeta.dashboard_token}`
+        : (process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app")
       const ownerMsg =
         `⚠️ Mensaje sin código de reserva de ${guestPhone}:\n` +
         `"${body.slice(0, 200)}"\n` +

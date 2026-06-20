@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   }
 
   const supabase = getSupabaseAdmin()
-  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? "https://panel.takai.cl"
+  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"
   const reservasBase = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"
 
   const target = new Date()
