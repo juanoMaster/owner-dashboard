@@ -192,3 +192,20 @@ Tras las 11 fases, Juan pidió cerrar todos los pendientes técnicos a mi alcanc
 3. Comprar dominio del directorio, `npm install && build` del directorio, deploy en Vercel aparte.
 4. Verificar Rich Results Test, Search Console, crear Fichas Google.
 5. Revisar y **mergear `feature/motor-reservas` a `main`**.
+
+---
+
+## ADDENDUM 2 (2026-06-19) — Dominio `panel.takai.cl` mal configurado
+
+**Descubrimiento de la sesión:** `panel.takai.cl` muestra la cabaña de `cabanas-majoaal-licanray` en vez del panel de admin.
+
+**Diagnóstico (verificado en código):** el ruteo está CORRECTO. `middleware.ts` tiene `panel.takai.cl` en `PASSTHROUGH_HOSTS` y `"panel"` en `SPECIAL_SUBDOMAINS` → no se reescribe, va al panel del dueño. `next.config.js` y `vercel.json` no tienen redirects/rewrites a tenants. **La causa es infraestructura: la asignación del dominio en Vercel/DNS** (apunta al proyecto/deployment equivocado). NO es arreglable desde el código → acción humana (opción A).
+
+**Lo que SÍ se arregló en código (commits `19fdcfc`, `8a5b2b5` y este):**
+- ✅ **Migración 011**: URL del cron corregida a `https://owner-dashboard-navy.vercel.app` (URL estable, no depende del dominio roto).
+- ✅ **Fallback de `NEXT_PUBLIC_APP_URL` centralizado a `https://owner-dashboard-navy.vercel.app`** en TODO el código (21 archivos). Antes el fallback era `panel.takai.cl` (roto).
+- ✅ **~7 hardcodeos eliminados**: `twilio/webhook` (×3), `bookings/route`, `bookings/manual`, `mp/webhook`, `AdminDashboard` (link de token, ×2), `billing/ack` (href de email) ahora usan `process.env.NEXT_PUBLIC_APP_URL ?? "vercel.app"`. Verificado con grep: 0 hardcodeos restantes en código (solo `middleware.ts` PASSTHROUGH, que debe quedar).
+- ✅ **Cron diario** (`/api/cron/daily`) usa `NEXT_PUBLIC_APP_URL` con el fallback estable → ya no llama a un dominio roto.
+- ✅ Build ✅ + `tsc --noEmit` ✅ (0 errores). `.env.example` y `CLAUDE.md` actualizados.
+
+**Por qué importa:** los links que reciben los dueños por WhatsApp/email (entrar a su panel) y el orquestador de crons dependían de `panel.takai.cl`. Con el dominio roto, todo eso fallaba. Ahora caen a la URL `.vercel.app` que siempre sirve la app.

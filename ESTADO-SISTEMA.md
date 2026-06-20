@@ -25,6 +25,11 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 - Build owner-dashboard: ✅ (27 páginas). Directorio: revisado, no buildeado (deps no instaladas).
 - **PENDIENTE DE JUAN:** aplicar migraciones 011/012/013; env vars LLM_*, DIRECTORY_DOMAIN, SEARCH_CONSOLE_VERIFICATION; deploy del directorio; merge de la rama a main. (Modelo de comisión: ✅ RESUELTO 2026-06-19 — ver arriba.)
 
+**Continuación 2026-06-19 — Fix dominio panel.takai.cl + centralización de URL base:**
+- **Descubierto:** `panel.takai.cl` carga la cabaña de `cabanas-majoaal-licanray` en vez del panel. **No es bug de código** (el `middleware.ts` rutea bien `panel.takai.cl` al panel); es la asignación del dominio en **Vercel/DNS** (apunta al proyecto/deployment equivocado). → acción humana, ver BLOCKERS 🔴.
+- **Arreglado en código:** fallback de `NEXT_PUBLIC_APP_URL` centralizado a `https://owner-dashboard-navy.vercel.app` (URL estable) en 21 archivos; eliminados los ~7 hardcodeos de `panel.takai.cl` (twilio webhook, bookings, bookings/manual, mp webhook, AdminDashboard token link, billing/ack). `middleware.ts` conserva `panel.takai.cl` en PASSTHROUGH (correcto). Cron diario `/api/cron/daily` ya usa la base URL con fallback estable. Migración 011 con URL `.vercel.app`. Verificado: grep = 0 hardcodeos en código; build ✅; `tsc --noEmit` ✅. Commits `19fdcfc`, `8a5b2b5` y el de docs.
+- **PENDIENTE DE JUAN (nuevo):** arreglar la asignación de `panel.takai.cl` en Vercel; setear env var `NEXT_PUBLIC_APP_URL`; revisar Deployment Protection en `*.vercel.app` antes de aplicar la 011. Ver BLOCKERS 🔴.
+
 **Sesión anterior (2026-06-18):** Fix preview reserva manual + soft-delete en admin + auditoría final completa
 
 **Esta iteración del loop (2026-06-18 sesión final):**

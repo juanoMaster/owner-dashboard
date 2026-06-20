@@ -5,6 +5,18 @@
 
 ## Acciones humanas requeridas (HUMAN_TODO)
 
+### 🔴 PRIORIDAD ALTA — Dominio `panel.takai.cl` mal configurado en Vercel/DNS
+**Síntoma:** `panel.takai.cl` carga la cabaña de `cabanas-majoaal-licanray` en vez del panel de admin.
+**Causa:** NO es código (el `middleware.ts` rutea `panel.takai.cl` al panel correctamente). Es la **asignación del dominio en Vercel** — apunta al proyecto/deployment equivocado o tiene un redirect.
+**Lo que hay que hacer (solo tú puedes, es infra):**
+1. Vercel → proyecto **owner-dashboard** → Settings → **Domains**: verifica que `panel.takai.cl` esté asignado a este proyecto, en **Production (branch `main`)**.
+2. Busca si `panel.takai.cl` está asignado a **otro proyecto** Vercel (algún "takai"/landing viejo) o tiene un **Redirect** configurado. Quítalo de ahí.
+3. DNS: `panel.takai.cl` debe ser CNAME → `cname.vercel-dns.com` y estar asignado a este proyecto.
+4. **Mientras tanto, en Vercel env vars deja `NEXT_PUBLIC_APP_URL=https://owner-dashboard-navy.vercel.app`** (URL estable). Cuando confirmes que `panel.takai.cl` ya carga el panel, recién ahí cámbiala a `https://panel.takai.cl`.
+5. **Deployment Protection:** si el dominio `*.vercel.app` tiene "Vercel Authentication" activado, bloquearía las llamadas del pg_cron (migración 011) al endpoint. Desactívalo para ese path o usa el dominio custom una vez arreglado.
+
+**Ya resuelto en código (no requiere acción tuya):** todos los fallback de `NEXT_PUBLIC_APP_URL` y los ~7 hardcodeos ahora caen a `owner-dashboard-navy.vercel.app`; el cron diario también. Ver PROGRESO ADDENDUM 2.
+
 ### Migraciones SQL
 - ✅ **`012_rls_verification.sql` APLICADA a producción** (2026-06-19, idempotente, sin cambios destructivos).
 - ✅ **`013_motor_reservas.sql` APLICADA a producción** (2026-06-19). Verificado: 2 columnas nuevas en `bookings` (31 reservas existentes backfilled a `owner_direct`), 4 tablas nuevas con RLS, 3 columnas nuevas en `tenants`. Datos intactos.
