@@ -2,8 +2,9 @@
 -- FASE 1 — Auto-cancelación de reservas pendientes a las 3 HORAS.
 --
 -- ⚠ NO aplicar tal cual. Antes de ejecutar en Supabase SQL Editor:
---    1. Reemplazar  __PROJECT_URL__  por la URL real del panel
---       (ej. https://panel.takai.cl). NO uses localhost.
+--    1. La URL del panel en producción es https://owner-dashboard-navy.vercel.app
+--       (NO panel.takai.cl — ese dominio está mal configurado en Vercel/DNS, ver
+--       PROGRESO/BLOCKERS). Usamos la URL .vercel.app que es estable y sí sirve la app.
 --    2. Reemplazar  __CRON_SECRET__  por el valor real de CRON_SECRET.
 --    Como este archivo embebe un secreto, se aplica MANUALMENTE (no se commitea
 --    el secreto). Ver BLOCKERS.md.
@@ -40,7 +41,7 @@ SELECT cron.schedule(
   '*/15 * * * *',
   $job$
     SELECT net.http_get(
-      url     := '__PROJECT_URL__/api/cron/cancelar-pendientes',
+      url     := 'https://owner-dashboard-navy.vercel.app/api/cron/cancelar-pendientes',
       headers := jsonb_build_object(
         'Authorization', 'Bearer __CRON_SECRET__'
       )
