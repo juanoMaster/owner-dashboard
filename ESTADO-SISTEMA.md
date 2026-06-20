@@ -22,7 +22,7 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 - **Fase 10:** `lib/cabin-validation.ts` + `/api/admin/cabins/readiness` (gating de publicación).
 - **Fase 11:** asistente Ficha de Google (`/api/tenant/gbp` + `/dashboard/google`).
 - Migración 013: tablas nuevas (affiliates, reviews, email_opt_out, whatsapp_conversations) todas con RLS desde creación.
-- Build owner-dashboard: ✅ (27 páginas). Directorio: revisado, no buildeado (deps no instaladas).
+- Build owner-dashboard: ✅ (27 páginas). Directorio: `npm install` ✅ + `tsc --noEmit` ✅ (type-check limpio); `next build` completo requiere `SUPABASE_SERVICE_ROLE_KEY` (acción de Juan).
 - **PENDIENTE DE JUAN:** aplicar migraciones 011/012/013; env vars LLM_*, DIRECTORY_DOMAIN, SEARCH_CONSOLE_VERIFICATION; deploy del directorio; merge de la rama a main. (Modelo de comisión: ✅ RESUELTO 2026-06-19 — ver arriba.)
 
 **Continuación 2026-06-19 — Fix dominio panel.takai.cl + centralización de URL base:**

@@ -115,7 +115,7 @@
 - Páginas: `app/page.tsx` (home: destinos + destacadas, ISR 1h), `app/[destino]/page.tsx` (SSG, contenido único + enlaces internos + cabañas del destino), `app/cabana/[id]/page.tsx` (SSG/ISR, galería, schema JSON-LD, botón **Reservar** → motor existente con atribución, botón **WhatsApp** con tag `[C:id]`), `not-found.tsx`.
 - **Excluido del build de `takai.cl`** (tsconfig root `exclude: ["directorio"]`) → no contamina B2B ni rompe el build principal (verificado: 27 páginas, sin rutas directorio).
 
-**Criterios:** ✅ lista cabañas activas desde Supabase; ✅ "Reservar" lleva al motor con `source=directory` (+`ref`); ✅ no expone inactivos/eliminados/suspendidos (filtro en `data.ts`); ✅ schema VacationRental incluido. **Blocker:** comprar `DIRECTORY_DOMAIN`, `npm install` + deploy en Vercel aparte (no se pudo `npm install` en esta sesión; código revisado, no buildeado).
+**Criterios:** ✅ lista cabañas activas desde Supabase; ✅ "Reservar" lleva al motor con `source=directory` (+`ref`); ✅ no expone inactivos/eliminados/suspendidos (filtro en `data.ts`); ✅ schema VacationRental incluido. **Blocker:** comprar `DIRECTORY_DOMAIN` + deploy en Vercel aparte. `npm install` ✅ (35 paquetes) y `tsc --noEmit` ✅ (type-check limpio) ya verificados; el `next build` completo (SSG) requiere `SUPABASE_SERVICE_ROLE_KEY` real.
 
 ### FASE 5 — SEO del directorio — ✅ COMPLETA
 - `app/sitemap.ts` dinámico (home + 4 destinos + todas las cabañas publicables; ISR → se actualiza al agregar cabaña). `app/robots.ts`.
@@ -159,7 +159,7 @@
 
 ## CHECKLIST FINAL
 - [x] Todo el trabajo en `feature/motor-reservas`, **NO** en `main`.
-- [x] `npm run build` del owner-dashboard pasa (27 páginas). Directorio: revisado, sin buildear (deps no instaladas).
+- [x] `npm run build` del owner-dashboard pasa (27 páginas). Directorio: `npm install` ✅ + `tsc --noEmit` ✅; `next build` SSG requiere credenciales (Juan).
 - [x] Fase 1: auto-cancelación a 3h (constante única + pg_cron; validado dry-run read-only).
 - [x] Fase 2: RLS auditado (15/15 tablas con RLS) **sin romper accesos** (no se tocaron políticas existentes).
 - [x] Fase 3: schema VacationRental (pendiente Rich Results Test sobre URL real → BLOCKERS).
