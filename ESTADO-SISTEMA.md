@@ -5,8 +5,20 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-06-19
-**Sesión:** Motor de Reservas (PLAN_NOCHE_TAKAI.md) — rama `feature/motor-reservas` (NO en main)
+**Fecha:** 2026-07-04
+**Sesión:** Revisión de pendientes + cierre de contradicción #1 y reseñas en directorio
+
+**Sesión 2026-07-04 — Revisión de pendientes e implementación de los viables:**
+- **Verificado:** la rama `feature/motor-reservas` ya está 100% mergeada en `main` (`git log main..feature/motor-reservas` vacío). La nota anterior "NO en main" quedó obsoleta.
+- **Contradicción #1 RESUELTA:** `app/api/cron/cancelar-pendientes/route.ts` ahora envía email al turista al auto-cancelar (template `emailReservaCancelada`, mismo que `/api/bookings/cancel`), además del WhatsApp. `guest_email` agregado al SELECT. Envío best-effort con try-catch por booking (no rompe el loop).
+- **Directorio B2C — reseñas (follow-up de BLOCKERS):** `directorio/lib/data.ts` consulta `reviews` aprobadas en batch (misma agregación que `/api/tenant/[slug]/cabins`); `directorio/lib/schema.ts` emite `aggregateRating` + `review` en el JSON-LD (estrellas en Google Rich Results); `CabinCard.tsx` muestra "★ 4.8 (N reseñas)"; página de cabaña lista hasta 10 reseñas.
+- **Evaluados y descartados (con razón):** P2-6 timezones (decisión previa: posponer hasta tenant con problema real), P3-1 estilo createClient (churn sin valor funcional), botón WA por cabaña en templates (descartado a propósito, bajo valor), P3-4 archivos muertos (requiere instrucción explícita de Juan).
+- Build owner-dashboard ✅ (27 páginas); `tsc --noEmit` del directorio ✅.
+- **Pendientes de Juan sin cambio:** migración 011 (pg_cron, requiere CRON_SECRET), dominio `panel.takai.cl` en Vercel/DNS, env vars `LLM_*`/`DIRECTORY_DOMAIN`/`SEARCH_CONSOLE_VERIFICATION`/`GOOGLE_PLACES_API_KEY`, compra dominio directorio + deploy, Search Console, GBP, Sernatur.
+
+---
+
+**Sesión anterior (2026-06-19):** Motor de Reservas (PLAN_NOCHE_TAKAI.md) — rama `feature/motor-reservas` (ya mergeada a main)
 
 **Tanda nocturna 2026-06-19 — Motor de Reservas (rama feature/motor-reservas, sin tocar main):**
 Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO.md`; pendientes humanos en `BLOCKERS.md`. Resumen:
@@ -321,4 +333,5 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 | 2026-06-18 | XSS fix en solicitar-review (esc() en guest_name/business_name/review_url); cabin delete limpia Storage; embed widget ahora incluye calendar_blocks (bloques manuales se mostraban como disponibles — bug crítico); tinaja_price desde tenants (no hardcoded 30000); moneda dinámica en WA de nueva reserva turista y propietario; validación fecha POST /api/calendar. |
 | 2026-06-18 (cont.) | Timing attack en mp/webhook tenant (duplicate verifyMpSignature → ahora importa timingSafeEqual de lib/mp-verify); trial 3 meses en onboard (era 30 días); tinaja cascade cabin→tenant en bookings/manual; moneda dinámica en WA de reserva manual; exclusión mp_preference_id en crons cancelar-pendientes y recordatorio-transferencia (evita cancelar reservas MP con webhook demorado). |
 | 2026-06-18 (loop) | XSS fix en resumen-semanal (guest_name sin escapar); WISE_ACCOUNT_PLACEHOLDER reemplazado por TAKAI_BANK_* env vars; preview email protegido con NODE_ENV check. Auditoría final: admin/page, [slug]/page, pago-pendiente/page, facturacion/page, historial/page, dashboard/route, generate-commission-statements, billing/status, vercel.json — todos sólidos. Zero dangerouslySetInnerHTML en el codebase. |
+| 2026-07-04 | Revisión de pendientes: contradicción #1 resuelta (email al turista en cron cancelar-pendientes); reseñas en directorio B2C (data + schema aggregateRating + UI). Verificado feature/motor-reservas mergeada en main. |
 | 2026-06-18 (hardening) | XSS fix en billing/ack (htmlPage sin escapar title/message/owner_name); billing/report-transfer (business_name en email admin); billing/webhook (owner_name en email de pago); fix bookings/cancel (limpieza secundaria de calendar_blocks podía borrar bloques de OTRAS reservas con mismas fechas — .is("booking_id", null) agregado). Hardening final lib/resend.ts: header()/footer() ahora usan esc(business_name), detailRow("Cabaña") usa esc(cabin_name) en los 5 templates, emailTrialEnding/emailPastDue usan esc(owner_name) — XSS audit de lib/resend.ts 100% completo. |

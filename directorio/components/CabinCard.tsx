@@ -23,6 +23,14 @@ export default function CabinCard({ cabin }: { cabin: DirCabin }) {
           <div style={{ color: "#8a9e88", fontSize: "13px", marginBottom: "8px" }}>
             {cabin.tenant.location_text || cabin.destino?.nombre || ""} · hasta {cabin.capacity} personas
           </div>
+          {cabin.review_summary && cabin.review_summary.count > 0 ? (
+            <div style={{ color: "#e8d5a3", fontSize: "13px", marginBottom: "8px" }}>
+              ★ {cabin.review_summary.average.toFixed(1)}{" "}
+              <span style={{ color: "#5a7058" }}>
+                ({cabin.review_summary.count} {cabin.review_summary.count === 1 ? "reseña" : "reseñas"})
+              </span>
+            </div>
+          ) : null}
           {cabin.base_price_night ? (
             <div style={{ color: "#7ab87a", fontSize: "15px", fontWeight: 700 }}>
               {fmt(cabin.base_price_night, cabin.tenant.currency)} <span style={{ color: "#5a7058", fontWeight: 400, fontSize: "12px" }}>/ noche</span>

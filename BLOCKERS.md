@@ -64,5 +64,5 @@
 ### Fase 6 — follow-up (cosmético, NO hecho a propósito)
 - Botón WhatsApp **por cabaña** dentro de las cards de las templates. Se dejó el botón flotante (con la 1ª cabaña), que ya cubre el caso (casi todos los tenants tienen 1 cabaña). En el directorio sí hay botón por cabaña. Bajo valor; no se invirtió en cablear el número de agente a las 3 templates.
 
-### Directorio — follow-up (no hecho)
-- El directorio B2C no muestra reseñas todavía (su `lib/data.ts` no las consulta). La landing del owner sí. Mejora menor cuando el directorio esté en producción.
+### Directorio — follow-up — ✅ HECHO (2026-07-04)
+- ✅ El directorio B2C ahora muestra reseñas: `lib/data.ts` consulta `reviews` aprobadas (batch, misma agregación que la landing del owner), `lib/schema.ts` emite `aggregateRating` + `review` en el JSON-LD VacationRental (estrellas en Google), `CabinCard` muestra promedio compacto y la página de cabaña lista hasta 10 reseñas.

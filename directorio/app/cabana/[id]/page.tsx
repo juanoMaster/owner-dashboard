@@ -69,6 +69,11 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
       <h1 style={{ fontFamily: "Georgia, serif", fontSize: "30px", fontWeight: 400, color: "#e8d5a3", margin: "0 0 6px" }}>{cabin.name}</h1>
       <p style={{ color: "#8a9e88", fontSize: "14px", margin: "0 0 20px" }}>
         {cabin.tenant.location_text} · hasta {cabin.capacity} personas
+        {cabin.review_summary && cabin.review_summary.count > 0 ? (
+          <span style={{ color: "#e8d5a3" }}>
+            {" "}· ★ {cabin.review_summary.average.toFixed(1)} ({cabin.review_summary.count} {cabin.review_summary.count === 1 ? "reseña" : "reseñas"})
+          </span>
+        ) : null}
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "8px", marginBottom: "24px" }}>
@@ -86,6 +91,28 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {amenities.map((a, i) => (
               <span key={i} style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "6px", padding: "6px 12px", color: "#8a9e88", fontSize: "13px" }}>{a}</span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {cabin.review_summary && cabin.review_summary.reviews.length > 0 ? (
+        <div style={{ margin: "20px 0" }}>
+          <h2 style={{ fontSize: "13px", textTransform: "uppercase", letterSpacing: "2px", color: "#5a7058", marginBottom: "10px" }}>
+            Reseñas de huéspedes
+          </h2>
+          <div style={{ display: "grid", gap: "10px" }}>
+            {cabin.review_summary.reviews.map((r, i) => (
+              <div key={i} style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "8px", padding: "14px 16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: "6px", flexWrap: "wrap" }}>
+                  <span style={{ color: "#e8d5a3", fontSize: "14px", fontWeight: 700 }}>{r.author}</span>
+                  <span style={{ color: "#e8d5a3", fontSize: "13px" }}>
+                    {"★".repeat(Math.max(1, Math.min(5, Math.round(r.rating))))}
+                    <span style={{ color: "#5a7058" }}>{r.date ? ` · ${r.date}` : ""}</span>
+                  </span>
+                </div>
+                {r.body ? <p style={{ color: "#8a9e88", fontSize: "14px", lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap" }}>{r.body}</p> : null}
+              </div>
             ))}
           </div>
         </div>

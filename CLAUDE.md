@@ -472,11 +472,11 @@ Nota: `@vercel/analytics` está en dependencies y en `app/layout.tsx`.
 
 ## Contradicciones pendientes — Juan decide
 
-| # | Dónde | Situación | Impacto |
-|---|-------|-----------|---------|
-| 1 | `cancelar-pendientes` notificación | Task spec pedía email al turista al cancelar; código envía solo WhatsApp | Si el turista no tiene WhatsApp configurado no recibe aviso |
+(Ninguna pendiente.)
 
-**Resueltas:** Los crons `cancelar-pendientes` y `recordatorio-transferencia` son daily (`0 9 * * *` / `30 9 * * *`) según vercel.json — la tabla en este archivo ya refleja eso.
+**Resueltas:**
+- Los crons `cancelar-pendientes` y `recordatorio-transferencia` son daily (`0 9 * * *` / `30 9 * * *`) según vercel.json — la tabla en este archivo ya refleja eso.
+- ✅ 2026-07-04: `cancelar-pendientes` ahora envía **email + WhatsApp** al turista al auto-cancelar (usa `emailReservaCancelada`, mismo template que `/api/bookings/cancel`). El turista sin WhatsApp igual recibe aviso.
 
 ---
 

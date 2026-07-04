@@ -1,6 +1,12 @@
 import { getSupabase } from "./supabase"
 import { matchDestino, Destino } from "./destinos"
 
+export interface DirReviewSummary {
+  count: number
+  average: number
+  reviews: Array<{ author: string; rating: number; body: string; date?: string }>
+}
+
 export interface DirCabin {
   id: string
   name: string
@@ -9,6 +15,7 @@ export interface DirCabin {
   photos: string[]
   description: string | null
   amenities: unknown
+  review_summary: DirReviewSummary | null
   tenant: {
     id: string
     slug: string | null
@@ -78,6 +85,7 @@ export async function getPublishedCabins(): Promise<DirCabin[]> {
       photos,
       description: (c as any).description,
       amenities: (c as any).amenities,
+      review_summary: null,
       tenant: {
         id: t.id, slug: t.slug, business_name: t.business_name, currency: t.currency,
         location_text: t.location_text, latitude: t.latitude, longitude: t.longitude, country: t.country,
@@ -85,6 +93,38 @@ export async function getPublishedCabins(): Promise<DirCabin[]> {
       destino: matchDestino(t.location_text),
     })
   }
+
+  // Reseñas aprobadas por cabaña (misma agregación que la landing del owner;
+  // alimentan aggregateRating del schema y la sección de reseñas).
+  if (result.length > 0) {
+    const { data: revs } = await supabase
+      .from("reviews")
+      .select("cabin_id, rating, comment, guest_name, created_at")
+      .eq("status", "approved")
+      .in("cabin_id", result.map((c) => c.id))
+      .order("created_at", { ascending: false })
+    const byCabin = new Map<string, DirReviewSummary>()
+    for (const r of revs || []) {
+      const key = (r as any).cabin_id as string
+      let bucket = byCabin.get(key)
+      if (!bucket) { bucket = { count: 0, average: 0, reviews: [] }; byCabin.set(key, bucket) }
+      bucket.count++
+      bucket.average += (r as any).rating || 0
+      if (bucket.reviews.length < 10) {
+        bucket.reviews.push({
+          author: (r as any).guest_name || "Huésped",
+          rating: (r as any).rating,
+          body: (r as any).comment || "",
+          date: (((r as any).created_at as string) || "").split("T")[0] || undefined,
+        })
+      }
+    }
+    for (const bucket of Array.from(byCabin.values())) {
+      bucket.average = bucket.count > 0 ? Math.round((bucket.average / bucket.count) * 10) / 10 : 0
+    }
+    for (const c of result) c.review_summary = byCabin.get(c.id) || null
+  }
+
   return result
 }
 

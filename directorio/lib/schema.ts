@@ -39,6 +39,25 @@ export function buildVacationRental(cabin: DirCabin, url: string): Record<string
   if (cabin.base_price_night && cabin.base_price_night > 0) {
     node.offers = { "@type": "Offer", price: cabin.base_price_night, priceCurrency: currency, availability: "https://schema.org/InStock", url }
   }
+  // Reseñas (Fase 9). Si no hay, se omiten (no inventar) — igual que el owner-dashboard.
+  if (cabin.review_summary && cabin.review_summary.count > 0) {
+    node.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: Number(cabin.review_summary.average.toFixed(1)),
+      reviewCount: cabin.review_summary.count,
+      bestRating: 5,
+      worstRating: 1,
+    }
+    if (cabin.review_summary.reviews.length > 0) {
+      node.review = cabin.review_summary.reviews.slice(0, 10).map((r) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: r.author },
+        reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+        reviewBody: r.body,
+        ...(r.date ? { datePublished: r.date } : {}),
+      }))
+    }
+  }
   return node
 }
 

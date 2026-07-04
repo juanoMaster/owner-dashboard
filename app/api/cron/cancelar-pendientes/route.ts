@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { sendWhatsApp } from "@/lib/whatsapp"
+import { getResend, emailReservaCancelada } from "@/lib/resend"
 
 // Fuente única de verdad del umbral de auto-cancelación.
 // Los clientes pidieron 3h (antes el default por-tenant era 12h). El plan
@@ -43,7 +44,7 @@ export async function GET(req: Request) {
       // y sin mp_preference_id (no cancelar flujos MP que esperan webhook)
       const { data: bookings, error: bookingsErr } = await supabase
         .from("bookings")
-        .select("id, booking_code, cabin_id, check_in, check_out, guest_phone, guest_name, cabins(name)")
+        .select("id, booking_code, cabin_id, check_in, check_out, guest_phone, guest_name, guest_email, cabins(name)")
         .eq("tenant_id", tenant.id)
         .eq("status", "draft")
         .is("deleted_at", null)
@@ -95,6 +96,31 @@ export async function GET(req: Request) {
             const reservasUrl = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"
             const msg = `Tu reserva ${booking.booking_code} en ${cabinName} fue cancelada automáticamente por no recibir comprobante de pago a tiempo.\nPuedes hacer una nueva reserva en: ${reservasUrl}`
             sendWhatsApp({ to: booking.guest_phone, message: msg, tenantId: tenant.id }).catch(() => {})
+          }
+
+          // Email al turista — el WhatsApp solo llega si tiene el número activo;
+          // el email garantiza que siempre reciba el aviso de cancelación.
+          if (booking.guest_email && booking.booking_code) {
+            try {
+              const cabinName = (booking.cabins as any)?.name || "Cabaña"
+              const formatDate = (d: string) =>
+                new Date(d + "T12:00:00").toLocaleDateString("es-CL", {
+                  weekday: "long", year: "numeric", month: "long", day: "numeric",
+                })
+              await getResend().emails.send({
+                from: tenant.business_name + " <reservas@takai.cl>",
+                to: booking.guest_email,
+                subject: "Reserva no confirmada — " + booking.booking_code + " | " + tenant.business_name,
+                html: emailReservaCancelada({
+                  business_name: tenant.business_name,
+                  guest_name: booking.guest_name || "Huésped",
+                  cabin_name: cabinName,
+                  check_in: formatDate(booking.check_in),
+                  check_out: formatDate(booking.check_out),
+                  booking_code: booking.booking_code,
+                }),
+              })
+            } catch (_) {}
           }
 
           cancelled.push(booking.booking_code ?? booking.id)
