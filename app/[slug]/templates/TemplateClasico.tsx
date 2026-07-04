@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 
 const MapaUbicacion = dynamic(() => import("@/app/components/MapaUbicacion"), { ssr: false })
 import ReviewStars from "@/app/components/ReviewStars"
+import WhatsAppCabinButton from "@/app/components/WhatsAppCabinButton"
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
@@ -20,6 +21,7 @@ interface TenantData {
   owner_whatsapp?: string | null; template?: string | null
   latitude?: number | null; longitude?: number | null
   extra_services?: Array<{ name: string; price: number }>
+  agent_whatsapp?: string | null
 }
 
 const GOLD = "#C9A84C"; const GOLD_L = "#d4b96a"; const BG = "#060606"
@@ -262,6 +264,7 @@ export default function TemplateClasico({ tenant, cabins }: { tenant: TenantData
                         <span>Reservar</span>
                         <span style={{ fontFamily: SERIF, fontSize: "15px", fontWeight: 300 }}>→</span>
                       </a>
+                      <WhatsAppCabinButton agentWhatsapp={tenant.agent_whatsapp} cabinId={cabin.id} cabinName={cabin.name} />
                     </div>
                   </div>
                 </div>

@@ -4,3 +4,4 @@ node_modules
 .env.local
 .vercel
 TOKEN POWERSHIELD.txt
+*.tsbuildinfo

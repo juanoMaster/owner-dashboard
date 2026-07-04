@@ -14,6 +14,10 @@
 - **Directorio B2C — reseñas (follow-up de BLOCKERS):** `directorio/lib/data.ts` consulta `reviews` aprobadas en batch (misma agregación que `/api/tenant/[slug]/cabins`); `directorio/lib/schema.ts` emite `aggregateRating` + `review` en el JSON-LD (estrellas en Google Rich Results); `CabinCard.tsx` muestra "★ 4.8 (N reseñas)"; página de cabaña lista hasta 10 reseñas.
 - **Evaluados y descartados (con razón):** P2-6 timezones (decisión previa: posponer hasta tenant con problema real), P3-1 estilo createClient (churn sin valor funcional), botón WA por cabaña en templates (descartado a propósito, bajo valor), P3-4 archivos muertos (requiere instrucción explícita de Juan).
 - Build owner-dashboard ✅ (27 páginas); `tsc --noEmit` del directorio ✅.
+
+**Sesión 2026-07-04 (continuación) — P3-4 + estructura botón WhatsApp por cabaña (instrucción de Juan):**
+- **P3-4 RESUELTO:** los archivos muertos listados ya no existían (borrados en sesión previa). Limpieza real: gitlink roto `claude-webkit` (submódulo accidental, modo 160000, sin `.gitmodules`) des-trackeado y carpeta vacía eliminada; carpeta vacía `landing/` eliminada; `tsconfig.tsbuildinfo` (artefacto de build trackeado por error) removido del índice + `*.tsbuildinfo` en `.gitignore`.
+- **Botón WhatsApp por cabaña — estructura armada, INACTIVA:** `app/components/WhatsAppCabinButton.tsx` (nuevo) cableado en las cards de las 3 templates con `agent_whatsapp` + tag `[C:<cabin_id>]`. Gateado por `NEXT_PUBLIC_WA_CABIN_BUTTON=true` (env var, documentada en CLAUDE.md y `.env.example`) — activar a futuro no requiere tocar código. `agent_whatsapp` agregado al interface `TenantData` de las 3 templates.
 - **Pendientes de Juan sin cambio:** migración 011 (pg_cron, requiere CRON_SECRET), dominio `panel.takai.cl` en Vercel/DNS, env vars `LLM_*`/`DIRECTORY_DOMAIN`/`SEARCH_CONSOLE_VERIFICATION`/`GOOGLE_PLACES_API_KEY`, compra dominio directorio + deploy, Search Console, GBP, Sernatur.
 
 ---
@@ -275,8 +279,8 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 #### ~~P3-3: resumen-semanal detecta género por heurística~~ ✅ RESUELTO 2026-06-17
 **Fix:** Usa `tenants.gender` de la DB; fallback a heurística si null.
 
-#### P3-4: Archivos muertos en raíz del repo
-**Borrar solo con instrucción explícita de Juan.**
+#### ~~P3-4: Archivos muertos en raíz del repo~~ ✅ RESUELTO 2026-07-04
+**Instrucción explícita de Juan.** Los archivos listados ya no existían; se limpió el gitlink `claude-webkit`, la carpeta vacía `landing/` y se des-trackeó `tsconfig.tsbuildinfo`.
 
 #### P3-5: review_sent_at y mp_preference_id no documentadas en CLAUDE.md schema
 **Fix:** Ya aplicadas en producción vía 008_indexes.sql. CLAUDE.md debería documentarlas.
@@ -294,7 +298,7 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 
 ### Pendiente (antes de 10 clientes)
 1. ~~[P2-8] Confirmar con Juan: ¿comisiones por `created_at` o `check_in`?~~ ✅ check_in implementado
-2. [P3-4] Limpiar archivos muertos en raíz (con OK de Juan)
+2. ~~[P3-4] Limpiar archivos muertos en raíz~~ ✅ Resuelto 2026-07-04 con OK de Juan
 
 ### Pendiente (antes de 50 clientes)
 4. ~~[P2-1b] Paginación en admin dashboard~~ ✅ Resuelto: filtro por 2 años reemplaza `.limit(2000)`

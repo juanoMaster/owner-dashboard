@@ -61,8 +61,8 @@
 ### Fase 10 — follow-up — ✅ HECHO
 - ✅ Panel "Directorio: X/Y listas" en el tab Cabañas del admin (`DirectoryReadiness`), muestra qué falta por cabaña.
 
-### Fase 6 — follow-up (cosmético, NO hecho a propósito)
-- Botón WhatsApp **por cabaña** dentro de las cards de las templates. Se dejó el botón flotante (con la 1ª cabaña), que ya cubre el caso (casi todos los tenants tienen 1 cabaña). En el directorio sí hay botón por cabaña. Bajo valor; no se invirtió en cablear el número de agente a las 3 templates.
+### Fase 6 — follow-up — ✅ ESTRUCTURA ARMADA (2026-07-04, inactiva por decisión de Juan)
+- Botón WhatsApp **por cabaña**: `app/components/WhatsAppCabinButton.tsx` creado y cableado en las cards de las 3 templates (Clásico/Moderno/Rural) con `agent_whatsapp` + tag `[C:<cabin_id>]`. **Inactivo por defecto** — se activa seteando `NEXT_PUBLIC_WA_CABIN_BUTTON=true` en Vercel, sin cambios de código. El botón flotante sigue activo siempre.
 
 ### Directorio — follow-up — ✅ HECHO (2026-07-04)
 - ✅ El directorio B2C ahora muestra reseñas: `lib/data.ts` consulta `reviews` aprobadas (batch, misma agregación que la landing del owner), `lib/schema.ts` emite `aggregateRating` + `review` en el JSON-LD VacationRental (estrellas en Google), `CabinCard` muestra promedio compacto y la página de cabaña lista hasta 10 reseñas.

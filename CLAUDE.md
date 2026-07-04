@@ -146,6 +146,7 @@ Los cron jobs se autentican con `Authorization: Bearer CRON_SECRET`.
 | `TWILIO_AUTH_TOKEN` | Auth token de Twilio | Sí |
 | `TWILIO_WHATSAPP_FROM` | Número Twilio en formato `whatsapp:+1...` | Sí |
 | `HEALTH_CHECK_KEY` | Clave para autorizar `/api/health` vía header `x-health-key` o query `?key=` | Opcional |
+| `NEXT_PUBLIC_WA_CABIN_BUTTON` | `"true"` activa el botón WhatsApp **por cabaña** en las cards de las 3 templates (`WhatsAppCabinButton.tsx`). Estructura cableada pero inactiva por defecto (decisión de Juan 2026-07-04). | Opcional |
 
 ## Schema de Supabase
 
@@ -460,9 +461,8 @@ Auditado leyendo el código fuente (INVENTARIO-REAL-2026-06.md, fusionado a este
 - `/api/twilio/webhook` — verificación de `X-Twilio-Signature` implementada (HMAC-SHA1 + timing-safe compare). ✅ Resuelto 2026-06-13.
 - 42 rutas API usan `SUPABASE_SERVICE_ROLE_KEY` (bypassa RLS por diseño, ok para server-side).
 
-### Archivos muertos en raíz del repo (candidatos a borrar)
-`diagnostico.txt`, `todo_el_sistema.txt`, `archivos_takai.txt`, `ESTADO_SISTEMA.md`, `CONTINUIDAD-TAKAI-2026-04-14.md`, `CONTEXT.md`, `_tmp_volver.txt`, `fix_admin_api.js`, `landing/index.html`.
-No los elimino sin instrucción explícita de Juan.
+### Archivos muertos en raíz del repo — ✅ RESUELTO 2026-07-04 (instrucción de Juan)
+Los archivos listados (`diagnostico.txt`, `todo_el_sistema.txt`, etc.) ya no existían en el repo (borrados en sesión previa). En esta pasada se limpió lo que quedaba: gitlink roto `claude-webkit` (submódulo accidental sin `.gitmodules`), carpeta vacía `landing/`, y `tsconfig.tsbuildinfo` des-trackeado (+ `*.tsbuildinfo` en `.gitignore`).
 
 ### Integraciones confirmadas como activas
 MercadoPago Marketplace (turistas→propietarios) ✅, Twilio/WhatsApp ✅, Resend ✅, FullCalendar ✅, Recharts ✅.

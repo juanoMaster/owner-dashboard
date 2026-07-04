@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import ReviewStars from "@/app/components/ReviewStars"
+import WhatsAppCabinButton from "@/app/components/WhatsAppCabinButton"
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
@@ -15,6 +16,7 @@ interface TenantData {
   location_maps_url?: string | null; tagline?: string | null
   activities?: Array<{ icon: string; name: string } | string>; page_rules?: Array<string | Record<string, string>>
   owner_whatsapp?: string | null; template?: string | null
+  agent_whatsapp?: string | null
 }
 
 const BROWN = "#6b4c2a"
@@ -180,6 +182,7 @@ export default function TemplateRural({ tenant, cabins }: { tenant: TenantData; 
                       Reservar
                       <span style={{ fontSize: "16px", fontWeight: 300 }}>→</span>
                     </a>
+                    <WhatsAppCabinButton agentWhatsapp={tenant.agent_whatsapp} cabinId={cabin.id} cabinName={cabin.name} />
                   </div>
                 </div>
               </div>
