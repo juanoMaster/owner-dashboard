@@ -1,31 +1,46 @@
 "use client"
-// Botón flotante click-to-WhatsApp hacia el agente IA (Fase 6).
-// Apunta al número compartido del sistema con un mensaje pre-llenado que incluye
-// el tag [C:<cabin_id>] para que el agente sepa de qué cabaña se trata.
+// Botón flotante hacia el agente IA de Takai (Fase 6 + integración takai-agent).
+// - Con número (agentWhatsapp): click-to-WhatsApp al número compartido del
+//   sistema, con mensaje pre-llenado que incluye [<slug>] (ruteo de tenant del
+//   agente nuevo en ag.takai.cl) y [C:<cabin_id>] (contrato del webhook legado).
+// - Sin número (hoy): abre el chat web del agente en https://<slug>.ag.takai.cl/embed
+//   para que el turista converse con el agente igual, sin contactar al dueño.
+
+const AGENT_CHAT_DOMAIN = process.env.NEXT_PUBLIC_AGENT_CHAT_DOMAIN || "ag.takai.cl"
 
 export default function WhatsAppAgentButton({
   agentWhatsapp,
+  slug,
   cabinId,
   cabinName,
   businessName,
 }: {
   agentWhatsapp?: string | null
+  slug?: string | null
   cabinId?: string | null
   cabinName?: string | null
   businessName?: string | null
 }) {
-  if (!agentWhatsapp || !cabinId) return null
+  let href: string | null = null
+  let label = "Consultar por WhatsApp"
 
-  const number = agentWhatsapp.replace(/[^\d]/g, "")
-  const text = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabinName || businessName || "la cabaña"}. [C:${cabinId}]`
-  const href = `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  if (agentWhatsapp && cabinId) {
+    const number = agentWhatsapp.replace(/[^\d]/g, "")
+    const text = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabinName || businessName || "la cabaña"}. [${slug || ""}] [C:${cabinId}]`
+    href = `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  } else if (slug) {
+    href = `https://${slug}.${AGENT_CHAT_DOMAIN}/embed`
+    label = "Consultar disponibilidad"
+  }
+
+  if (!href) return null
 
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Consultar por WhatsApp"
+      aria-label={label}
       style={{
         position: "fixed", right: "20px", bottom: "20px", zIndex: 9999,
         background: "#25D366", color: "#fff", borderRadius: "50px",
@@ -35,7 +50,7 @@ export default function WhatsAppAgentButton({
       }}
     >
       <span style={{ fontSize: "20px", lineHeight: 1 }}>💬</span>
-      <span>Consultar por WhatsApp</span>
+      <span>{label}</span>
     </a>
   )
 }

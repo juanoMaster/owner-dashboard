@@ -128,7 +128,7 @@ function SlugInner() {
   const template = tenant.template ?? "clasico"
   const schema = <LandingSchema tenant={tenant} cabins={cabins} slug={slug} />
   const waButton = cabins.length > 0
-    ? <WhatsAppAgentButton agentWhatsapp={tenant.agent_whatsapp} cabinId={cabins[0].id} cabinName={cabins[0].name} businessName={tenant.business_name} />
+    ? <WhatsAppAgentButton agentWhatsapp={tenant.agent_whatsapp} slug={slug} cabinId={cabins[0].id} cabinName={cabins[0].name} businessName={tenant.business_name} />
     : null
   if (template === "moderno") return <>{schema}<TemplateModerno tenant={tenant} cabins={cabins} />{waButton}</>
   if (template === "rural") return <>{schema}<TemplateRural tenant={tenant} cabins={cabins} />{waButton}</>
