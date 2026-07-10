@@ -17,6 +17,7 @@ interface TenantData {
   activities?: Array<{ icon: string; name: string } | string>; page_rules?: Array<string | Record<string, string>>
   owner_whatsapp?: string | null; template?: string | null
   agent_whatsapp?: string | null
+  slug?: string | null
 }
 
 const BROWN = "#6b4c2a"
@@ -182,7 +183,7 @@ export default function TemplateRural({ tenant, cabins }: { tenant: TenantData; 
                       Reservar
                       <span style={{ fontSize: "16px", fontWeight: 300 }}>→</span>
                     </a>
-                    <WhatsAppCabinButton agentWhatsapp={tenant.agent_whatsapp} cabinId={cabin.id} cabinName={cabin.name} />
+                    <WhatsAppCabinButton agentWhatsapp={tenant.agent_whatsapp} slug={tenant.slug} cabinId={cabin.id} cabinName={cabin.name} />
                   </div>
                 </div>
               </div>

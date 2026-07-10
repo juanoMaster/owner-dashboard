@@ -53,9 +53,15 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
     ? (cabin.amenities as any[]).map((a) => (typeof a === "string" ? a : a?.name)).filter(Boolean)
     : []
 
+  // Mismo contrato que los botones de las landing: con número → wa.me con tags
+  // [<slug>] (agente nuevo) + [C:<cabin_id>] (webhook legado); sin número → chat web.
   const agentWa = (process.env.TWILIO_WHATSAPP_FROM || "").replace(/[^\d]/g, "")
-  const waText = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabin.name}. [C:${cabin.id}]`
-  const waHref = agentWa ? `https://wa.me/${agentWa}?text=${encodeURIComponent(waText)}` : null
+  const agentChatDomain = process.env.NEXT_PUBLIC_AGENT_CHAT_DOMAIN || "ag.takai.cl"
+  const waText = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabin.name}. [${cabin.tenant.slug || ""}] [C:${cabin.id}]`
+  const waHref = agentWa
+    ? `https://wa.me/${agentWa}?text=${encodeURIComponent(waText)}`
+    : cabin.tenant.slug ? `https://${cabin.tenant.slug}.${agentChatDomain}/embed` : null
+  const waLabel = agentWa ? "Consultar por WhatsApp" : "Consultar disponibilidad"
 
   return (
     <main style={{ maxWidth: "920px", margin: "0 auto", padding: "32px 20px" }}>
@@ -125,7 +131,7 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
           </div>
         ) : <span style={{ marginRight: "auto" }} />}
         {waHref ? (
-          <a href={waHref} target="_blank" rel="noopener noreferrer" style={{ background: "#25D366", color: "#fff", padding: "14px 22px", borderRadius: "8px", textDecoration: "none", fontWeight: 700, fontSize: "14px" }}>Consultar por WhatsApp</a>
+          <a href={waHref} target="_blank" rel="noopener noreferrer" style={{ background: "#25D366", color: "#fff", padding: "14px 22px", borderRadius: "8px", textDecoration: "none", fontWeight: 700, fontSize: "14px" }}>{waLabel}</a>
         ) : null}
         <a href={reservaUrl(cabin)} style={{ background: "#7ab87a", color: "#0d1a12", padding: "14px 28px", borderRadius: "8px", textDecoration: "none", fontWeight: 700, fontSize: "14px" }}>Reservar →</a>
       </div>

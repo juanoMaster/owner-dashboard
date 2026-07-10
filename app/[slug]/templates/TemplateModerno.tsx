@@ -17,6 +17,7 @@ interface TenantData {
   activities?: Array<{ icon: string; name: string } | string>; page_rules?: Array<string | Record<string, string>>
   owner_whatsapp?: string | null; template?: string | null
   agent_whatsapp?: string | null
+  slug?: string | null
 }
 
 const ACCENT = "#1a5c2e"
@@ -160,7 +161,7 @@ export default function TemplateModerno({ tenant, cabins }: { tenant: TenantData
                       style={{ display: "block", width: "100%", background: "#111111", color: "#ffffff", borderRadius: "10px", padding: "14px 0", textAlign: "center" as const, fontSize: "13px", fontWeight: 700, textDecoration: "none", letterSpacing: "0.5px", boxSizing: "border-box" as const }}>
                       Reservar ahora
                     </a>
-                    <WhatsAppCabinButton agentWhatsapp={tenant.agent_whatsapp} cabinId={cabin.id} cabinName={cabin.name} />
+                    <WhatsAppCabinButton agentWhatsapp={tenant.agent_whatsapp} slug={tenant.slug} cabinId={cabin.id} cabinName={cabin.name} />
                   </div>
                 </div>
               </div>

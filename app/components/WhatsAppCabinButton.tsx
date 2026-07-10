@@ -1,28 +1,41 @@
 "use client"
 // Botón click-to-WhatsApp POR CABAÑA dentro de las cards de las templates
-// (Fase 6). ACTIVO por defecto desde 2026-07-10 (agente IA configurado por Juan):
+// (Fase 6 + integración takai-agent). ACTIVO por defecto desde 2026-07-10:
 // NEXT_PUBLIC_WA_CABIN_BUTTON=false en Vercel actúa como kill-switch sin tocar código.
-// Apunta al número compartido del sistema con el tag [C:<cabin_id>] para que el
-// agente sepa de qué cabaña se trata — mismo contrato que WhatsAppAgentButton.
-// Si TWILIO_WHATSAPP_FROM no está configurado, agentWhatsapp llega null y el
-// botón no se renderiza (no hay estado roto posible).
+// Mismo contrato que WhatsAppAgentButton (botón flotante):
+// - Con número (agentWhatsapp): wa.me al número compartido del sistema, con
+//   [<slug>] (ruteo de tenant del agente nuevo) y [C:<cabin_id>] (webhook legado).
+// - Sin número: abre el chat web del agente en https://<slug>.ag.takai.cl/embed.
 
 const ENABLED = process.env.NEXT_PUBLIC_WA_CABIN_BUTTON !== "false"
+const AGENT_CHAT_DOMAIN = process.env.NEXT_PUBLIC_AGENT_CHAT_DOMAIN || "ag.takai.cl"
 
 export default function WhatsAppCabinButton({
   agentWhatsapp,
+  slug,
   cabinId,
   cabinName,
 }: {
   agentWhatsapp?: string | null
+  slug?: string | null
   cabinId: string
   cabinName: string
 }) {
-  if (!ENABLED || !agentWhatsapp || !cabinId) return null
+  if (!ENABLED) return null
 
-  const number = agentWhatsapp.replace(/[^\d]/g, "")
-  const text = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabinName}. [C:${cabinId}]`
-  const href = `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  let href: string | null = null
+  let label = "Consultar por WhatsApp"
+
+  if (agentWhatsapp && cabinId) {
+    const number = agentWhatsapp.replace(/[^\d]/g, "")
+    const text = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabinName}. [${slug || ""}] [C:${cabinId}]`
+    href = `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  } else if (slug) {
+    href = `https://${slug}.${AGENT_CHAT_DOMAIN}/embed`
+    label = "Consultar disponibilidad"
+  }
+
+  if (!href) return null
 
   return (
     <a
@@ -38,7 +51,7 @@ export default function WhatsAppCabinButton({
       }}
     >
       <span style={{ fontSize: "16px", lineHeight: 1 }}>💬</span>
-      <span>Consultar por WhatsApp</span>
+      <span>{label}</span>
     </a>
   )
 }
