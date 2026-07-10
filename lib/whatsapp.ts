@@ -1,33 +1,33 @@
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 
+// El número saliente es SIEMPRE el compartido del sistema (TWILIO_WHATSAPP_FROM,
+// el del agente IA). El único gate por tenant es whatsapp_enabled — así un cliente
+// nuevo queda enlazado al agente desde el onboarding sin configuración extra.
+// (tenants.twilio_whatsapp es legacy y ya no participa.)
 export async function sendWhatsApp(params: {
   to: string
   message: string
   tenantId: string
   /** Skip the DB lookup if you already have the tenant's WhatsApp config */
   whatsappEnabled?: boolean
-  twilioWhatsappNumber?: string
 }): Promise<void> {
-  const { to, message, tenantId, whatsappEnabled, twilioWhatsappNumber } = params
+  const { to, message, tenantId, whatsappEnabled } = params
 
   let enabled: boolean
-  let twilioWa: string | null
 
-  if (whatsappEnabled !== undefined && twilioWhatsappNumber !== undefined) {
+  if (whatsappEnabled !== undefined) {
     enabled = whatsappEnabled
-    twilioWa = twilioWhatsappNumber
   } else {
     const supabase = getSupabaseAdmin()
     const { data: tenant } = await supabase
       .from("tenants")
-      .select("twilio_whatsapp, whatsapp_enabled")
+      .select("whatsapp_enabled")
       .eq("id", tenantId)
       .maybeSingle()
     enabled = tenant?.whatsapp_enabled ?? false
-    twilioWa = tenant?.twilio_whatsapp ?? null
   }
 
-  if (!twilioWa || !enabled) return
+  if (!enabled) return
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID
   const authToken = process.env.TWILIO_AUTH_TOKEN

@@ -112,6 +112,7 @@ token (URL) → SHA256 → dashboard_links.token_hash → tenant_id → todos lo
 | `/api/admin/onboard` | POST | Crea tenant + cabañas + dashboard_link en una operación |
 | `/api/admin/tokens` | GET/POST | Gestiona dashboard_links de un tenant |
 | `/api/admin/commissions` | PATCH | Actualiza estado de comisiones en reservas |
+| `/api/admin/billing` | POST | Suspende/activa billing de un tenant **manualmente** (`action: suspend\|activate`); actualiza `subscriptions.status` + `tenants.billing_status` (protegido por `ADMIN_TOKEN`) |
 | `/api/tenant/bank` | PATCH | Actualiza datos bancarios del tenant (bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email) |
 | `/api/trinidad/cabins` | GET | **Legacy** — usar `/api/tenant/[slug]/cabins` para casos nuevos |
 
@@ -125,7 +126,7 @@ token (URL) → SHA256 → dashboard_links.token_hash → tenant_id → todos lo
 | `0 10 * * 1` | `/api/emails/resumen-semanal` | Lunes 10:00 — resumen semanal al propietario |
 | `0 9 * * *` | `/api/cron/cancelar-pendientes` | ⚠ ver CONTRADICCIONES — cancela drafts vencidos según `transfer_timeout_hours` |
 | `30 9 * * *` | `/api/cron/recordatorio-transferencia` | ⚠ ver CONTRADICCIONES — WhatsApp a turistas sin comprobante |
-| `0 9 * * *` | `/api/cron/billing-check` | Diario 09:00 — suspende trials/past_due (solo subscription mode); alerta si free_until venció |
+| `0 9 * * *` | `/api/cron/billing-check` | Diario 09:00 — detecta trials/past_due vencidos y **avisa al admin para suspensión manual** (auto-suspensión solo si `BILLING_AUTO_SUSPEND=true`); alerta si free_until venció |
 | `0 10 1 * *` | `/api/cron/generate-commission-statements` | 1° de cada mes 10:00 — genera estados de cuenta de comisiones |
 
 Los cron jobs se autentican con `Authorization: Bearer CRON_SECRET`.
@@ -146,7 +147,8 @@ Los cron jobs se autentican con `Authorization: Bearer CRON_SECRET`.
 | `TWILIO_AUTH_TOKEN` | Auth token de Twilio | Sí |
 | `TWILIO_WHATSAPP_FROM` | Número Twilio en formato `whatsapp:+1...` | Sí |
 | `HEALTH_CHECK_KEY` | Clave para autorizar `/api/health` vía header `x-health-key` o query `?key=` | Opcional |
-| `NEXT_PUBLIC_WA_CABIN_BUTTON` | `"true"` activa el botón WhatsApp **por cabaña** en las cards de las 3 templates (`WhatsAppCabinButton.tsx`). Estructura cableada pero inactiva por defecto (decisión de Juan 2026-07-04). | Opcional |
+| `NEXT_PUBLIC_WA_CABIN_BUTTON` | Botón WhatsApp **por cabaña** en las cards de las 3 templates (`WhatsAppCabinButton.tsx`). **Activo por defecto** desde 2026-07-10 (agente IA configurado); `"false"` actúa como kill-switch. | Opcional |
+| `BILLING_AUTO_SUSPEND` | `"true"` reactiva la suspensión automática del cron `billing-check`. **Apagada por defecto** (decisión de Juan 2026-07-10): la suspensión/activación es manual desde `/admin` → Billing; el cron solo avisa por email. | Opcional |
 
 ## Schema de Supabase
 
@@ -341,7 +343,7 @@ Todas las tablas tienen RLS habilitado (migración 002). El `SUPABASE_SERVICE_RO
 
 **MercadoPago:** Paquete `mercadopago` v2. Cada tenant tiene su propio `mp_access_token` y `mp_webhook_secret`. El webhook verifica firma HMAC-SHA256 antes de confirmar la reserva.
 
-**Twilio/WhatsApp:** Sin SDK — llamadas REST directas a `api.twilio.com`. Envío vía `lib/whatsapp.ts`; recepción de comprobantes en `/api/twilio/webhook` (detecta booking codes con regex). El número `from` es compartido del sistema (`TWILIO_WHATSAPP_FROM`); el número `to` del tenant viene de `tenants.twilio_whatsapp`.
+**Twilio/WhatsApp:** Sin SDK — llamadas REST directas a `api.twilio.com`. Envío vía `lib/whatsapp.ts`; recepción de comprobantes en `/api/twilio/webhook` (detecta booking codes con regex). El número `from` es SIEMPRE el compartido del sistema (`TWILIO_WHATSAPP_FROM`, el del agente IA); el único gate por tenant es `tenants.whatsapp_enabled` (default `true` en onboarding — un cliente nuevo queda enlazado al agente sin configuración extra). `tenants.twilio_whatsapp` es legacy y ya no participa en el envío (desde 2026-07-10).
 
 **Resend:** Paquete `resend` v6. Templates HTML inline en `lib/resend.ts` (424 líneas). Tipos de email: `nueva-reserva`, `reserva-confirmada`, `recordatorio`, `resumen-semanal`, `solicitar-review`, alertas internas vía `lib/alertEmail.ts`.
 
@@ -423,7 +425,8 @@ Takai opera con dos modelos que coexisten. **NUNCA desactivar el módulo de comi
 - `POST /api/billing/commission-pay` — genera MP Preference para pago único de comisión.
 - `POST /api/billing/report-transfer` — tenant reporta que transfirió; genera ack_token.
 - `GET  /api/billing/ack/[token]` — admin confirma pago por transferencia.
-- `GET  /api/cron/billing-check` — diario 09:00 UTC: suspende trials/past_due (solo `billing_mode=subscription`). Para commission mode: solo alerta por email si `free_until` venció.
+- `GET  /api/cron/billing-check` — diario 09:00 UTC: detecta trials/past_due vencidos (solo `billing_mode=subscription`) y avisa al admin para suspensión **manual** (`/admin` → Billing); auto-suspende solo si `BILLING_AUTO_SUSPEND=true`. Para commission mode: solo alerta por email si `free_until` venció.
+- `POST /api/admin/billing` — suspensión/activación manual (`action: suspend|activate`); actualiza `subscriptions.status` + espejo `tenants.billing_status` + audit log.
 - `GET  /api/cron/generate-commission-statements` — 1° de cada mes 10:00 UTC.
 
 ### Variables de entorno billing

@@ -15,8 +15,14 @@ export async function GET(req: Request) {
   const supabase = getSupabaseAdmin()
   const resend = getResend()
 
+  // Decisión de Juan 2026-07-10: la suspensión es MANUAL (botones en /admin →
+  // Billing). El cron solo detecta y avisa al admin. Setear BILLING_AUTO_SUSPEND=true
+  // reactiva la suspensión automática de antes sin tocar código.
+  const AUTO_SUSPEND = process.env.BILLING_AUTO_SUSPEND === "true"
+
   const now = new Date()
   const suspended: string[] = []
+  const pendingManual: Array<{ tenant_id: string; reason: string }> = []
   const warned: string[] = []
   const errors: string[] = []
 
@@ -24,7 +30,7 @@ export async function GET(req: Request) {
     // ── 1. Solo actúa sobre billing_mode = 'subscription' ─────────────────
     // Los modos 'commission' y 'manual' nunca se suspenden automáticamente.
 
-    // Trials de subscripción vencidos sin preapproval → suspender
+    // Trials de subscripción vencidos sin preapproval
     const { data: expiredTrials } = await supabase
       .from("subscriptions")
       .select("id, tenant_id, trial_ends_at")
@@ -34,6 +40,10 @@ export async function GET(req: Request) {
       .lt("trial_ends_at", now.toISOString())
 
     for (const sub of expiredTrials ?? []) {
+      if (!AUTO_SUSPEND) {
+        pendingManual.push({ tenant_id: sub.tenant_id, reason: `trial vencido el ${sub.trial_ends_at}` })
+        continue
+      }
       try {
         await supabase.from("subscriptions").update({
           status: "suspended",
@@ -56,7 +66,7 @@ export async function GET(req: Request) {
       }
     }
 
-    // past_due de subscripción con >5 días sin pago → suspender
+    // past_due de subscripción con >5 días sin pago
     const fiveDaysAgo = new Date(now.getTime() - 5 * 86400 * 1000).toISOString()
     const { data: pastDue } = await supabase
       .from("subscriptions")
@@ -66,6 +76,10 @@ export async function GET(req: Request) {
       .or(`last_payment_at.is.null,last_payment_at.lt.${fiveDaysAgo}`)
 
     for (const sub of pastDue ?? []) {
+      if (!AUTO_SUSPEND) {
+        pendingManual.push({ tenant_id: sub.tenant_id, reason: `past_due sin pago desde ${sub.last_payment_at || "nunca"}` })
+        continue
+      }
       try {
         await supabase.from("subscriptions").update({
           status: "suspended",
@@ -85,6 +99,30 @@ export async function GET(req: Request) {
         suspended.push(sub.tenant_id)
       } catch (e: any) {
         errors.push(`past_due ${sub.tenant_id}: ${e.message}`)
+      }
+    }
+
+    // Modo manual: un solo email al admin con los candidatos a suspensión.
+    // Se repite cada día hasta que Juan actúe (suspender o resolver el pago).
+    if (!AUTO_SUSPEND && pendingManual.length > 0) {
+      try {
+        const ids = pendingManual.map((p) => p.tenant_id)
+        const { data: names } = await supabase
+          .from("tenants")
+          .select("id, business_name, slug")
+          .in("id", ids)
+        const nameById = new Map((names || []).map((t: any) => [t.id, `${t.business_name} (${t.slug})`]))
+        const lines = pendingManual
+          .map((p) => `- ${nameById.get(p.tenant_id) || p.tenant_id}: ${p.reason}`)
+          .join("\n")
+        await sendAlertEmail(
+          `Billing: ${pendingManual.length} cliente(s) para suspender manualmente`,
+          `Estos clientes en suscripción no tienen el pago al día:\n\n${lines}\n\n` +
+          `La suspensión automática está APAGADA — decide y suspende manualmente desde ` +
+          `el panel admin → tab Billing (botón "Suspender").`
+        )
+      } catch (e: any) {
+        errors.push(`pending manual alert: ${e.message}`)
       }
     }
 
@@ -179,8 +217,11 @@ export async function GET(req: Request) {
     // ── 4. Email past_due se envía en el webhook de billing (no aquí) ─────
 
     return NextResponse.json({
+      auto_suspend: AUTO_SUSPEND,
       suspended: suspended.length,
       suspended_ids: suspended,
+      pending_manual_suspension: pendingManual.length,
+      pending_manual_ids: pendingManual.map((p) => p.tenant_id),
       warned: warned.length,
       warned_ids: warned,
       free_until_expired: expiredAgreements?.length ?? 0,

@@ -5,8 +5,16 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-07-04
-**Sesión:** Revisión de pendientes + cierre de contradicción #1 y reseñas en directorio
+**Fecha:** 2026-07-10
+**Sesión:** Enlace del agente WhatsApp a todos los clientes + billing manual (suspender/activar desde admin)
+
+**Sesión 2026-07-10 — Agente WhatsApp enlazado + billing manual (instrucciones de Juan):**
+- **Contexto:** Juan compró el chip de prepago y configuró el agente IA de WhatsApp (env vars LLM_* y TWILIO_* operativas en Vercel).
+- **Botones enlazados:** `WhatsAppCabinButton` ahora ACTIVO por defecto (`NEXT_PUBLIC_WA_CABIN_BUTTON=false` queda como kill-switch). El flotante y el del directorio ya apuntaban al agente vía `TWILIO_WHATSAPP_FROM`.
+- **`lib/whatsapp.ts` — fix estructural:** el envío ya NO exige el legacy `tenants.twilio_whatsapp` (campo por-tenant que ningún cliente nuevo tendría); el único gate es `whatsapp_enabled` (default `true` en onboarding). Resultado: **un cliente nuevo queda 100% enlazado al agente en el ingreso** — botones en su landing con tag `[C:<cabin_id>]`, agente respondiendo, y notificaciones WhatsApp al dueño — sin ningún paso manual extra.
+- **Billing manual (decisión de Juan):** suspensión y reactivación son MANUALES desde `/admin` → tab Billing (columna Acciones: botón "Suspender" rojo / "Activar" verde, con confirm). Nueva ruta `POST /api/admin/billing` (action suspend|activate) que actualiza `subscriptions.status` + espejo `tenants.billing_status` + audit log (`billing_manual_suspended`/`billing_manual_activated`, performed_by `admin_panel`).
+- **Cron `billing-check`:** la auto-suspensión quedó APAGADA por defecto — ahora detecta trials/past_due vencidos y envía UN email al admin con la lista de candidatos (se repite a diario hasta que Juan actúe). `BILLING_AUTO_SUSPEND=true` reactiva el comportamiento automático anterior sin tocar código (pedido de Juan: "en un futuro lo haremos automático").
+- Docs: CLAUDE.md (env vars, crons, rutas, integración Twilio), `.env.example`, BLOCKERS al día.
 
 **Sesión 2026-07-04 — Revisión de pendientes e implementación de los viables:**
 - **Verificado:** la rama `feature/motor-reservas` ya está 100% mergeada en `main` (`git log main..feature/motor-reservas` vacío). La nota anterior "NO en main" quedó obsoleta.
@@ -337,5 +345,6 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 | 2026-06-18 | XSS fix en solicitar-review (esc() en guest_name/business_name/review_url); cabin delete limpia Storage; embed widget ahora incluye calendar_blocks (bloques manuales se mostraban como disponibles — bug crítico); tinaja_price desde tenants (no hardcoded 30000); moneda dinámica en WA de nueva reserva turista y propietario; validación fecha POST /api/calendar. |
 | 2026-06-18 (cont.) | Timing attack en mp/webhook tenant (duplicate verifyMpSignature → ahora importa timingSafeEqual de lib/mp-verify); trial 3 meses en onboard (era 30 días); tinaja cascade cabin→tenant en bookings/manual; moneda dinámica en WA de reserva manual; exclusión mp_preference_id en crons cancelar-pendientes y recordatorio-transferencia (evita cancelar reservas MP con webhook demorado). |
 | 2026-06-18 (loop) | XSS fix en resumen-semanal (guest_name sin escapar); WISE_ACCOUNT_PLACEHOLDER reemplazado por TAKAI_BANK_* env vars; preview email protegido con NODE_ENV check. Auditoría final: admin/page, [slug]/page, pago-pendiente/page, facturacion/page, historial/page, dashboard/route, generate-commission-statements, billing/status, vercel.json — todos sólidos. Zero dangerouslySetInnerHTML en el codebase. |
+| 2026-07-10 | Agente WhatsApp enlazado a todos los clientes (botón por cabaña activo por defecto; sendWhatsApp sin gate legacy twilio_whatsapp → nuevos clientes enlazados al ingreso). Billing manual: botones Suspender/Activar en admin (POST /api/admin/billing); auto-suspensión del cron apagada (BILLING_AUTO_SUSPEND para reactivar). |
 | 2026-07-04 | Revisión de pendientes: contradicción #1 resuelta (email al turista en cron cancelar-pendientes); reseñas en directorio B2C (data + schema aggregateRating + UI). Verificado feature/motor-reservas mergeada en main. |
 | 2026-06-18 (hardening) | XSS fix en billing/ack (htmlPage sin escapar title/message/owner_name); billing/report-transfer (business_name en email admin); billing/webhook (owner_name en email de pago); fix bookings/cancel (limpieza secundaria de calendar_blocks podía borrar bloques de OTRAS reservas con mismas fechas — .is("booking_id", null) agregado). Hardening final lib/resend.ts: header()/footer() ahora usan esc(business_name), detailRow("Cabaña") usa esc(cabin_name) en los 5 templates, emailTrialEnding/emailPastDue usan esc(owner_name) — XSS audit de lib/resend.ts 100% completo. |

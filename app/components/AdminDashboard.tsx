@@ -525,7 +525,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
         {tab === 6 && <ComisionesTab bookings={bookings} tenants={tenants} tenantMap={tenantMap} adminToken={adminToken} />}
 
         {/* ══ TAB 7: BILLING ══ */}
-        {tab === 7 && <BillingTab subscriptions={subscriptions} statements={statements} tenants={tenants} tenantMap={tenantMap} />}
+        {tab === 7 && <BillingTab subscriptions={subscriptions} statements={statements} tenants={tenants} tenantMap={tenantMap} adminToken={adminToken} />}
 
         {/* ══ TAB 8: RESEÑAS (moderación) ══ */}
         {tab === 8 && <ReviewsTab adminToken={adminToken} />}
@@ -1058,11 +1058,32 @@ function BillingBadge({ sub, bstatus, manual }: { sub?: any; bstatus?: string; m
 // ══ BILLING TAB ════════════════════════════
 const MONTHS_ES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
 
-function BillingTab({ subscriptions, statements, tenants, tenantMap }: any) {
+function BillingTab({ subscriptions, statements, tenants, tenantMap, adminToken }: any) {
   const [filterTenant, setFilterTenant] = useState("")
   const [filterMode, setFilterMode] = useState("")
   const [filterStmtTenant, setFilterStmtTenant] = useState("")
   const [filterStmtStatus, setFilterStmtStatus] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  // Suspensión/activación MANUAL (decisión de Juan 2026-07-10). La automática
+  // del cron está apagada salvo BILLING_AUTO_SUSPEND=true.
+  async function setBillingStatus(tenant_id: string, action: "suspend" | "activate") {
+    const name = tenantMap[tenant_id] || tenant_id
+    const msg = action === "suspend"
+      ? `¿Suspender a ${name}?\n\nSu landing pública y la creación de reservas quedarán bloqueadas (salvo billing manual).`
+      : `¿Reactivar a ${name}?\n\nSu landing y reservas volverán a funcionar de inmediato.`
+    if (!confirm(msg)) return
+    setSaving(true)
+    const res = await fetch("/api/admin/billing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+      body: JSON.stringify({ action, tenant_id }),
+    })
+    const r = await res.json()
+    setSaving(false)
+    if (r.success) window.location.reload()
+    else alert(r.error || "Error al actualizar el estado de billing")
+  }
   const IS: React.CSSProperties = { background: "#080610", border: "1px solid #2a1e38", borderRadius: "8px", color: "#c8b8e0", fontSize: "12px", padding: "7px 12px", outline: "none", fontFamily: "sans-serif" }
 
   const fmtAmt = (amt: number | null | undefined, currency: string) => {
@@ -1115,12 +1136,12 @@ function BillingTab({ subscriptions, statements, tenants, tenantMap }: any) {
           <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
             <thead>
               <tr>
-                {["Cliente", "Modo", "Estado", "Plan", "Comisión %", "Free hasta", "Trial hasta", "Último pago", "Pagos fallidos"].map(h => <th key={h} style={TH}>{h}</th>)}
+                {["Cliente", "Modo", "Estado", "Plan", "Comisión %", "Free hasta", "Trial hasta", "Último pago", "Pagos fallidos", "Acciones"].map(h => <th key={h} style={TH}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {filteredSubs.length === 0
-                ? <tr><td colSpan={9} style={{ ...TD, textAlign: "center" as const, padding: "32px", color: "#3a2e50" }}>Sin registros</td></tr>
+                ? <tr><td colSpan={10} style={{ ...TD, textAlign: "center" as const, padding: "32px", color: "#3a2e50" }}>Sin registros</td></tr>
                 : filteredSubs.map((s: any) => {
                   const t = tenants.find((t: any) => t.id === s.tenant_id)
                   const statusColor = s.status === "active" ? "#27ae60" : s.status === "trial" ? "#7ab87a" : s.status === "suspended" ? "#e63946" : "#5a4870"
@@ -1137,6 +1158,12 @@ function BillingTab({ subscriptions, statements, tenants, tenantMap }: any) {
                       <td style={{ ...TD, fontSize: "11px" }}>{s.trial_ends_at ? fmtDate(s.trial_ends_at) : "—"}</td>
                       <td style={{ ...TD, fontSize: "11px" }}>{s.last_payment_at ? fmtDate(s.last_payment_at) : "—"}</td>
                       <td style={{ ...TD, color: (s.failed_payments || 0) > 0 ? "#e63946" : "#3a2e50" }}>{s.failed_payments || 0}</td>
+                      <td style={TD}>
+                        {s.status === "suspended"
+                          ? <button onClick={() => setBillingStatus(s.tenant_id, "activate")} disabled={saving} style={BTN("#27ae60")}>Activar</button>
+                          : <button onClick={() => setBillingStatus(s.tenant_id, "suspend")} disabled={saving} style={BTN("#e63946")}>Suspender</button>
+                        }
+                      </td>
                     </tr>
                   )
                 })

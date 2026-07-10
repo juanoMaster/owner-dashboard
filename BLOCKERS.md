@@ -23,6 +23,7 @@
 - ⏳ **`011_pgcron_autocancel_3h.sql` PENDIENTE** — **requiere el `CRON_SECRET` real y la URL** (embebe el secreto; no lo tengo). Juan debe editarlo y aplicarlo en Supabase SQL Editor para activar el pg_cron de 15 min. Mientras tanto la auto-cancelación a 3h corre vía el orquestador diario (una vez al día) — funcional pero no garantiza la ventana de 3h hasta aplicar 011.
 
 ### Env vars que Juan debe configurar (sin esto, la fase relacionada queda inerte)
+- ✅ **Agente WhatsApp CONFIGURADO por Juan (2026-07-10)** — chip de prepago comprado y agente operativo. Los botones (flotante + por cabaña + directorio) quedaron enlazados y `lib/whatsapp.ts` ya no depende del legacy `tenants.twilio_whatsapp`: clientes nuevos quedan enlazados automáticamente en el onboarding.
 - `LLM_API_KEY`, `LLM_API_URL`, `LLM_MODEL` — Fase 6 (agente WhatsApp). Sin esto el agente no responde (cae al handoff al dueño).
   - **`LLM_API_URL` debe ser un endpoint OpenAI-compatible** (`.../chat/completions`) con soporte de `tools`/function-calling. Compatible con OpenAI, Gemini (vía gateway), Anthropic (endpoint compat) o cualquier proxy OpenAI-compatible. `LLM_MODEL` = nombre del modelo (ej. un modelo barato tipo Haiku/Flash).
   - `TWILIO_WHATSAPP_FROM` ya existe (número compartido del sistema). El botón click-to-WhatsApp apunta ahí con el tag `[C:<cabin_id>]`.

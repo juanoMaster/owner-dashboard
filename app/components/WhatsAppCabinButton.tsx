@@ -1,13 +1,13 @@
 "use client"
 // Botón click-to-WhatsApp POR CABAÑA dentro de las cards de las templates
-// (follow-up de Fase 6). ESTRUCTURA LISTA PERO INACTIVA por decisión de Juan:
-// se activa seteando NEXT_PUBLIC_WA_CABIN_BUTTON=true en Vercel, sin tocar código.
-// Mientras el flag esté apagado, el botón flotante (WhatsAppAgentButton) sigue
-// siendo el único punto de contacto con el agente IA.
+// (Fase 6). ACTIVO por defecto desde 2026-07-10 (agente IA configurado por Juan):
+// NEXT_PUBLIC_WA_CABIN_BUTTON=false en Vercel actúa como kill-switch sin tocar código.
 // Apunta al número compartido del sistema con el tag [C:<cabin_id>] para que el
 // agente sepa de qué cabaña se trata — mismo contrato que WhatsAppAgentButton.
+// Si TWILIO_WHATSAPP_FROM no está configurado, agentWhatsapp llega null y el
+// botón no se renderiza (no hay estado roto posible).
 
-const ENABLED = process.env.NEXT_PUBLIC_WA_CABIN_BUTTON === "true"
+const ENABLED = process.env.NEXT_PUBLIC_WA_CABIN_BUTTON !== "false"
 
 export default function WhatsAppCabinButton({
   agentWhatsapp,
