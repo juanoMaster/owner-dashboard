@@ -74,8 +74,11 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       extra_services: tenant.extra_services || [],
       template: tenant.template || "clasico",
       suspended: !tenant.manual_billing && tenant.billing_status === "suspended",
-      // Número del agente WhatsApp (compartido del sistema). null si no hay agente.
-      agent_whatsapp: (process.env.TWILIO_WHATSAPP_FROM || "").replace("whatsapp:", "") || null,
+      // Número WhatsApp del agente IA (el chip en Meta Cloud API, NO el número
+      // Twilio de notificaciones). Se setea NEXT_PUBLIC_AGENT_WHATSAPP recién
+      // cuando la app Meta esté publicada (Live); mientras sea null, los botones
+      // caen al chat web del agente en <slug>.ag.takai.cl/embed.
+      agent_whatsapp: (process.env.NEXT_PUBLIC_AGENT_WHATSAPP || "").replace("whatsapp:", "") || null,
     },
     cabins: cabinsWithReviews,
   })

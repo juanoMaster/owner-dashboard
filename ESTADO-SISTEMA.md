@@ -6,7 +6,13 @@
 
 ## Última actualización
 **Fecha:** 2026-07-10
-**Sesión:** Enlace del agente WhatsApp a todos los clientes + billing manual (suspender/activar desde admin)
+**Sesión:** Auditoría del agente + decisión: UN solo agente (takai-agent) — botones desacoplados de Twilio
+
+**Sesión 2026-07-10 (continuación) — Auditoría completa del agente y consolidación (decisión de Juan):**
+- **Auditoría (verificado contra producción):** existen DOS agentes. (1) Legacy en este repo: `lib/agent.ts` + webhook Twilio, número Twilio `+1 620 777 8395` (verificado vía `agent_whatsapp` en la API de prod). (2) Nuevo: repo `takai-agent` (monorepo aparte, misma BD), **EN PRODUCCIÓN en `ag.takai.cl`** — verificado HTTP 200 en `ag.takai.cl` y `el-mirador.ag.takai.cl/embed`. WhatsApp del nuevo = Meta Cloud API con el chip de Juan; la app Meta está en modo Desarrollo (las páginas legales para publicarla se agregaron hoy en takai-agent commit c4dd67e).
+- **Decisión implementada:** el agente conversacional es ÚNICAMENTE takai-agent. `agent_whatsapp` (API tenant/[slug]/cabins) y el botón del directorio ya NO usan `TWILIO_WHATSAPP_FROM`; usan `NEXT_PUBLIC_AGENT_WHATSAPP` (el chip). Como hoy esa var no existe → todos los botones caen al **chat web** `<slug>.ag.takai.cl/embed` (operativo para cualquier turista). Cuando Meta apruebe la app: setear `NEXT_PUBLIC_AGENT_WHATSAPP` en Vercel y los botones pasan solos a wa.me del chip (tags `[slug]`+`[C:id]` que el webhook del agente nuevo rutea).
+- **Twilio queda SOLO para:** notificaciones salientes (recordatorios, cancelaciones, avisos al dueño) y recepción de comprobantes (`/api/twilio/webhook` rama booking-code). La rama agente del webhook Twilio queda inerte (sin `LLM_API_KEY`) y NO debe reactivarse.
+- **PENDIENTE DE JUAN:** (1) publicar la app Meta (App Review; las páginas /privacidad y /terminos ya están en takai-agent); (2) al estar Live, setear `NEXT_PUBLIC_AGENT_WHATSAPP=+56 9...` (chip) en Vercel del owner-dashboard y del directorio; (3) futuro: migrar notificaciones de Twilio a Meta Cloud API para eliminar Twilio del todo.
 
 **Sesión 2026-07-10 — Agente WhatsApp enlazado + billing manual (instrucciones de Juan):**
 - **Contexto:** Juan compró el chip de prepago y configuró el agente IA de WhatsApp (env vars LLM_* y TWILIO_* operativas en Vercel).

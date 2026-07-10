@@ -55,7 +55,9 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
 
   // Mismo contrato que los botones de las landing: con número → wa.me con tags
   // [<slug>] (agente nuevo) + [C:<cabin_id>] (webhook legado); sin número → chat web.
-  const agentWa = (process.env.TWILIO_WHATSAPP_FROM || "").replace(/[^\d]/g, "")
+  // NEXT_PUBLIC_AGENT_WHATSAPP = el chip en Meta Cloud API (setear solo cuando la
+  // app Meta esté Live). NUNCA usar aquí el número Twilio de notificaciones.
+  const agentWa = (process.env.NEXT_PUBLIC_AGENT_WHATSAPP || "").replace(/[^\d]/g, "")
   const agentChatDomain = process.env.NEXT_PUBLIC_AGENT_CHAT_DOMAIN || "ag.takai.cl"
   const waText = `Hola 👋 Quiero consultar disponibilidad y precio de ${cabin.name}. [${cabin.tenant.slug || ""}] [C:${cabin.id}]`
   const waHref = agentWa

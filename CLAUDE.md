@@ -145,7 +145,9 @@ Los cron jobs se autentican con `Authorization: Bearer CRON_SECRET`.
 | `NEXT_PUBLIC_RESERVAS_URL` | URL del sitio de reservas (default: `https://reservas.takai.cl`) | Sí |
 | `TWILIO_ACCOUNT_SID` | Account SID de Twilio para WhatsApp saliente | Sí |
 | `TWILIO_AUTH_TOKEN` | Auth token de Twilio | Sí |
-| `TWILIO_WHATSAPP_FROM` | Número Twilio en formato `whatsapp:+1...` | Sí |
+| `TWILIO_WHATSAPP_FROM` | Número Twilio en formato `whatsapp:+1...`. **SOLO notificaciones salientes y comprobantes** — NO es el agente IA ni debe aparecer en botones | Sí |
+| `NEXT_PUBLIC_AGENT_WHATSAPP` | Número del **agente IA** (chip registrado en Meta Cloud API, repo `takai-agent`). Setear SOLO cuando la app Meta esté Live; mientras esté vacío los botones caen al chat web `<slug>.ag.takai.cl/embed` | Opcional |
+| `NEXT_PUBLIC_AGENT_CHAT_DOMAIN` | Dominio del chat web del agente. Default en código: `ag.takai.cl` | Opcional |
 | `HEALTH_CHECK_KEY` | Clave para autorizar `/api/health` vía header `x-health-key` o query `?key=` | Opcional |
 | `NEXT_PUBLIC_WA_CABIN_BUTTON` | Botón WhatsApp **por cabaña** en las cards de las 3 templates (`WhatsAppCabinButton.tsx`). **Activo por defecto** desde 2026-07-10 (agente IA configurado); `"false"` actúa como kill-switch. | Opcional |
 | `BILLING_AUTO_SUSPEND` | `"true"` reactiva la suspensión automática del cron `billing-check`. **Apagada por defecto** (decisión de Juan 2026-07-10): la suspensión/activación es manual desde `/admin` → Billing; el cron solo avisa por email. | Opcional |
@@ -343,7 +345,9 @@ Todas las tablas tienen RLS habilitado (migración 002). El `SUPABASE_SERVICE_RO
 
 **MercadoPago:** Paquete `mercadopago` v2. Cada tenant tiene su propio `mp_access_token` y `mp_webhook_secret`. El webhook verifica firma HMAC-SHA256 antes de confirmar la reserva.
 
-**Twilio/WhatsApp:** Sin SDK — llamadas REST directas a `api.twilio.com`. Envío vía `lib/whatsapp.ts`; recepción de comprobantes en `/api/twilio/webhook` (detecta booking codes con regex). El número `from` es SIEMPRE el compartido del sistema (`TWILIO_WHATSAPP_FROM`, el del agente IA); el único gate por tenant es `tenants.whatsapp_enabled` (default `true` en onboarding — un cliente nuevo queda enlazado al agente sin configuración extra). `tenants.twilio_whatsapp` es legacy y ya no participa en el envío (desde 2026-07-10).
+**Twilio/WhatsApp:** Sin SDK — llamadas REST directas a `api.twilio.com`. Envío vía `lib/whatsapp.ts`; recepción de comprobantes en `/api/twilio/webhook` (detecta booking codes con regex). El número `from` es SIEMPRE el compartido del sistema (`TWILIO_WHATSAPP_FROM`); el único gate por tenant es `tenants.whatsapp_enabled` (default `true` en onboarding). `tenants.twilio_whatsapp` es legacy y ya no participa en el envío (desde 2026-07-10). **Rol de Twilio (decisión de Juan 2026-07-10): SOLO notificaciones salientes transaccionales y comprobantes — el agente IA conversacional NO vive aquí.**
+
+**Agente IA (repo `takai-agent` — sistema separado, EN PRODUCCIÓN en `ag.takai.cl`):** monorepo aparte (`C:\Users\Juano\OneDrive\Documents\takai-agent`) que lee la MISMA BD Supabase. Es el ÚNICO agente conversacional de Takai: chat web por tenant en `https://<slug>.ag.takai.cl/embed` (operativo) y WhatsApp vía **Meta Cloud API** con el número único del chip de Juan (pendiente de que la app Meta pase a Live). Rutea el tenant por: número propio → tag `[slug]` → conversación previa → nombre del negocio. Los botones de las landings/directorio usan `NEXT_PUBLIC_AGENT_WHATSAPP` (chip) y caen al chat web si está vacío. La rama "agente IA" del webhook Twilio (`lib/agent.ts`) es legacy: queda inerte sin `LLM_API_KEY` y NO debe reactivarse — cualquier mejora conversacional va en `takai-agent`.
 
 **Resend:** Paquete `resend` v6. Templates HTML inline en `lib/resend.ts` (424 líneas). Tipos de email: `nueva-reserva`, `reserva-confirmada`, `recordatorio`, `resumen-semanal`, `solicitar-review`, alertas internas vía `lib/alertEmail.ts`.
 
