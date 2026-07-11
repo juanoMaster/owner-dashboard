@@ -28,8 +28,10 @@ function validateTwilioSignature(req: Request, rawBody: string): boolean {
   return crypto.timingSafeEqual(a, b)
 }
 
-// Formato real de booking codes: RUK-KVT-3821, CAC-XNM-5047, TRI-BPL-1293
-const BOOKING_CODE_RE = /\b([A-Z]{2,5}-[A-Z]{3}-\d{4})\b/i
+// Formatos de booking codes: motor → RUK-KVT-3821, CAC-XNM-5047; agente IA
+// (takai-agent, crearPrereserva) → TK-A1B2C3. Misma regex que el webhook Meta
+// de takai-agent (apps/web/src/lib/transfer-proof.ts) — mantener espejadas.
+const BOOKING_CODE_RE = /\b([A-Z]{2,5}-[A-Z]{3}-\d{4}|TK-[A-Z0-9]{6})\b/i
 
 function twimlResponse(message: string): NextResponse {
   const xml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${message}</Message></Response>`
