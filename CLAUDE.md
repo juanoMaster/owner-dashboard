@@ -347,7 +347,17 @@ Todas las tablas tienen RLS habilitado (migración 002). El `SUPABASE_SERVICE_RO
 
 **Twilio/WhatsApp:** Sin SDK — llamadas REST directas a `api.twilio.com`. Envío vía `lib/whatsapp.ts`; recepción de comprobantes en `/api/twilio/webhook` (detecta booking codes con regex). El número `from` es SIEMPRE el compartido del sistema (`TWILIO_WHATSAPP_FROM`); el único gate por tenant es `tenants.whatsapp_enabled` (default `true` en onboarding). `tenants.twilio_whatsapp` es legacy y ya no participa en el envío (desde 2026-07-10). **Rol de Twilio (decisión de Juan 2026-07-10): SOLO notificaciones salientes transaccionales y comprobantes — el agente IA conversacional NO vive aquí.**
 
-**Agente IA (repo `takai-agent` — sistema separado, EN PRODUCCIÓN en `ag.takai.cl`):** monorepo aparte (`C:\Users\Juano\OneDrive\Documents\takai-agent`) que lee la MISMA BD Supabase. Es el ÚNICO agente conversacional de Takai: chat web por tenant en `https://<slug>.ag.takai.cl/embed` (operativo) y WhatsApp vía **Meta Cloud API** con el número único del chip de Juan (pendiente de que la app Meta pase a Live). Rutea el tenant por: número propio → tag `[slug]` → conversación previa → nombre del negocio. Los botones de las landings/directorio usan `NEXT_PUBLIC_AGENT_WHATSAPP` (chip) y caen al chat web si está vacío. La rama "agente IA" del webhook Twilio (`lib/agent.ts`) es legacy: queda inerte sin `LLM_API_KEY` y NO debe reactivarse — cualquier mejora conversacional va en `takai-agent`.
+**Agente IA (repo `takai-agent` — sistema separado, EN PRODUCCIÓN en `ag.takai.cl`):** monorepo aparte (`C:\Users\Juano\OneDrive\Documents\takai-agent`) que lee la MISMA BD Supabase. Es el ÚNICO agente conversacional de Takai: chat web por tenant en `https://<slug>.ag.takai.cl/embed` (operativo) y WhatsApp vía **Meta Cloud API** con el número único del chip (`+56957083477`). App Meta "Takai Agente" **publicada/Live desde 2026-07-11** (número CONNECTED, calidad GREEN). Rutea el tenant por: número propio → tag `[slug]` → conversación previa → nombre del negocio. Los botones de las landings/directorio usan `NEXT_PUBLIC_AGENT_WHATSAPP` (chip) y caen al chat web si está vacío. La rama "agente IA" del webhook Twilio (`lib/agent.ts`) es legacy: queda inerte sin `LLM_API_KEY` y NO debe reactivarse — cualquier mejora conversacional va en `takai-agent`.
+
+**⚠️ Números de WhatsApp del ecosistema — NUNCA cruzarlos (referencia canónica):**
+
+| Número | Sistema | Rol | Env var |
+|--------|---------|-----|---------|
+| `+1 415 523 8886` (o el Twilio real) | owner-dashboard (`lib/whatsapp.ts`) | SOLO notificaciones salientes (recordatorios, cancelaciones, avisos al dueño) + recepción de comprobantes (`/api/twilio/webhook`) | `TWILIO_WHATSAPP_FROM` — **NO tocar; cambiarlo rompe todos los envíos Twilio** |
+| `+56957083477` | takai-agent (Meta Cloud API) | Agente IA conversacional de **reservas**. Live. | `NEXT_PUBLIC_AGENT_WHATSAPP` (en owner-dashboard + directorio; setear tras probar desde número no-admin) |
+| (segundo chip, si se compra) | takai-lead-agent (Cloudflare Workers) | Agente de **ventas de la agencia** (ia.takai.cl). No puede compartir número con el de reservas. | secrets de Cloudflare (`WHATSAPP_PHONE_NUMBER_ID`) |
+
+Regla: `TWILIO_WHATSAPP_FROM` (Twilio, notificaciones) y `NEXT_PUBLIC_AGENT_WHATSAPP` (chip Meta, agente) son cosas distintas y viven en variables distintas. El switch de los botones landing → WhatsApp real es `NEXT_PUBLIC_AGENT_WHATSAPP`, jamás `TWILIO_WHATSAPP_FROM`.
 
 **Resend:** Paquete `resend` v6. Templates HTML inline en `lib/resend.ts` (424 líneas). Tipos de email: `nueva-reserva`, `reserva-confirmada`, `recordatorio`, `resumen-semanal`, `solicitar-review`, alertas internas vía `lib/alertEmail.ts`.
 
