@@ -5,8 +5,14 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-07-10
-**Sesión:** Auditoría del agente + decisión: UN solo agente (takai-agent) — botones desacoplados de Twilio
+**Fecha:** 2026-07-13
+**Sesión:** Cierre y separación por proyectos — cada repo con su CLAUDE.md propio
+
+**Sesión 2026-07-13 — Reorganización: un chat por proyecto (instrucción de Juan):**
+- **Decisión de números FINAL:** separación total, un chip por negocio. `+56957083477` EXCLUSIVO del agente de reservas (takai-agent, Live). El agente de ventas de la agencia (takai-lead-agent, para ia.takai.cl) usará el **chip #2** que Juan ya compró, en una app Meta NUEVA (jamás dentro de "Takai Agente"). Coordinado con la sesión de ia.takai.cl vía mensaje cruzado.
+- **Instrucciones por proyecto creadas:** CLAUDE.md nuevo en `takai-agent` (reglas de oro, contrato con owner-dashboard, regex espejadas, pendientes), `takai-landing` (reglas permanentes + pendientes), `takai-lead-agent` (decisión chip #2 + checklist, commiteado y pusheado `d091c8d`), `IA-Takai-Agencia` (estado, advertencia de limpieza con verificación previa). En los repos con cambios sin commitear de otras sesiones (takai-agent, takai-landing, IA-Takai-Agencia) el CLAUDE.md quedó en disco SIN commitear — lo commitea el chat propio de cada proyecto.
+- **Memoria del proyecto depurada:** eliminada `project-audit-2026-06` (todo resuelto), actualizado `project-context` (migraciones ya aplicadas), agregadas `ecosystem-map` y `whatsapp-numbers`.
+- **Pendiente #1 de Juan sin cambio:** probar +56957083477 desde número no-admin → setear `NEXT_PUBLIC_AGENT_WHATSAPP` en Vercel (owner-dashboard + directorio) → redeploy. Verificado hoy: la var sigue vacía (botones van al chat web).
 
 **Sesión 2026-07-10 (continuación) — Auditoría completa del agente y consolidación (decisión de Juan):**
 - **Auditoría (verificado contra producción):** existen DOS agentes. (1) Legacy en este repo: `lib/agent.ts` + webhook Twilio, número Twilio `+1 620 777 8395` (verificado vía `agent_whatsapp` en la API de prod). (2) Nuevo: repo `takai-agent` (monorepo aparte, misma BD), **EN PRODUCCIÓN en `ag.takai.cl`** — verificado HTTP 200 en `ag.takai.cl` y `el-mirador.ag.takai.cl/embed`. WhatsApp del nuevo = Meta Cloud API con el chip de Juan; la app Meta está en modo Desarrollo (las páginas legales para publicarla se agregaron hoy en takai-agent commit c4dd67e).
