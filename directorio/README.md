@@ -22,8 +22,15 @@ Va en **dominio aparte** (B2C) para mantener `takai.cl` 100% B2B.
 Las cookies no cruzan de dominio. El botón "Reservar" enlaza directo a
 `reservas.takai.cl/reservar?cabin_id=...&source=directory[&ref=CODIGO]`. El motor
 de reservas captura `source`/`ref` al crear la reserva (ya implementado en el
-owner-dashboard). El botón "Consultar por WhatsApp" usa el número del sistema con
-el tag `[C:<cabin_id>]` para el agente IA (Fase 6).
+owner-dashboard). El directorio conserva `ref` al navegar por inicio, destinos,
+fichas y alternativas de disponibilidad para no perder la comisión del referente.
+El botón "Consultar por WhatsApp" usa el número del agente con el tag
+`[C:<cabin_id>]` (Fase 6).
+
+La portada incluye el bloque público del programa de referidos para viajeros,
+creadores de contenido e influencers. La inscripción inicia un correo dirigido a
+`contacto@takai.cl`; el alta y la entrega del enlace personal se hacen desde el
+admin de afiliados existente.
 
 ## Setup
 ```bash
@@ -41,3 +48,8 @@ verificar en Google Search Console (`SEARCH_CONSOLE_VERIFICATION`).
 ## Deploy
 Proyecto Vercel **separado** (no el de `takai.cl`), apuntando a esta carpeta como
 root, con su propio dominio. Mantiene ambos productos "congelables" por separado.
+
+- Proyecto: `takai-directorio`
+- Producción operativa: `https://takai-directorio.vercel.app`
+- Git conectado a `juanoMaster/owner-dashboard`, root directory `directorio/`.
+- Pendiente humano: asignar el dominio B2C personalizado y verificar Search Console.

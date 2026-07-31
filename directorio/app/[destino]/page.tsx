@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { DESTINOS, destinoBySlug } from "../../lib/destinos"
-import { getCabinsByDestino } from "../../lib/data"
+import { getCabinsByDestino, normalizeAffiliateRef } from "../../lib/data"
 import CabinCard from "../../components/CabinCard"
 import JsonLd from "../../components/JsonLd"
 import { buildBreadcrumb } from "../../lib/schema"
@@ -30,10 +30,12 @@ export function generateMetadata({ params }: { params: { destino: string } }): M
   }
 }
 
-export default async function DestinoPage({ params }: { params: { destino: string } }) {
+export default async function DestinoPage({ params, searchParams }: { params: { destino: string }; searchParams?: { ref?: string | string[] } }) {
   const d = destinoBySlug(params.destino)
   if (!d) notFound()
   const cabins = await getCabinsByDestino(d.slug)
+  const affiliateRef = normalizeAffiliateRef(searchParams?.ref)
+  const refQuery = affiliateRef ? `?ref=${encodeURIComponent(affiliateRef)}` : ""
 
   const breadcrumb = buildBreadcrumb([
     { name: "Inicio", url: SITE },
@@ -47,7 +49,7 @@ export default async function DestinoPage({ params }: { params: { destino: strin
     <main style={{ maxWidth: "1040px", margin: "0 auto", padding: "40px 20px" }}>
       <JsonLd data={breadcrumb} />
       <nav style={{ marginBottom: "20px", fontSize: "13px" }}>
-        <Link href="/" style={{ color: "#5a7058", textDecoration: "none" }}>← Todos los destinos</Link>
+        <Link href={`/${refQuery}`} style={{ color: "#5a7058", textDecoration: "none" }}>← Todos los destinos</Link>
       </nav>
 
       <h1 style={{ fontFamily: "Georgia, serif", fontSize: "32px", fontWeight: 400, color: "#e8d5a3", margin: "0 0 8px" }}>
@@ -66,7 +68,7 @@ export default async function DestinoPage({ params }: { params: { destino: strin
         <p style={p}>Aún no hay cabañas publicadas en {d.nombre}. Vuelve pronto.</p>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px", marginTop: "16px" }}>
-          {cabins.map((c) => <CabinCard key={c.id} cabin={c} />)}
+          {cabins.map((c) => <CabinCard key={c.id} cabin={c} affiliateRef={affiliateRef} />)}
         </div>
       )}
 
@@ -74,7 +76,7 @@ export default async function DestinoPage({ params }: { params: { destino: strin
         <h2 style={{ ...h2, fontSize: "16px" }}>Otros destinos</h2>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           {DESTINOS.filter((x) => x.slug !== d.slug).map((x) => (
-            <Link key={x.slug} href={`/${x.slug}`} style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "50px", padding: "8px 18px", color: "#e8d5a3", textDecoration: "none", fontSize: "13px" }}>
+            <Link key={x.slug} href={`/${x.slug}${refQuery}`} style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "50px", padding: "8px 18px", color: "#e8d5a3", textDecoration: "none", fontSize: "13px" }}>
               {x.nombre}
             </Link>
           ))}

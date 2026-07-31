@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { getCabinById, getPublishedCabins, reservaUrl } from "../../../lib/data"
+import { getCabinById, getPublishedCabins, normalizeAffiliateRef, reservaUrl } from "../../../lib/data"
 import { buildVacationRental, buildBreadcrumb } from "../../../lib/schema"
 import JsonLd from "../../../components/JsonLd"
 
@@ -37,9 +37,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function CabinPage({ params }: { params: { id: string } }) {
+export default async function CabinPage({ params, searchParams }: { params: { id: string }; searchParams?: { ref?: string | string[] } }) {
   const cabin = await getCabinById(params.id)
   if (!cabin) notFound()
+  const affiliateRef = normalizeAffiliateRef(searchParams?.ref)
+  const refQuery = affiliateRef ? `?ref=${encodeURIComponent(affiliateRef)}` : ""
 
   const url = `${SITE}/cabana/${cabin.id}`
   const schema = buildVacationRental(cabin, url)
@@ -70,8 +72,8 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
       <JsonLd data={schema ? [schema, breadcrumb] : breadcrumb} />
 
       <nav style={{ marginBottom: "16px", fontSize: "13px" }}>
-        <Link href="/" style={{ color: "#5a7058", textDecoration: "none" }}>Inicio</Link>
-        {cabin.destino ? <> · <Link href={`/${cabin.destino.slug}`} style={{ color: "#5a7058", textDecoration: "none" }}>{cabin.destino.nombre}</Link></> : null}
+        <Link href={`/${refQuery}`} style={{ color: "#5a7058", textDecoration: "none" }}>Inicio</Link>
+        {cabin.destino ? <> · <Link href={`/${cabin.destino.slug}${refQuery}`} style={{ color: "#5a7058", textDecoration: "none" }}>{cabin.destino.nombre}</Link></> : null}
       </nav>
 
       <h1 style={{ fontFamily: "Georgia, serif", fontSize: "30px", fontWeight: 400, color: "#e8d5a3", margin: "0 0 6px" }}>{cabin.name}</h1>
@@ -135,7 +137,7 @@ export default async function CabinPage({ params }: { params: { id: string } }) 
         {waHref ? (
           <a href={waHref} target="_blank" rel="noopener noreferrer" style={{ background: "#25D366", color: "#fff", padding: "14px 22px", borderRadius: "8px", textDecoration: "none", fontWeight: 700, fontSize: "14px" }}>{waLabel}</a>
         ) : null}
-        <a href={reservaUrl(cabin)} style={{ background: "#7ab87a", color: "#0d1a12", padding: "14px 28px", borderRadius: "8px", textDecoration: "none", fontWeight: 700, fontSize: "14px" }}>Reservar →</a>
+        <a href={reservaUrl(cabin, affiliateRef)} style={{ background: "#7ab87a", color: "#0d1a12", padding: "14px 28px", borderRadius: "8px", textDecoration: "none", fontWeight: 700, fontSize: "14px" }}>Reservar →</a>
       </div>
     </main>
   )

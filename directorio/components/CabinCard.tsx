@@ -9,10 +9,11 @@ function fmt(n: number | null, currency: string | null) {
   return "$" + Math.round(n).toLocaleString("es-CL")
 }
 
-export default function CabinCard({ cabin }: { cabin: DirCabin }) {
+export default function CabinCard({ cabin, affiliateRef }: { cabin: DirCabin; affiliateRef?: string | null }) {
   const cover = cabin.photos[0]
+  const href = `/cabana/${cabin.id}${affiliateRef ? `?ref=${encodeURIComponent(affiliateRef)}` : ""}`
   return (
-    <Link href={`/cabana/${cabin.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+    <Link href={href} style={{ textDecoration: "none", color: "inherit" }}>
       <div style={{ background: "#162618", border: "1px solid #2a3e28", borderRadius: "12px", overflow: "hidden" }}>
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element

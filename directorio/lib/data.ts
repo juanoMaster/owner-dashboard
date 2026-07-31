@@ -138,6 +138,15 @@ export async function getCabinsByDestino(destinoSlug: string): Promise<DirCabin[
   return all.filter((c) => c.destino?.slug === destinoSlug)
 }
 
+// Los códigos se crean en minúsculas desde el admin. Normalizarlos al entrar al
+// directorio evita perder la atribución por mayúsculas o caracteres inválidos.
+export function normalizeAffiliateRef(value: unknown): string | null {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (typeof raw !== "string") return null
+  const normalized = raw.trim().toLowerCase()
+  return /^[a-z0-9_-]{1,64}$/.test(normalized) ? normalized : null
+}
+
 // Link al motor de reservas existente con atribución de origen (Fase 4/7).
 export function reservaUrl(cabin: DirCabin, ref?: string | null): string {
   const base = process.env.NEXT_PUBLIC_RESERVAS_URL ?? "https://reservas.takai.cl"

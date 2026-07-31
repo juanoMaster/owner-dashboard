@@ -5,8 +5,17 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-07-13
-**Sesión:** Cierre y separación por proyectos — cada repo con su CLAUDE.md propio
+**Fecha:** 2026-07-31
+**Sesión:** Auditoría y cierre de la portada del directorio + flujo de referidos
+
+**Sesión 2026-07-31 — Directorio B2C y atribución de referentes (instrucción de Juan):**
+- **Copy público corregido:** eliminado el mensaje "Tu comisión sale del 10% de Takai — el propietario nunca paga extra". La portada ahora invita a viajeros, creadores de contenido, influencers y personas con comunidad a ganar una comisión por cada reserva confirmada generada por su recomendación. CTA: **"Inscríbete como referente"**, con solicitud dirigida a `contacto@takai.cl`.
+- **P1 integridad comercial — RESUELTO:** `?ref=` se perdía al navegar desde la portada/destino hacia la ficha de cabaña, por lo que una reserva recomendada podía quedar sin `affiliate_id`. Se agregó normalización segura del código y propagación por portada → destino → ficha → motor de reserva.
+- **P1 integridad comercial — RESUELTO:** la alternativa sugerida por `/reservar` cuando una cabaña está ocupada ahora conserva `source` y `ref`; antes ese cambio de cabaña borraba la atribución.
+- **UX completada:** la portada dejó de ocultar silenciosamente las cabañas posteriores a las primeras 9; ahora muestra todas las publicables bajo "Cabañas disponibles".
+- **Validación:** build producción owner-dashboard ✅ (27 páginas); build producción directorio ✅ (10 páginas); TypeScript sin errores en ambos proyectos; revisión visual desktop y móvil ✅; navegación con `?ref=demo-influencer` verificada en DOM ✅.
+- **Vercel — COMPLETADO:** creado el proyecto separado `takai-directorio`, variables de producción/preview configuradas (service role como secret), raíz Git fijada en `directorio/`, repo `juanoMaster/owner-dashboard` conectado y producción publicada en `https://takai-directorio.vercel.app`. Verificado HTTP 200 en portada, `robots.txt` y `sitemap.xml`; copy y CTA presentes en HTML.
+- **Pendiente externo (no es código):** comprar/configurar un dominio B2C personalizado y verificarlo en Google Search Console. La aplicación ya está operativa en el dominio de Vercel mientras tanto.
 
 **Sesión 2026-07-13 — Reorganización: un chat por proyecto (instrucción de Juan):**
 - **Decisión de números FINAL:** separación total, un chip por negocio. `+56957083477` EXCLUSIVO del agente de reservas (takai-agent, Live). El agente de ventas de la agencia (takai-lead-agent, para ia.takai.cl) usará el **chip #2** que Juan ya compró, en una app Meta NUEVA (jamás dentro de "Takai Agente"). Coordinado con la sesión de ia.takai.cl vía mensaje cruzado.
@@ -210,6 +219,7 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 | Reservas (propietario panel) | 100% | Preview season-aware ✅; extras fix ✅; tinaja cascade ✅; moneda dinámica WA ✅ |
 | Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
 | Billing / Comisiones | 99% | Trial 3 meses ✅; guard comisión ✅; cleanup al borrar tenant ✅; nav link facturación ✅; P2-8 check_in ✅ |
+| Directorio B2C / Referidos | 99% | Copy y CTA ✅; `ref` end-to-end ✅; catálogo ✅; proyecto Vercel + deploy + Git auto-deploy ✅; falta dominio personalizado + Search Console |
 | Emails (Resend) | 100% | Moneda dinámica ✅; XSS fix en todos los templates ✅; bank data dinámico en resumen-semanal ✅ |
 | WhatsApp (Twilio) | 99% | HMAC-SHA1 ✅; moneda dinámica en WA turista y propietario ✅ |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
@@ -354,6 +364,7 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 
 | Fecha | Qué se hizo |
 |-------|------------|
+| 2026-07-31 | Auditoría y cierre de portada del directorio: nuevo programa de referidos, copy corregido, catálogo completo, propagación segura de `ref` y conservación de atribución al cambiar a una cabaña sugerida. Builds y QA visual desktop/móvil OK. |
 | 2026-06-12 | Auditoría total (solo lectura). Creados ESTADO-SISTEMA.md y actualizado CLAUDE.md. |
 | 2026-06-12 | Sprint seguridad: P0 auth, P1 (Twilio HMAC, XSS, loop, deleted_at MP), RPC atómico, índices BD. |
 | 2026-06-13 | Corrección documentación: CLAUDE.md y ESTADO-SISTEMA.md con info correcta de clientes y modelo de negocio. |

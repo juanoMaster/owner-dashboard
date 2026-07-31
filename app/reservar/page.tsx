@@ -31,6 +31,11 @@ function ReservarInner() {
   const cabin_name = params.get("cabin_name") || "Cabaña"
   const visitedParam = params.get("visited") || ""
   const visitedCabins = visitedParam ? visitedParam.split(",").filter(Boolean) : []
+  const sourceAttribution = params.get("source")
+  const refAttribution = params.get("ref")
+  const attributionSuffix =
+    (sourceAttribution ? "&source=" + encodeURIComponent(sourceAttribution) : "") +
+    (refAttribution ? "&ref=" + encodeURIComponent(refAttribution) : "")
 
   const basePriceNight = Number(params.get("price")) || 30000
   const tiersParam = params.get("tiers")
@@ -395,7 +400,7 @@ function ReservarInner() {
                   <div style={s.err}>
                     <strong>{cabin_name} no tiene disponibilidad para esas fechas.</strong>
                     <br /><br />Puedes probar con:<br /><br />
-                    <a href={"/reservar?cabin_id=" + suggest.cabin_id + "&cabin_name=" + encodeURIComponent(suggest.cabin_name) + "&visited=" + encodeURIComponent(newVisited)}
+                    <a href={"/reservar?cabin_id=" + suggest.cabin_id + "&cabin_name=" + encodeURIComponent(suggest.cabin_name) + "&visited=" + encodeURIComponent(newVisited) + attributionSuffix}
                       style={{ color: "#e8b84a", textDecoration: "underline", fontWeight: 600 }}>
                       {suggest.cabin_name}{" — hasta "}{suggest.capacity}{" personas — "}{fmt(suggest.price || 0)}/noche
                     </a>
