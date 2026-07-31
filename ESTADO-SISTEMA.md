@@ -15,6 +15,7 @@
 - **UX completada:** la portada dejó de ocultar silenciosamente las cabañas posteriores a las primeras 9; ahora muestra todas las publicables bajo "Cabañas disponibles".
 - **Validación:** build producción owner-dashboard ✅ (27 páginas); build producción directorio ✅ (10 páginas); TypeScript sin errores en ambos proyectos; revisión visual desktop y móvil ✅; navegación con `?ref=demo-influencer` verificada en DOM ✅.
 - **Vercel — COMPLETADO:** creado el proyecto separado `takai-directorio`, variables de producción/preview configuradas (service role como secret), raíz Git fijada en `directorio/`, repo `juanoMaster/owner-dashboard` conectado y producción publicada en `https://takai-directorio.vercel.app`. Verificado HTTP 200 en portada, `robots.txt` y `sitemap.xml`; copy y CTA presentes en HTML.
+- **Git + producción — COMPLETADO:** commit funcional `fc0f514` (`feat: completa directorio y referidos`) subido a `origin/main`. Los despliegues Git de `owner-dashboard` y `takai-directorio` terminaron en estado **Ready**; `https://owner-dashboard-navy.vercel.app/` y `https://takai-directorio.vercel.app/` responden HTTP 200.
 - **Pendiente externo (no es código):** comprar/configurar un dominio B2C personalizado y verificarlo en Google Search Console. La aplicación ya está operativa en el dominio de Vercel mientras tanto.
 
 **Sesión 2026-07-13 — Reorganización: un chat por proyecto (instrucción de Juan):**
