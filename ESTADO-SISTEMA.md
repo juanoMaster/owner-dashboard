@@ -15,7 +15,10 @@ Se creó un cliente completo de prueba (`zztest-auditoria`: 2 cabañas, tramos p
 - 🔴 **BUG CRÍTICO — el cron borraba las reservas manuales del propietario.** `cancelar-pendientes` seleccionaba *cualquier* draft vencido, así que una reserva que el dueño anotaba a mano (la que toma por teléfono y cobra a la llegada) se auto-cancelaba a las 3h, liberaba la fecha y le mandaba al huésped un WhatsApp diciendo que no envió el comprobante. Reproducido en producción: `ZZT-DVQ-5211` quedó `deleted_by=cron_auto_cancel`. **Corregido:** ambos crons ahora solo actúan sobre reservas con bloque `reason='transfer_pending'` (las del formulario público, que sí esperan comprobante). Las manuales nacen con `reason='manual'` y quedan intactas. Invariante verificado en las RPC `create_booking_atomic` (transfer_pending) y `create_booking_manual` (manual).
 - 🔴 **BUG DE PRECIOS — los tramos por huésped pisaban el precio de temporada.** En `lib/pricing.ts` el tramo reemplazaba el precio de temporada: una cabaña con tramo $70.000 (2 personas) y temporada alta $120.000 cobraba **$70.000 en enero** mientras la página mostraba "temporada Alta". Medido: 4 noches en temporada alta daban $280.000 en vez de $480.000 (**$200.000 perdidos por reserva**). **Corregido:** en temporada nunca se cobra menos que el precio de temporada; si el tramo es mayor (grupos grandes), gana el tramo. Verificado en 6 escenarios. **Ningún cliente real quedó afectado** (ninguna cabaña activa tiene temporadas y tramos a la vez), así que no hubo cambio de precios en producción.
 - 🟠 **Cobro de un servicio inexistente:** `/api/bookings` (público) aceptaba `tinaja_days` para cualquier cabaña y lo cobraba sin verificar que la cabaña ofreciera tinaja. **Corregido** con guard `cabin.has_tinaja ?? tenant.has_tinaja`. Ningún cliente real tenía reservas con tinaja, así que no hubo impacto.
-- 🟠 **Autenticación de crons unificada:** cada endpoint la implementaba distinto (3 patrones) y con comparación de strings no timing-safe. Nuevo `lib/cron-auth.ts` con `isCronAuthorized()` (acepta `CRON_SECRET` o `PGCRON_SECRET`, comparación `timingSafeEqual`) aplicado a los 9 endpoints de cron.
+- 🟠 **Endpoint fail-open:** `/api/emails/resumen-semanal` sólo exigía el secreto **si la variable existía** (`if (process.env.CRON_SECRET && ...)`). Sin esa variable el endpoint quedaba abierto y cualquiera podía disparar el envío del resumen a todos los propietarios. **Corregido** a fail-closed.
+- 🟠 **Autenticación de crons unificada:** cada endpoint la implementaba distinto (3 patrones) y con comparación de strings no timing-safe. Nuevo `lib/cron-auth.ts` con `isCronAuthorized()` (acepta `CRON_SECRET` o `PGCRON_SECRET`, comparación `timingSafeEqual`) aplicado a los endpoints de cron. `/api/cron/daily` conserva su lógica propia (necesita el valor de `CRON_SECRET` para reenviarlo a los sub-endpoints) y `/api/health` la suya (acepta también `HEALTH_CHECK_KEY`).
+
+**Verificación de los fixes EN PRODUCCIÓN (no sólo build):** tras desplegar se repitió la prueba: la reserva manual del propietario (`ZZT-RZE-3184`, bloque `manual`) **sobrevivió** al cron, mientras las de turista (`ZZT-WWW-3820`, `ZZT-AET-8816`) sí se auto-cancelaron — que es lo correcto. El precio de temporada alta pasó a devolver $480.000 y el guard de tinaja cobró $200.000 en vez de $325.000 en una cabaña sin tinaja.
 - 🟡 **Trampa latente documentada:** existe un trigger `trg_set_dashboard_token` que **sobrescribe** `tenants.dashboard_token` en cada INSERT. Todo INSERT directo debe hacer después el `UPDATE` del token, o el link del panel que va en emails/WhatsApp queda muerto. `/api/admin/onboard` y `/api/registro` ya lo hacen bien. **Auditado: los 5 tenants activos tienen su token válido** (verificado cruzando `sha256(dashboard_token)` contra `dashboard_links`).
 
 **Verificado y correcto (sin cambios necesarios):** RLS activo en las 22 tablas (3 con default-deny intencional); reserva turista con tramos y tinaja; doble reserva rechazada con 409 (RPC atómico); mínimo de noches por temporada; fechas pasadas rechazadas; sugerencia de cabaña alternativa al estar ocupada; reserva manual del propietario; confirmación (bloque → `system_booking`) e idempotencia; cancelación con soft-delete y liberación de bloques; página de bienvenida (200 con código válido, 404 con inválido); reseña pública; landing con template premium; widget embebible; dashboard, historial, stats y billing del propietario; rechazo cross-tenant (401); validación de fechas al crear bloques; guidebook y precios; privacidad de los endpoints públicos (sin `owner_whatsapp` ni guidebook completo); atribución `booking_source=directory` para el 10% de Takai; audit_log completo en las 5 operaciones.
@@ -287,6 +290,24 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 | Embed widget | 99% | calendar_blocks incluidos ✅; 503 si suspendido ✅ |
 | Crons | 95% | Orquestador daily ✅; exclusión MP en cancelar y recordatorio ✅ |
 | Health check | 98% | N+1 eliminado ✅; batch queries |
+
+---
+
+## Pendientes para llegar al 100% (estado 2026-08-04)
+
+### Solo Juan puede hacerlo (no es código)
+1. **Dominio del directorio B2C** + verificarlo en Google Search Console. Hoy vive en `takai-directorio.vercel.app`; sin dominio propio el SEO no despega y la propuesta promete "que lo encuentren en Google".
+2. **Cargar ubicación GPS de los tenants actuales** (`location_text`, `latitude`, `longitude`) desde `/admin`. El código ya muestra mapa y "Cómo llegar" en las 5 plantillas, pero majoaal/el-mirador/cacagual no tienen coordenadas → esa sección no aparece.
+3. **Probar `+56957083477` desde un número no-admin** y setear `NEXT_PUBLIC_AGENT_WHATSAPP` en Vercel (owner-dashboard + directorio). Mientras esté vacío, los botones caen al chat web.
+4. **Ficha de Google (GBP) por cliente** → pegar `google_review_url`. Sin eso el email post-estadía solo ofrece reseña en Takai, no en Google.
+5. **Fotos de las cabañas**: el directorio solo publica cabañas con 8+ fotos y geo válida (`lib/cabin-validation.ts`). Hoy ninguna cumple → el directorio se ve vacío.
+6. **Revisar `cabanas-takai`**: está `active=true` con `billing_status=suspended` y 8 reservas activas. Si es la demo, conviene decidir si se publica o se archiva.
+
+### Código pendiente (siguiente sesión)
+7. **Subir fotos desde el wizard `/registro`** — hoy el dueño se da de alta y paga, pero las fotos las carga después desde su panel. Es lo que falta para que el alta sea realmente de punta a punta.
+8. **Índice `calendar_blocks(booking_id)`** — hoy no existe; `bookings/cancel`, `calendar/delete` y el filtro nuevo de los crons hacen scan. Irrelevante con el volumen actual (decenas de filas); necesario antes de ~50 clientes.
+9. **Facturar el 10% a clientes en suscripción está implementado pero nunca se ejecutó de verdad** (no hay aún reservas Takai-generadas de un cliente en el modelo nuevo). Verificar con el primer caso real.
+10. **Zonas horarias (P2-6)**: todo corre en UTC. Sin impacto práctico hoy; revisar si entra un cliente en otra zona.
 
 ---
 

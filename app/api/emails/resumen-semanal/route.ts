@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
+import { isCronAuthorized } from "@/lib/cron-auth"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { getResend } from "@/lib/resend"
 import { generarResumenSemanal, type ResumenReserva } from "@/lib/email-templates/resumen-semanal"
@@ -54,8 +55,9 @@ type TenantResult = {
 }
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization")
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Antes era fail-open: sin CRON_SECRET definido el endpoint quedaba abierto y
+  // cualquiera podía disparar el envío del resumen a todos los propietarios.
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
