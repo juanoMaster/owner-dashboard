@@ -6,6 +6,7 @@ import { verifyMpSignature } from "@/lib/mp-verify"
 import { syncBillingStatus } from "@/lib/billing"
 import { logAudit } from "@/lib/audit"
 import { getResend, emailSubscriptionActivated, emailPastDue } from "@/lib/resend"
+import { sendAlertEmail } from "@/lib/alertEmail"
 
 // MP siempre requiere 200 o reintentará.
 const OK = () => NextResponse.json({ received: true }, { status: 200 })
@@ -40,6 +41,53 @@ export async function POST(req: NextRequest) {
       const data = await res.json()
 
       const extRef: string | undefined = data.external_reference
+
+      // ── Cuota de entrada del alta self-service (kind='setup_fee') ───────
+      // El tenant sigue con active=false: pagar no publica nada, solo avisa a
+      // Takai que ya puede revisar y aprobar en /admin → Altas.
+      if (extRef?.startsWith("setup:")) {
+        if (data.status !== "approved") return OK()
+        const setupId = extRef.replace("setup:", "")
+        const nowIso = new Date().toISOString()
+
+        const { data: setupStmt } = await supabase
+          .from("commission_statements")
+          .select("id, tenant_id, status, commission_amount")
+          .eq("id", setupId)
+          .maybeSingle()
+        if (!setupStmt || !setupStmt.tenant_id) return OK()
+        if (setupStmt.status === "paid") return OK() // idempotencia
+
+        await supabase.from("commission_statements").update({
+          status: "paid",
+          payment_method: "card",
+          paid_at: nowIso,
+          updated_at: nowIso,
+        }).eq("id", setupId).eq("tenant_id", setupStmt.tenant_id)
+
+        await logAudit({
+          tenant_id: setupStmt.tenant_id,
+          action: "signup_fee_paid",
+          entity_type: "commission_statement",
+          entity_id: setupId,
+          details: { mp_payment_id: dataId, amount: setupStmt.commission_amount },
+          performed_by: "mp_billing_webhook",
+        })
+
+        const { data: t } = await supabase
+          .from("tenants")
+          .select("business_name, slug, email_owner")
+          .eq("id", setupStmt.tenant_id).single()
+
+        sendAlertEmail(
+          `Cuota de entrada pagada: ${t?.business_name ?? setupStmt.tenant_id}`,
+          `${t?.business_name ?? "Un propietario"} (${t?.email_owner ?? ""}) pagó la cuota de incorporación con tarjeta.\n\n` +
+            `Slug: ${t?.slug ?? "—"}\n\nRevisa sus datos y actívalo en /admin → pestaña Altas.`
+        ).catch(() => {})
+
+        return OK()
+      }
+
       if (!extRef?.startsWith("commission:")) return OK()
 
       const statementId = extRef.replace("commission:", "")

@@ -4,6 +4,8 @@ import { useParams } from "next/navigation"
 import TemplateClasico from "./templates/TemplateClasico"
 import TemplateModerno from "./templates/TemplateModerno"
 import TemplateRural from "./templates/TemplateRural"
+import TemplatePremium from "./templates/TemplatePremium"
+import TemplateBoutique from "./templates/TemplateBoutique"
 import JsonLd from "../components/JsonLd"
 import WhatsAppAgentButton from "../components/WhatsAppAgentButton"
 import { buildVacationRental, buildBreadcrumb } from "../../lib/schema"
@@ -132,6 +134,8 @@ function SlugInner() {
     : null
   if (template === "moderno") return <>{schema}<TemplateModerno tenant={tenant} cabins={cabins} />{waButton}</>
   if (template === "rural") return <>{schema}<TemplateRural tenant={tenant} cabins={cabins} />{waButton}</>
+  if (template === "premium") return <>{schema}<TemplatePremium tenant={tenant} cabins={cabins} />{waButton}</>
+  if (template === "boutique") return <>{schema}<TemplateBoutique tenant={tenant} cabins={cabins} />{waButton}</>
   return <>{schema}<TemplateClasico tenant={tenant} cabins={cabins} />{waButton}</>
 }
 

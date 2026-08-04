@@ -243,9 +243,11 @@ export default function TenantFormFields({
           <div className="sm:col-span-2">
             <Lbl>Plantilla visual</Lbl>
             <select value={value.template} onChange={set("template")} className={CLS.inp}>
-              <option value="clasico">Clásico (actual)</option>
-              <option value="moderno">Moderno</option>
+              <option value="clasico">Clásico (oscuro, dorado)</option>
+              <option value="moderno">Moderno (claro, verde)</option>
               <option value="rural">Rural / Naturaleza</option>
+              <option value="premium">Premium (fotográfico, cinematográfico)</option>
+              <option value="boutique">Boutique (minimalista, papel)</option>
             </select>
           </div>
         </div>

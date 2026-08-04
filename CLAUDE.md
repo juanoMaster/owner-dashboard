@@ -58,6 +58,8 @@ token (URL) → SHA256 → dashboard_links.token_hash → tenant_id → todos lo
 | URL | Archivo | Tipo | Descripción |
 |-----|---------|------|-------------|
 | `/?token=` | `app/page.tsx` | Server Component | Panel propietario — valida token y carga tenant |
+| `/registro` | `app/registro/page.tsx` | Client Component | **Alta self-service pública** — wizard de 4 pasos (negocio, cabañas, banco, pago). Crea tenant con `active=false` |
+| `/registro/listo` | `app/registro/listo/page.tsx` | Client Component | Retorno desde MercadoPago tras pagar la cuota de entrada |
 | `/[slug]` | `app/[slug]/page.tsx` | Client Component | Landing pública del tenant con cabañas y reserva |
 | `/admin?token=` | `app/admin/page.tsx` | Server Component | Panel admin global (protegido por `ADMIN_TOKEN`) |
 | `/bienvenida/[booking_code]` | `app/bienvenida/[booking_code]/page.tsx` | Server Component | Página de bienvenida al huésped con guidebook |
@@ -109,7 +111,9 @@ token (URL) → SHA256 → dashboard_links.token_hash → tenant_id → todos lo
 | `/api/contact` | POST | Formulario de contacto de la landing → email a contacto@takai.cl |
 | `/api/admin/tenants` | GET/PATCH/DELETE | CRUD de tenants (protegido por `ADMIN_TOKEN`) |
 | `/api/admin/cabins` | GET/POST/DELETE | CRUD de cabañas (protegido por `ADMIN_TOKEN`) |
-| `/api/admin/onboard` | POST | Crea tenant + cabañas + dashboard_link en una operación |
+| `/api/admin/onboard` | POST | Crea tenant + cabañas + dashboard_link en una operación (alta manual desde el admin) |
+| `/api/registro` | POST | **Público** — alta self-service: crea tenant `active=false` + cabañas + acceso + cobro `setup_fee` de $160.000; devuelve `init_point` de MP si paga con tarjeta |
+| `/api/admin/signups` | GET/POST | GET lista solicitudes pendientes (`active=false`) con cabañas y estado del pago; POST `{tenant_id}` aprueba: `active=true`, sub `active`, email de bienvenida con el token (protegido por `ADMIN_TOKEN`) |
 | `/api/admin/tokens` | GET/POST | Gestiona dashboard_links de un tenant |
 | `/api/admin/commissions` | PATCH | Actualiza estado de comisiones en reservas |
 | `/api/admin/billing` | POST | Suspende/activa billing de un tenant **manualmente** (`action: suspend\|activate`); actualiza `subscriptions.status` + `tenants.billing_status` (protegido por `ADMIN_TOKEN`) |
@@ -340,7 +344,11 @@ Todas las tablas tienen RLS habilitado (migración 002). El `SUPABASE_SERVICE_RO
 
 **`/api/trinidad/cabins`:** Endpoint legacy — Trinidad (Angélica Ancalef) fue ex-prospecto que no siguió. El endpoint se mantiene en el código pero no tiene uso activo. Usar `/api/tenant/[slug]/cabins` para todos los casos nuevos.
 
-**Templates de landing (`/[slug]`):** `app/[slug]/page.tsx` lee `tenants.template` y renderiza uno de tres componentes: `TemplateClasico`, `TemplateModerno`, o `TemplateRural` (en `app/[slug]/templates/`). Todos reciben la misma interfaz `TenantData` + `Cabin[]`. El selector de template vive en el panel admin (`TenantFormFields.tsx`).
+**Templates de landing (`/[slug]`):** `app/[slug]/page.tsx` lee `tenants.template` y renderiza uno de **cinco** componentes (en `app/[slug]/templates/`): `TemplateClasico` (oscuro/dorado), `TemplateModerno` (claro/verde), `TemplateRural` (tierra), `TemplatePremium` (fotográfico full-screen, filas alternadas) y `TemplateBoutique` (minimalista papel). Todos reciben la misma interfaz `TenantData` + `Cabin[]` y todos incluyen mapa + "Cómo llegar" y respetan la regla de privacidad (sin redes ni contacto del dueño). El selector vive en el panel admin (`TenantFormFields.tsx`) y en el wizard de `/registro`. **Agregar una template nueva exige ampliar el CHECK `tenants_template_check`** (ver migración 014).
+
+**Regla de privacidad pre-pago (Juan, 2026-08-03):** el turista **jamás** ve teléfono, redes sociales ni datos de contacto del dueño antes de que su reserva esté pagada. Aplica a las 5 templates, al directorio, a las páginas de pago y a **todo endpoint público**: `/api/tenant/[slug]/cabins` solo expone `checkin_time`/`checkout_time` del guidebook (nunca wifi, instrucciones de llegada ni contacto de emergencia), y ni ese endpoint ni `/api/tenant-by-cabin` ni `/api/bookings/bank-info` devuelven `owner_whatsapp`. Los datos bancarios sí se muestran (son la mecánica de pago). Post-confirmación (email de reserva confirmada, recordatorio, `/bienvenida`) el contacto del dueño sí va. Todo contacto previo pasa por el agente Takai.
+
+**Alta self-service (`/registro`) — fase 1 semi-automática:** el dueño se registra solo, paga la cuota de entrada y queda **pendiente de aprobación humana**; `tenants.active=false` lo mantiene fuera del aire (la landing pública y el directorio filtran por `active`). La cuota se guarda en `commission_statements` con `kind='setup_fee'` (la columna es texto libre; `'commission'` sigue siendo el 10%). El webhook de billing reconoce `external_reference` `setup:<id>` además de `commission:<id>`. Un admin aprueba en `/admin` → tab **Altas**. La aprobación existe a propósito: evita publicar cabañas ajenas, fotos malas o datos bancarios errados a los que los turistas transferirían. Ver `lib/signup.ts`.
 
 ## Integraciones
 

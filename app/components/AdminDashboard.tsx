@@ -170,7 +170,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error al eliminar")
   }
 
-  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing", "Reseñas"]
+  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing", "Reseñas", "Altas"]
 
   return (
     <div style={{ background: "#09070a", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8d5f8" }}>
@@ -529,6 +529,8 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
 
         {/* ══ TAB 8: RESEÑAS (moderación) ══ */}
         {tab === 8 && <ReviewsTab adminToken={adminToken} />}
+
+        {tab === 9 && <AltasTab adminToken={adminToken} />}
 
       </main>
 
@@ -1328,6 +1330,139 @@ function DirectoryReadiness({ adminToken }: any) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ══ TAB 9: ALTAS ══
+// Solicitudes del alta self-service (/registro): tenants con active=false.
+// Aprobar publica la página del cliente y le envía su acceso por correo.
+// Para descartar una solicitud se usa el borrado de tenant del tab Clientes,
+// que ya limpia cabañas, tokens y suscripción en cascada.
+function AltasTab({ adminToken }: any) {
+  const [signups, setSignups] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
+
+  function load() {
+    setLoading(true)
+    fetch("/api/admin/signups", { headers: { "x-admin-token": adminToken } })
+      .then((r) => r.json())
+      .then((d) => setSignups(d.signups || []))
+      .catch(() => setSignups([]))
+      .finally(() => setLoading(false))
+  }
+  useEffect(load, [])
+
+  function aprobar(t: any) {
+    const pagado = t.setup_fee && t.setup_fee.status === "paid"
+    const aviso = pagado
+      ? "Activar a " + t.business_name + "?\n\nSu pagina quedara publica y recibira su acceso por correo."
+      : "OJO: la cuota de incorporacion NO figura pagada.\n\nActivar igual a " + t.business_name + "?"
+    if (!window.confirm(aviso)) return
+    setBusy(t.id)
+    setMsg(null)
+    fetch("/api/admin/signups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+      body: JSON.stringify({ tenant_id: t.id }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) { setMsg(d.error); return }
+        setSignups((prev) => prev.filter((s) => s.id !== t.id))
+        setMsg("Activado: " + t.business_name)
+      })
+      .catch(() => setMsg("Error de conexion"))
+      .finally(() => setBusy(null))
+  }
+
+  const card: React.CSSProperties = { background: "#1a1228", border: "1px solid #2d1f44", borderRadius: "10px", padding: "18px", marginBottom: "14px" }
+  const dt: React.CSSProperties = { fontSize: "10px", color: "#6b5a8a", letterSpacing: "1px", textTransform: "uppercase" as const }
+  const dd: React.CSSProperties = { fontSize: "13px", color: "#e8d5f8", marginTop: "2px", wordBreak: "break-word" as const }
+
+  if (loading) return <div style={{ color: "#6b5a8a", fontSize: "13px" }}>Cargando solicitudes...</div>
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap" as const, gap: "10px" }}>
+        <div style={{ color: "#6b5a8a", fontSize: "12px" }}>
+          {signups.length === 0 ? "Sin solicitudes pendientes" : signups.length + " solicitud(es) esperando aprobacion"}
+        </div>
+        <button onClick={load} style={{ background: "transparent", border: "1px solid #2d1f44", color: "#c8b878", borderRadius: "6px", padding: "7px 14px", fontSize: "12px", cursor: "pointer" }}>
+          Actualizar
+        </button>
+      </div>
+
+      {msg && (
+        <div style={{ background: "#1a1228", border: "1px solid #c8b878", borderRadius: "8px", padding: "12px 14px", marginBottom: "14px", color: "#c8b878", fontSize: "13px" }}>
+          {msg}
+        </div>
+      )}
+
+      {signups.map((t) => {
+        const pagado = t.setup_fee && t.setup_fee.status === "paid"
+        const sinGeo = !t.latitude || !t.longitude
+        return (
+          <div key={t.id} style={card}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" as const, marginBottom: "14px" }}>
+              <div>
+                <div style={{ fontSize: "17px", color: "#e8d5f8", fontWeight: 600 }}>{t.business_name}</div>
+                <div style={{ fontSize: "12px", color: "#6b5a8a", marginTop: "3px" }}>
+                  /{t.slug} · {new Date(t.created_at).toLocaleString("es-CL")}
+                </div>
+              </div>
+              <span style={{ background: pagado ? "#0a2010" : "#2a1400", color: pagado ? "#4ade80" : "#e6a23c", border: "1px solid " + (pagado ? "#1a4020" : "#5a3400"), borderRadius: "20px", padding: "5px 14px", fontSize: "11px", fontWeight: 700, whiteSpace: "nowrap" as const }}>
+                {pagado ? "Cuota pagada" : "Cuota pendiente"}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "18px", marginBottom: "14px" }}>
+              <div style={{ flex: "1 1 180px" }}><div style={dt}>Responsable</div><div style={dd}>{t.owner_name}</div></div>
+              <div style={{ flex: "1 1 200px" }}><div style={dt}>Correo</div><div style={dd}>{t.email_owner}</div></div>
+              <div style={{ flex: "1 1 150px" }}><div style={dt}>WhatsApp</div><div style={dd}>{t.owner_whatsapp || "-"}</div></div>
+              <div style={{ flex: "1 1 200px" }}><div style={dt}>Ubicacion</div><div style={dd}>{t.location_text || "-"}</div></div>
+              <div style={{ flex: "1 1 140px" }}><div style={dt}>Estilo</div><div style={dd}>{t.template}</div></div>
+            </div>
+
+            <div style={{ background: "#120c1c", border: "1px solid #2d1f44", borderRadius: "8px", padding: "12px", marginBottom: "14px" }}>
+              <div style={{ ...dt, marginBottom: "8px" }}>Cuenta bancaria del cliente (verificar antes de aprobar)</div>
+              <div style={{ fontSize: "13px", color: "#e8d5f8", lineHeight: 1.7 }}>
+                {t.bank_name || "-"} · {t.bank_account_type || "-"} · {t.bank_account_number || "-"}
+                <br />
+                <span style={{ color: "#9a8ab8" }}>{t.bank_account_holder || "-"} · RUT {t.bank_rut || "-"}</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "14px" }}>
+              <div style={{ ...dt, marginBottom: "8px" }}>{(t.cabins || []).length} cabana(s)</div>
+              {(t.cabins || []).map((c: any) => (
+                <div key={c.id} style={{ fontSize: "13px", color: "#e8d5f8", padding: "5px 0", borderBottom: "1px solid #221838" }}>
+                  {c.name} · {c.capacity} pers. · ${Math.round(Number(c.base_price_night)).toLocaleString("es-CL")}
+                  <span style={{ color: (c.photos || []).length > 0 ? "#4ade80" : "#e6a23c", marginLeft: "8px", fontSize: "11px" }}>
+                    {(c.photos || []).length} fotos
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {sinGeo && (
+              <div style={{ color: "#e6a23c", fontSize: "12px", marginBottom: "12px" }}>
+                Sin coordenadas: su pagina no mostrara mapa ni &quot;Como llegar&quot;. Se pueden cargar despues en el tab Clientes.
+              </div>
+            )}
+
+            <button
+              onClick={() => aprobar(t)}
+              disabled={busy === t.id}
+              style={{ background: busy === t.id ? "#2d1f44" : "#27ae60", color: "#fff", border: "none", borderRadius: "6px", padding: "11px 22px", fontSize: "13px", fontWeight: 700, cursor: busy === t.id ? "default" : "pointer" }}
+            >
+              {busy === t.id ? "Activando..." : "Aprobar y publicar"}
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
