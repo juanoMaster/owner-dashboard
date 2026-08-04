@@ -99,7 +99,6 @@ export default function TemplateClasico({ tenant, cabins }: { tenant: TenantData
 
   const currency = tenant.currency || "CLP"
   const fmt = (n: number) => fmtPrice(n, currency)
-  const hasSocial = !!(tenant.facebook_url || tenant.instagram_url)
   const activities = tenant.activities && tenant.activities.length > 0 ? tenant.activities : null
   const rulesRaw = tenant.page_rules ? (tenant.page_rules as unknown[]).filter((r) => typeof r === "string") as string[] : []
   const rules = rulesRaw.length > 0 ? rulesRaw : null
@@ -309,8 +308,16 @@ export default function TemplateClasico({ tenant, cabins }: { tenant: TenantData
               latitude={tenant.latitude!}
               longitude={tenant.longitude!}
               nombre={tenant.business_name}
-              modo="aproximado"
+              modo="exacto"
             />
+            <a
+              href={"https://www.google.com/maps/dir/?api=1&destination=" + tenant.latitude + "," + tenant.longitude}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.4)", color: GOLD, borderRadius: "8px", padding: "10px 20px", fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textDecoration: "none", marginTop: "14px" }}
+            >
+              📍 Indicaciones en Google Maps
+            </a>
           </div>
         )}
 
@@ -375,25 +382,9 @@ export default function TemplateClasico({ tenant, cabins }: { tenant: TenantData
           </div>
         )}
 
-        {/* SOCIAL */}
-        {hasSocial && (
-          <div className="tk-section" style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid " + BORDER }}>
-            {tenant.instagram_url && (
-              <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="tk-soc"
-                style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: SURF, border: "1px solid " + BORDER, borderRadius: "8px", padding: "7px 13px", textDecoration: "none", color: MUTED, fontSize: "11px", transition: "all 0.15s" }}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>
-                Instagram
-              </a>
-            )}
-            {tenant.facebook_url && (
-              <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer" className="tk-soc"
-                style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: SURF, border: "1px solid " + BORDER, borderRadius: "8px", padding: "7px 13px", textDecoration: "none", color: MUTED, fontSize: "11px", transition: "all 0.15s" }}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-                Facebook
-              </a>
-            )}
-          </div>
-        )}
+        {/* Redes sociales del dueño removidas (regla 2026-08-03): el turista no
+            ve canales de contacto directo del dueño antes del pago — todo el
+            contacto pasa por el agente Takai. */}
       </div>
 
       {/* FOOTER */}

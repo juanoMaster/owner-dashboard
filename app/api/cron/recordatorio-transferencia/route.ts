@@ -6,8 +6,10 @@ import { sendWhatsApp } from "@/lib/whatsapp"
 import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
 
 export async function GET(req: Request) {
+  // Acepta CRON_SECRET (orquestador diario) o PGCRON_SECRET (pg_cron horario).
   const authHeader = req.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const validTokens = [process.env.CRON_SECRET, process.env.PGCRON_SECRET].filter(Boolean)
+  if (!validTokens.some((s) => authHeader === `Bearer ${s}`)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 

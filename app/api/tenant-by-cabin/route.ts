@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("business_name, owner_name, slug, owner_whatsapp, mp_enabled, mp_access_token, currency, location_text, location_maps_url, tagline, activities, page_rules, deposit_percent, min_nights, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, tinaja_price")
+    .select("business_name, owner_name, slug, mp_enabled, mp_access_token, currency, location_text, location_maps_url, tagline, activities, page_rules, deposit_percent, min_nights, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, tinaja_price")
     .eq("id", cabin.tenant_id)
     .single()
 
@@ -38,7 +38,8 @@ export async function GET(req: Request) {
     business_name: tenant.business_name,
     owner_name: tenant.owner_name,
     slug: tenant.slug,
-    owner_whatsapp: tenant.owner_whatsapp,
+    // owner_whatsapp removido (regla 2026-08-03): endpoint público — sin
+    // contacto del dueño antes del pago. Nadie lo consumía en /reservar.
     has_tinaja: cabin.has_tinaja ?? true,
     mp_enabled: !!(tenant.mp_enabled && tenant.mp_access_token),
     currency: tenant.currency || "CLP",

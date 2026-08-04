@@ -8,7 +8,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("id, slug, business_name, owner_name, owner_whatsapp, facebook_url, instagram_url, verified, currency, country, location_text, location_maps_url, tagline, activities, page_rules, latitude, longitude, extra_services, template, billing_status, manual_billing, guidebook")
+    .select("id, slug, business_name, owner_name, verified, currency, country, location_text, location_maps_url, tagline, activities, page_rules, latitude, longitude, extra_services, template, billing_status, manual_billing, guidebook")
     .eq("slug", params.slug)
     .eq("active", true)
     .maybeSingle()
@@ -58,10 +58,14 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       business_name: tenant.business_name,
       owner_name: tenant.owner_name,
       country: tenant.country || null,
-      guidebook: tenant.guidebook || null,
-      owner_whatsapp: tenant.owner_whatsapp,
-      facebook_url: tenant.facebook_url || null,
-      instagram_url: tenant.instagram_url || null,
+      // Endpoint PÚBLICO — del guidebook solo se exponen las horas de check-in/out
+      // (lo único que usa la landing para el schema). El resto (clave wifi,
+      // instrucciones de llegada, contacto de emergencia) es solo para el huésped
+      // confirmado vía /bienvenida. Contactos del dueño (whatsapp/redes) tampoco
+      // se exponen (regla 2026-08-03: nada del dueño antes del pago).
+      guidebook: tenant.guidebook
+        ? { checkin_time: tenant.guidebook.checkin_time || null, checkout_time: tenant.guidebook.checkout_time || null }
+        : null,
       verified: tenant.verified || false,
       currency: tenant.currency || "CLP",
       location_text: tenant.location_text || null,

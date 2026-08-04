@@ -4,18 +4,32 @@ export const dynamic = "force-dynamic"
 import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 
+// Contacto ante problemas de pago: SIEMPRE el asistente de Takai, nunca el
+// dueño (regla 2026-08-03: el turista no ve datos del dueño antes del pago).
+const AGENT_WHATSAPP = process.env.NEXT_PUBLIC_AGENT_WHATSAPP || ""
+const AGENT_CHAT_DOMAIN = process.env.NEXT_PUBLIC_AGENT_CHAT_DOMAIN || "ag.takai.cl"
+
 function PagoFallidoInner() {
   const params = useSearchParams()
   const booking_id = params.get("booking_id") || ""
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [ownerWhatsapp, setOwnerWhatsapp] = useState<string | null>(null)
+  const [agentHref, setAgentHref] = useState<string | null>(null)
 
   useEffect(() => {
     if (!booking_id) return
     fetch(`/api/bookings/bank-info?booking_id=${booking_id}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.owner_whatsapp) setOwnerWhatsapp(d.owner_whatsapp) })
+      .then(d => {
+        if (!d || d.error) return
+        if (AGENT_WHATSAPP) {
+          const number = AGENT_WHATSAPP.replace(/\D/g, "")
+          const text = `Hola 👋 Tuve un problema con el pago de mi reserva ${d.booking_code || ""} [${d.slug || ""}]`
+          setAgentHref(`https://wa.me/${number}?text=${encodeURIComponent(text)}`)
+        } else if (d.slug) {
+          setAgentHref(`https://${d.slug}.${AGENT_CHAT_DOMAIN}/embed`)
+        }
+      })
       .catch(() => {})
   }, [booking_id])
 
@@ -71,14 +85,14 @@ function PagoFallidoInner() {
           {loading ? "Redirigiendo..." : "Intentar de nuevo"}
         </button>
 
-        {ownerWhatsapp && (
+        {agentHref && (
           <a
-            href={`https://wa.me/${ownerWhatsapp.replace(/\D/g, "")}`}
+            href={agentHref}
             target="_blank"
             rel="noopener noreferrer"
             style={{ display: "block", width: "100%", boxSizing: "border-box" as const, background: "transparent", color: "#8a9e88", border: "1px solid #2a3e28", borderRadius: "12px", padding: "14px", fontSize: "14px", fontWeight: 500, textAlign: "center" as const, textDecoration: "none", fontFamily: "sans-serif" }}
           >
-            Contactar al propietario por WhatsApp
+            Hablar con el asistente de reservas
           </a>
         )}
 

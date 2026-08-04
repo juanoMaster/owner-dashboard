@@ -140,7 +140,8 @@ Los cron jobs se autentican con `Authorization: Bearer CRON_SECRET`.
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave de servicio Supabase (bypassa RLS) — **solo server-side** | Sí |
 | `RESEND_API_KEY` | API key de Resend para emails | Sí |
 | `ADMIN_TOKEN` | Token para acceder al panel admin global | Sí |
-| `CRON_SECRET` | Bearer token para autenticar cron jobs de Vercel | Sí |
+| `CRON_SECRET` | Bearer token para autenticar cron jobs de Vercel. **Marcado Sensitive en Vercel** (no se puede leer con `vercel env pull`) | Sí |
+| `PGCRON_SECRET` | Secreto dedicado del pg_cron de Supabase (cadencia horaria de `cancelar-pendientes` y `recordatorio-transferencia`). Los dos endpoints aceptan CRON_SECRET **o** PGCRON_SECRET. Creado 2026-08-03 porque CRON_SECRET es ilegible y el job SQL embebe el valor | Sí |
 | `NEXT_PUBLIC_APP_URL` | URL base del panel. Fallback en código: `https://owner-dashboard-navy.vercel.app` (estable). Setear a `https://panel.takai.cl` solo cuando ese dominio esté bien asignado en Vercel. `middleware.ts` mantiene `panel.takai.cl` en `PASSTHROUGH_HOSTS` para el ruteo del host. | Sí |
 | `NEXT_PUBLIC_RESERVAS_URL` | URL del sitio de reservas (default: `https://reservas.takai.cl`) | Sí |
 | `TWILIO_ACCOUNT_SID` | Account SID de Twilio para WhatsApp saliente | Sí |

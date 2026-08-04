@@ -12,8 +12,12 @@ import { getResend, emailReservaCancelada } from "@/lib/resend"
 import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
 
 export async function GET(req: Request) {
+  // Acepta CRON_SECRET (Vercel Cron / orquestador diario) o PGCRON_SECRET
+  // (pg_cron de Supabase, cadencia horaria — CRON_SECRET es Sensitive en Vercel
+  // y no se puede leer para embeberlo en el job SQL).
   const authHeader = req.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const validTokens = [process.env.CRON_SECRET, process.env.PGCRON_SECRET].filter(Boolean)
+  if (!validTokens.some((s) => authHeader === `Bearer ${s}`)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 

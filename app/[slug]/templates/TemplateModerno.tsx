@@ -1,7 +1,10 @@
 "use client"
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import ReviewStars from "@/app/components/ReviewStars"
 import WhatsAppCabinButton from "@/app/components/WhatsAppCabinButton"
+
+const MapaUbicacion = dynamic(() => import("@/app/components/MapaUbicacion"), { ssr: false })
 
 interface Cabin {
   id: string; name: string; capacity: number; base_price_night: number
@@ -18,6 +21,7 @@ interface TenantData {
   owner_whatsapp?: string | null; template?: string | null
   agent_whatsapp?: string | null
   slug?: string | null
+  latitude?: number | null; longitude?: number | null
 }
 
 const ACCENT = "#1a5c2e"
@@ -206,24 +210,26 @@ export default function TemplateModerno({ tenant, cabins }: { tenant: TenantData
         </div>
       )}
 
-      {/* REDES SOCIALES */}
-      {(tenant.instagram_url || tenant.facebook_url) && (
-        <div style={{ background: "#f8f8f8", padding: "32px 24px" }}>
-          <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", gap: "12px", flexWrap: "wrap" as const }}>
-            {tenant.instagram_url && (
-              <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#fff", border: "1px solid #ddd", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", color: "#333", fontSize: "13px", fontWeight: 500 }}>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>
-                Instagram
-              </a>
+      {/* Redes sociales del dueño removidas (regla 2026-08-03): sin canales de
+          contacto directo del dueño antes del pago — el contacto va al agente Takai. */}
+
+      {/* CÓMO LLEGAR */}
+      {tenant.latitude && tenant.longitude && (
+        <div style={{ background: "#f8f8f8", padding: "48px 24px" }}>
+          <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+            <h2 style={{ fontFamily: SANS, fontSize: "24px", fontWeight: 300, color: "#222", margin: "0 0 6px" }}>Cómo llegar</h2>
+            {tenant.location_text && (
+              <div style={{ fontSize: "13px", color: "#777", marginBottom: "20px" }}>{tenant.location_text}</div>
             )}
-            {tenant.facebook_url && (
-              <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#fff", border: "1px solid #ddd", borderRadius: "8px", padding: "10px 18px", textDecoration: "none", color: "#333", fontSize: "13px", fontWeight: 500 }}>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
-                Facebook
-              </a>
-            )}
+            <MapaUbicacion latitude={tenant.latitude} longitude={tenant.longitude} nombre={tenant.business_name} modo="exacto" />
+            <a
+              href={"https://www.google.com/maps/dir/?api=1&destination=" + tenant.latitude + "," + tenant.longitude}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: ACCENT, color: "#fff", borderRadius: "30px", padding: "12px 26px", fontSize: "13px", fontWeight: 700, textDecoration: "none", marginTop: "16px" }}
+            >
+              📍 Indicaciones en Google Maps
+            </a>
           </div>
         </div>
       )}

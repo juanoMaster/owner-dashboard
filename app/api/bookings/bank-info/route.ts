@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("slug, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, currency, owner_whatsapp")
+    .select("slug, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, currency")
     .eq("id", booking.tenant_id)
     .single()
 
@@ -62,8 +62,8 @@ export async function GET(req: Request) {
     transfer_timeout_hours: AUTO_CANCEL_HOURS,
     // WhatsApp donde enviar el comprobante de transferencia (número del sistema Twilio)
     whatsapp_number: whatsapp_number || null,
-    // WhatsApp del propietario (para contacto directo en caso de error de pago)
-    owner_whatsapp: (tenant as any).owner_whatsapp || null,
+    // owner_whatsapp removido (regla 2026-08-03): endpoint público — el turista
+    // no debe ver el contacto del dueño antes del pago; el soporte va al agente.
     // Slug del tenant (para redirigir al turista de vuelta a la landing)
     slug: (tenant as any).slug || null,
   })
