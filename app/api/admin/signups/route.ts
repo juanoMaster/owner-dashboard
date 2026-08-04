@@ -19,16 +19,31 @@ function authorized(req: Request): boolean {
   return !!adminToken && req.headers.get("x-admin-token") === adminToken
 }
 
-// GET — lista las solicitudes pendientes (tenants con active=false) con sus
-// cabañas y el estado del pago de la cuota de entrada.
+// GET — lista las solicitudes del alta self-service pendientes de aprobación.
+// Una solicitud = tenant con active=false Y un cobro kind='setup_fee'. El
+// segundo filtro importa: hay tenants viejos desactivados a mano (ex-prospectos
+// como trinidad o rukatraro) que no son solicitudes y no deben aparecer aquí.
 export async function GET(req: Request) {
   if (!authorized(req)) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
 
   const supabase = getSupabaseAdmin()
 
+  const { data: fees, error: feesErr } = await supabase
+    .from("commission_statements")
+    .select("id, tenant_id, status, commission_amount, paid_at, payment_method")
+    .eq("kind", SETUP_FEE_KIND)
+    .order("created_at", { ascending: false })
+    .limit(200)
+
+  if (feesErr) return NextResponse.json({ error: feesErr.message }, { status: 500 })
+
+  const feeTenantIds = Array.from(new Set((fees ?? []).map((f) => f.tenant_id).filter(Boolean)))
+  if (feeTenantIds.length === 0) return NextResponse.json({ signups: [] })
+
   const { data: tenants, error } = await supabase
     .from("tenants")
     .select("id, business_name, owner_name, email_owner, owner_whatsapp, slug, location_text, latitude, longitude, template, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, created_at")
+    .in("id", feeTenantIds)
     .eq("active", false)
     .order("created_at", { ascending: false })
     .limit(100)
@@ -38,12 +53,10 @@ export async function GET(req: Request) {
   const ids = (tenants ?? []).map((t) => t.id)
   if (ids.length === 0) return NextResponse.json({ signups: [] })
 
-  const [{ data: cabins }, { data: fees }] = await Promise.all([
-    supabase.from("cabins").select("id, tenant_id, name, capacity, base_price_night, photos").in("tenant_id", ids),
-    supabase.from("commission_statements")
-      .select("id, tenant_id, status, commission_amount, paid_at, payment_method")
-      .in("tenant_id", ids).eq("kind", SETUP_FEE_KIND),
-  ])
+  const { data: cabins } = await supabase
+    .from("cabins")
+    .select("id, tenant_id, name, capacity, base_price_night, photos")
+    .in("tenant_id", ids)
 
   const cabinsByTenant = new Map<string, any[]>()
   for (const c of cabins ?? []) {

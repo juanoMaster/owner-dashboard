@@ -40,6 +40,9 @@
   - Webhook de billing extendido: reconoce `setup:` (idempotente), marca la cuota pagada, audita `signup_fee_paid` y avisa a Takai.
   - `/admin` → nuevo tab **Altas**: lista solicitudes con cabañas, fotos, cuenta bancaria y estado del pago; botón "Aprobar y publicar" → `active=true`, sub `active`, email de bienvenida con el acceso al panel. Rechazar no se implementó a propósito: se usa el borrado de tenant del tab Clientes, que ya limpia en cascada.
   - **Por qué queda la aprobación humana:** sin ella cualquiera podría publicar cabañas ajenas, fotos malas o una cuenta bancaria equivocada a la que los turistas transferirían. Cuando el flujo demuestre calidad, automatizar es quitar solo ese paso.
+  - **Probado end-to-end contra producción (2026-08-03):** validaciones → 400 con mensaje correcto; camino feliz → 200 creando tenant `active=false` + cabaña + acceso + suscripción `pending / sin-mensualidad / 0` + cuota `setup_fee / pending / 160000`; API pública del tenant inactivo → 404 (invisible al turista). El registro de prueba se borró en cascada y la BD quedó solo con los tenants reales.
+  - **Falso positivo detectado y corregido en la prueba:** el tab Altas listaba cualquier tenant con `active=false`, e incluía a los ex-prospectos antiguos (`trinidad`, `rukatraro`). Ahora una solicitud se define como `active=false` **y** con cobro `kind='setup_fee'`; los desactivados a mano no aparecen.
+  - **Enlace desde la landing:** `takai.cl` sección Precio → "¿Prefieres hacerlo tú mismo? Regístrate en línea" → `reservas.takai.cl/registro`. El WhatsApp sigue siendo el CTA principal.
 - **Blog de la landing corregido (instrucción de Juan):** eliminada la comparación "$50.000 a $100.000 de instalación" de la competencia (jugaba en contra de la cuota de $160.000). El artículo se reencuadró hacia costo acumulado de la mensualidad vs pago único + alineación de intereses; se agregó la sección "¿a quién le conviene que te vaya bien?".
 - **`takai-landing/CLAUDE.md` corregido:** decía "Tailwind PROHIBIDO" cuando todo el rediseño premium de ese repo usa Tailwind; ahora documenta la convención real (Tailwind + tokens de marca; `ContactModal` queda con inline styles).
 
@@ -255,7 +258,9 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 | Reservas (propietario panel) | 100% | Preview season-aware ✅; extras fix ✅; tinaja cascade ✅; moneda dinámica WA ✅ |
 | Calendario | 97% | Validación fecha POST ✅; filtro de fechas en API ✅; ventana 18 meses ✅ |
 | Billing / Comisiones | 99% | Trial 3 meses ✅; guard comisión ✅; cleanup al borrar tenant ✅; nav link facturación ✅; P2-8 check_in ✅ |
-| Directorio B2C / Referidos | 99% | Copy y CTA ✅; `ref` end-to-end ✅; catálogo ✅; proyecto Vercel + deploy + Git auto-deploy ✅; falta dominio personalizado + Search Console |
+| Directorio B2C / Referidos | 99% | Copy y CTA ✅; `ref` end-to-end ✅; catálogo ✅; proyecto Vercel + deploy + Git auto-deploy ✅; Melipeuco agregado ✅; falta dominio personalizado + Search Console |
+| Landing pública del tenant | 98% | 5 plantillas ✅; mapa + "Cómo llegar" ✅; privacidad pre-pago ✅; falta cargar geo de los tenants existentes en BD |
+| Alta self-service | 90% | Wizard + API + cobro `setup_fee` + webhook + tab Altas ✅; probado en producción ✅; falta subir fotos desde el wizard (hoy se suben luego en el panel) |
 | Emails (Resend) | 100% | Moneda dinámica ✅; XSS fix en todos los templates ✅; bank data dinámico en resumen-semanal ✅ |
 | WhatsApp (Twilio) | 99% | HMAC-SHA1 ✅; moneda dinámica en WA turista y propietario ✅ |
 | MercadoPago (turistas) | 98% | currency_id dinámico; deleted_at check OK |
