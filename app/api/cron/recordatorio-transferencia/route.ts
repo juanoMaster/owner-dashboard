@@ -4,12 +4,10 @@ import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { sendWhatsApp } from "@/lib/whatsapp"
 import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
+import { isCronAuthorized } from "@/lib/cron-auth"
 
 export async function GET(req: Request) {
-  // Acepta CRON_SECRET (orquestador diario) o PGCRON_SECRET (pg_cron horario).
-  const authHeader = req.headers.get("authorization")
-  const validTokens = [process.env.CRON_SECRET, process.env.PGCRON_SECRET].filter(Boolean)
-  if (!validTokens.some((s) => authHeader === `Bearer ${s}`)) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
@@ -58,7 +56,21 @@ export async function GET(req: Request) {
 
       if (!bookings || bookings.length === 0) continue
 
-      for (const booking of bookings) {
+      // Mismo criterio que cancelar-pendientes: solo se recuerda el comprobante
+      // a quien reservó por el formulario público (bloque 'transfer_pending').
+      // A las reservas que el propietario anotó a mano no se les pide nada.
+      const { data: pendingBlocks } = await supabase
+        .from("calendar_blocks")
+        .select("booking_id")
+        .eq("tenant_id", tenant.id)
+        .eq("reason", "transfer_pending")
+        .in("booking_id", bookings.map((b) => b.id))
+
+      const recordables = new Set((pendingBlocks ?? []).map((b) => b.booking_id))
+      const aRecordar = bookings.filter((b) => recordables.has(b.id))
+      if (aRecordar.length === 0) continue
+
+      for (const booking of aRecordar) {
         try {
           if (!booking.guest_phone || !booking.booking_code) continue
 

@@ -10,14 +10,10 @@ import { getResend, emailReservaCancelada } from "@/lib/resend"
 // Para garantizar la ventana de 3h este endpoint debe invocarse cada ~15 min
 // (pg_cron + pg_net, migración 011), no solo en el orquestador diario.
 import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
+import { isCronAuthorized } from "@/lib/cron-auth"
 
 export async function GET(req: Request) {
-  // Acepta CRON_SECRET (Vercel Cron / orquestador diario) o PGCRON_SECRET
-  // (pg_cron de Supabase, cadencia horaria — CRON_SECRET es Sensitive en Vercel
-  // y no se puede leer para embeberlo en el job SQL).
-  const authHeader = req.headers.get("authorization")
-  const validTokens = [process.env.CRON_SECRET, process.env.PGCRON_SECRET].filter(Boolean)
-  if (!validTokens.some((s) => authHeader === `Bearer ${s}`)) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
@@ -61,7 +57,25 @@ export async function GET(req: Request) {
 
       if (!bookings || bookings.length === 0) continue
 
-      for (const booking of bookings) {
+      // Solo se auto-cancelan las reservas que de verdad esperan el comprobante
+      // del turista: las creadas desde el formulario público, que nacen con un
+      // calendar_block reason='transfer_pending' (create_booking_atomic).
+      // Las que el propietario anota a mano desde el panel nacen con
+      // reason='manual' (create_booking_manual) y NO deben tocarse: son reservas
+      // que él tomó por teléfono y puede cobrar a la llegada — borrárselas a las
+      // 3h le liberaría la fecha y expondría la cabaña a doble reserva.
+      const { data: pendingBlocks } = await supabase
+        .from("calendar_blocks")
+        .select("booking_id")
+        .eq("tenant_id", tenant.id)
+        .eq("reason", "transfer_pending")
+        .in("booking_id", bookings.map((b) => b.id))
+
+      const cancelables = new Set((pendingBlocks ?? []).map((b) => b.booking_id))
+      const aCancelar = bookings.filter((b) => cancelables.has(b.id))
+      if (aCancelar.length === 0) continue
+
+      for (const booking of aCancelar) {
         try {
           // Soft-delete booking
           await supabase

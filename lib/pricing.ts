@@ -82,10 +82,16 @@ export function getPriceForDates(params: {
   const cursor = new Date(start)
   while (cursor < end) {
     const season = getSeasonForNight(cursor, seasons)
-    const basePriceNight = season ? season.price_per_night : cabin.base_price_night
+    const seasonOrBase = season ? season.price_per_night : cabin.base_price_night
 
-    // pricing_tiers override the base/season price when a guest-count match exists
-    const nightPrice = getPriceForGuests(tiers, guests, basePriceNight)
+    // El tramo por cantidad de huéspedes ajusta el precio de la noche, pero en
+    // temporada NUNCA se cobra menos que el precio que el dueño fijó para ella.
+    // Antes el tramo pisaba el precio de temporada: una cabaña con tramo de
+    // $70.000 para 2 personas y temporada alta de $120.000 cobraba $70.000 en
+    // enero, mientras la página mostraba "temporada Alta". Si el tramo es mayor
+    // (grupos grandes), gana el tramo.
+    const tierPrice = getPriceForGuests(tiers, guests, seasonOrBase)
+    const nightPrice = season ? Math.max(tierPrice, season.price_per_night) : tierPrice
 
     const dateStr = cursor.toISOString().slice(0, 10)
     breakdown.push({

@@ -1,14 +1,14 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
+import { isCronAuthorized } from "@/lib/cron-auth"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { getResend, emailTrialEnding, emailPastDue } from "@/lib/resend"
 import { sendAlertEmail } from "@/lib/alertEmail"
 
 export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 

@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
     const { data: tenantConfig } = await supabase
       .from("tenants")
-      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency, dashboard_token, tinaja_price")
+      .select("deposit_percent, min_nights, slug, business_name, owner_whatsapp, currency, dashboard_token, tinaja_price, has_tinaja")
       .eq("id", tenant_id)
       .single()
 
@@ -72,7 +72,12 @@ export async function POST(req: Request) {
     }
 
     const guestCount = parseInt(guests)
-    const tinajaCount = parseInt(tinaja_days) || 0
+    // La tinaja solo se cobra si la cabaña la ofrece (y si el dato no está en la
+    // cabaña, se cae al del tenant). Este endpoint es público: antes aceptaba
+    // `tinaja_days` para cualquier cabaña y le cobraba al turista un servicio
+    // que el alojamiento no presta.
+    const ofreceTinaja = cabin.has_tinaja ?? !!tenantConfig?.has_tinaja
+    const tinajaCount = ofreceTinaja ? (parseInt(tinaja_days) || 0) : 0
 
     const priceResult = getPriceForDates({
       cabin: {

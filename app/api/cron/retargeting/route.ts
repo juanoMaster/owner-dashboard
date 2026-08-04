@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
+import { isCronAuthorized } from "@/lib/cron-auth"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { getResend } from "@/lib/resend"
 import { logAudit } from "@/lib/audit"
@@ -14,7 +15,7 @@ const ANNIVERSARY_DAYS = 330
 const FREQ_CAP_DAYS = 90
 
 export async function GET(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isCronAuthorized(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 

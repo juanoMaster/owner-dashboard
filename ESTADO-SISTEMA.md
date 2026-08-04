@@ -5,7 +5,20 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-08-03
+**Fecha:** 2026-08-04
+**Sesión:** Auditoría de arquitectura + pruebas E2E reales contra producción
+
+**Sesión 2026-08-04 — Auditoría completa y batería E2E en producción (instrucción de Juan):**
+
+Se creó un cliente completo de prueba (`zztest-auditoria`: 2 cabañas, tramos por huésped, temporada alta, template premium, `whatsapp_enabled=false` para no enviar mensajes reales), se ejercitaron **todos los modos de reserva** contra producción y se borró todo al final. Hallazgos:
+
+- 🔴 **BUG CRÍTICO — el cron borraba las reservas manuales del propietario.** `cancelar-pendientes` seleccionaba *cualquier* draft vencido, así que una reserva que el dueño anotaba a mano (la que toma por teléfono y cobra a la llegada) se auto-cancelaba a las 3h, liberaba la fecha y le mandaba al huésped un WhatsApp diciendo que no envió el comprobante. Reproducido en producción: `ZZT-DVQ-5211` quedó `deleted_by=cron_auto_cancel`. **Corregido:** ambos crons ahora solo actúan sobre reservas con bloque `reason='transfer_pending'` (las del formulario público, que sí esperan comprobante). Las manuales nacen con `reason='manual'` y quedan intactas. Invariante verificado en las RPC `create_booking_atomic` (transfer_pending) y `create_booking_manual` (manual).
+- 🔴 **BUG DE PRECIOS — los tramos por huésped pisaban el precio de temporada.** En `lib/pricing.ts` el tramo reemplazaba el precio de temporada: una cabaña con tramo $70.000 (2 personas) y temporada alta $120.000 cobraba **$70.000 en enero** mientras la página mostraba "temporada Alta". Medido: 4 noches en temporada alta daban $280.000 en vez de $480.000 (**$200.000 perdidos por reserva**). **Corregido:** en temporada nunca se cobra menos que el precio de temporada; si el tramo es mayor (grupos grandes), gana el tramo. Verificado en 6 escenarios. **Ningún cliente real quedó afectado** (ninguna cabaña activa tiene temporadas y tramos a la vez), así que no hubo cambio de precios en producción.
+- 🟠 **Cobro de un servicio inexistente:** `/api/bookings` (público) aceptaba `tinaja_days` para cualquier cabaña y lo cobraba sin verificar que la cabaña ofreciera tinaja. **Corregido** con guard `cabin.has_tinaja ?? tenant.has_tinaja`. Ningún cliente real tenía reservas con tinaja, así que no hubo impacto.
+- 🟠 **Autenticación de crons unificada:** cada endpoint la implementaba distinto (3 patrones) y con comparación de strings no timing-safe. Nuevo `lib/cron-auth.ts` con `isCronAuthorized()` (acepta `CRON_SECRET` o `PGCRON_SECRET`, comparación `timingSafeEqual`) aplicado a los 9 endpoints de cron.
+- 🟡 **Trampa latente documentada:** existe un trigger `trg_set_dashboard_token` que **sobrescribe** `tenants.dashboard_token` en cada INSERT. Todo INSERT directo debe hacer después el `UPDATE` del token, o el link del panel que va en emails/WhatsApp queda muerto. `/api/admin/onboard` y `/api/registro` ya lo hacen bien. **Auditado: los 5 tenants activos tienen su token válido** (verificado cruzando `sha256(dashboard_token)` contra `dashboard_links`).
+
+**Verificado y correcto (sin cambios necesarios):** RLS activo en las 22 tablas (3 con default-deny intencional); reserva turista con tramos y tinaja; doble reserva rechazada con 409 (RPC atómico); mínimo de noches por temporada; fechas pasadas rechazadas; sugerencia de cabaña alternativa al estar ocupada; reserva manual del propietario; confirmación (bloque → `system_booking`) e idempotencia; cancelación con soft-delete y liberación de bloques; página de bienvenida (200 con código válido, 404 con inválido); reseña pública; landing con template premium; widget embebible; dashboard, historial, stats y billing del propietario; rechazo cross-tenant (401); validación de fechas al crear bloques; guidebook y precios; privacidad de los endpoints públicos (sin `owner_whatsapp` ni guidebook completo); atribución `booking_source=directory` para el 10% de Takai; audit_log completo en las 5 operaciones.
 **Sesión:** Auditoría pre-propuesta Cámara de Melipeuco + nuevo modelo de precios (instrucción de Juan)
 
 **Sesión 2026-08-03 — Auditoría completa para la propuesta a la Cámara de Turismo de Melipeuco + cambio de modelo de cobro:**
