@@ -50,6 +50,18 @@ export const DESTINOS: Destino[] = [
       "Para quienes trabajan en remoto, Pucón ofrece cafés, coworkings y cabañas con wifi para teletrabajo. Aprovecha estadías largas en temporada baja con mejores precios.",
   },
   {
+    slug: "melipeuco",
+    nombre: "Melipeuco",
+    region: "La Araucanía",
+    match: ["melipeuco"],
+    intro:
+      "Melipeuco es la puerta de entrada al Parque Nacional Conguillío, uno de los paisajes más asombrosos de Chile: araucarias milenarias, lagunas de origen volcánico y el imponente volcán Llaima. Un destino cordillerano auténtico, ideal para alojarse en una cabaña rodeada de naturaleza pura.",
+    queHacer:
+      "Recorre el Parque Nacional Conguillío y sus lagunas Verde, Arcoíris y Conguillío, camina entre araucarias centenarias en la Sierra Nevada, visita los saltos y ríos del valle del Truful-Truful, y conoce la cultura mapuche-pehuenche de la zona con su gastronomía de piñones.",
+    teletrabajo:
+      "Si buscas desconexión real sin dejar de trabajar, Melipeuco ofrece silencio, aire de cordillera y cabañas con wifi. Es una base perfecta para estadías largas: trabajas en la semana y exploras Conguillío el fin de semana.",
+  },
+  {
     slug: "panguipulli",
     nombre: "Panguipulli",
     region: "Los Ríos",

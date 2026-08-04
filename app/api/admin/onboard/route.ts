@@ -85,11 +85,18 @@ export async function POST(req: Request) {
   const page_rules = Array.isArray(body.page_rules) ? body.page_rules : []
 
   // ── Billing fields ───────────────────────────────────────────────────────────
+  // Modelo vigente para clientes nuevos (decisión de Juan 2026-08-03): cuota de
+  // entrada única de $160.000 CLP (se cobra fuera del sistema), CERO mensualidad,
+  // y 10% solo sobre reservas generadas por Takai (directorio/agente/afiliados) —
+  // eso lo factura la pasada 2 de generate-commission-statements. Por eso el
+  // billing_mode "subscription" nace 'active', sin trial y con amount 0: no hay
+  // mensualidad que probar ni cobrar. billing_mode "commission" queda reservado
+  // al trato heredado de los 3 fundadores.
   const billing_mode = (body.billing_mode === "commission" || body.billing_mode === "manual") ? body.billing_mode : "subscription"
   const commission_rate = billing_mode === "commission" ? (Number(body.commission_rate) || 10) : 10
   const free_until = (billing_mode === "commission" && typeof body.free_until === "string" && body.free_until) ? body.free_until : null
   const is_manual_billing = billing_mode === "manual"
-  const initial_billing_status = (billing_mode === "subscription") ? "trial" : "active"
+  const initial_billing_status = "active"
   const gp = (body.guidebook_patch && typeof body.guidebook_patch === "object" && !Array.isArray(body.guidebook_patch))
     ? body.guidebook_patch as Record<string, unknown>
     : {}
@@ -254,19 +261,23 @@ export async function POST(req: Request) {
   }
 
   // ── Create subscription row ──────────────────────────────────────────────────
-  const trialEndsAt = billing_mode === "subscription"
-    ? (() => { const d = new Date(); d.setMonth(d.getMonth() + 3); return d.toISOString() })()
-    : null
-
-  const { error: subErr } = await supabase.from("subscriptions").insert([{
+  // Sin trial y con amount 0: el modelo nuevo no tiene mensualidad. plan/amount
+  // se fijan explícitos para que /dashboard/facturacion no muestre el default
+  // legacy de la tabla ($19.990 'fundador').
+  const subInsert: Record<string, unknown> = {
     tenant_id: tenantId,
     billing_mode,
     commission_rate,
     free_until: free_until || null,
     status: initial_billing_status,
-    trial_ends_at: trialEndsAt,
+    trial_ends_at: null,
     currency,
-  }])
+  }
+  if (billing_mode === "subscription") {
+    subInsert.plan = "sin-mensualidad"
+    subInsert.amount = 0
+  }
+  const { error: subErr } = await supabase.from("subscriptions").insert([subInsert])
 
   if (subErr) {
     await deleteTenantCascade(supabase, tenantId)

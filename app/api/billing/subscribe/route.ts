@@ -61,6 +61,15 @@ export async function POST(req: Request) {
     const amount = sub?.amount ?? 19990
     const currency = sub?.currency ?? "CLP"
     const plan = sub?.plan ?? "fundador"
+
+    // Modelo sin mensualidad (amount 0): no existe suscripción mensual que
+    // activar — el 10% de reservas Takai-generadas se paga por estado de cuenta.
+    if (amount <= 0) {
+      return NextResponse.json(
+        { error: "Tu plan no tiene mensualidad — las comisiones se pagan por estado de cuenta en Facturación." },
+        { status: 400 }
+      )
+    }
     const backUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://owner-dashboard-navy.vercel.app"}/dashboard/facturacion`
 
     const mpToken = process.env.MP_PLATFORM_ACCESS_TOKEN

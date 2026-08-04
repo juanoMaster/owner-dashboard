@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
+import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
 
 export async function GET(req: Request) {
   const supabase = getSupabaseAdmin()
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
 
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("slug, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, transfer_timeout_hours, currency, owner_whatsapp")
+    .select("slug, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, bank_email, currency, owner_whatsapp")
     .eq("id", booking.tenant_id)
     .single()
 
@@ -55,8 +56,10 @@ export async function GET(req: Request) {
     bank_rut: tenant.bank_rut || null,
     bank_email: (tenant as any).bank_email || null,
     currency: (tenant as any).currency || "CLP",
-    // Config de timeout para la cuenta regresiva
-    transfer_timeout_hours: Number(tenant.transfer_timeout_hours) || 12,
+    // Ventana real de auto-cancelación para la cuenta regresiva. El cron
+    // cancelar-pendientes usa esta misma constante (3h flat); mostrar el legacy
+    // transfer_timeout_hours (12h) prometía al turista más tiempo del que tiene.
+    transfer_timeout_hours: AUTO_CANCEL_HOURS,
     // WhatsApp donde enviar el comprobante de transferencia (número del sistema Twilio)
     whatsapp_number: whatsapp_number || null,
     // WhatsApp del propietario (para contacto directo en caso de error de pago)

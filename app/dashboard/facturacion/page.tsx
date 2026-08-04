@@ -214,9 +214,12 @@ function FacturacionInner() {
   const { billing_status, manual_billing, subscription: sub, business_name, statements } = payload
   const billingMode = sub?.billing_mode ?? "subscription"
   const isCommission = billingMode === "commission"
+  // Modelo nuevo (2026-08): sin mensualidad (amount 0) — solo 10% de reservas
+  // generadas por Takai, que llegan como estados de cuenta mensuales.
+  const sinMensualidad = !isCommission && (sub?.amount ?? 0) === 0
   const badge = statusLabel(billing_status)
   const isTrialActive = billing_status === "trial" && daysLeft(sub?.trial_ends_at ?? null) > 0
-  const canSubscribe = !manual_billing && !isCommission && (
+  const canSubscribe = !manual_billing && !isCommission && !sinMensualidad && (
     billing_status === "trial" || billing_status === "suspended" || billing_status === "past_due" || billing_status === "pending" || billing_status === "cancelled"
   )
 
@@ -236,7 +239,7 @@ function FacturacionInner() {
           Facturación
         </h1>
         <p style={{ color: MUTED, fontSize: "13px", marginBottom: "32px" }}>
-          {isCommission ? "Comisiones y estados de cuenta mensuales." : "Gestiona tu suscripción a Takai."}
+          {isCommission || sinMensualidad ? "Comisiones y estados de cuenta mensuales." : "Gestiona tu suscripción a Takai."}
         </p>
 
         {/* Plan / Estado */}
@@ -312,7 +315,20 @@ function FacturacionInner() {
                 </div>
               )}
 
-              {!manual_billing && sub && (
+              {!manual_billing && sub && sinMensualidad && (
+                <div style={{ background: "#0a2010", border: "1px solid #1a4020", borderRadius: "8px", padding: "16px", marginTop: "8px" }}>
+                  <p style={{ color: GREEN, fontSize: "14px", margin: "0 0 8px" }}>
+                    Sin mensualidad — pago único de entrada ya realizado.
+                  </p>
+                  <p style={{ color: MUTED, fontSize: "13px", margin: 0, lineHeight: 1.6 }}>
+                    Solo pagas el 10% de las reservas que Takai te genera (directorio, agente y referidos).
+                    Las reservas que consigues por tu cuenta no pagan comisión. Si hay comisiones del mes,
+                    llegan como estado de cuenta aquí abajo.
+                  </p>
+                </div>
+              )}
+
+              {!manual_billing && sub && !sinMensualidad && (
                 <div style={{ marginTop: "8px" }}>
                   <Row label="Plan" value={sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1)} />
                   <Row label="Precio" value={formatCurrency(sub.amount, sub.currency) + "/mes"} highlight />
@@ -351,7 +367,7 @@ function FacturacionInner() {
           </div>
         )}
 
-        {billing_status === "active" && !manual_billing && !isCommission && (
+        {billing_status === "active" && !manual_billing && !isCommission && !sinMensualidad && (
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: "12px", padding: "20px", textAlign: "center" as const, marginBottom: "20px" }}>
             <p style={{ color: MUTED, fontSize: "13px", margin: 0 }}>
               Para cancelar o modificar tu suscripción, contacta a Takai por WhatsApp.
@@ -359,8 +375,11 @@ function FacturacionInner() {
           </div>
         )}
 
-        {/* Estados de cuenta (solo commission mode) */}
-        {isCommission && (
+        {/* Estados de cuenta — commission mode los muestra siempre; el resto de
+            los modos también los necesita: la pasada 2 del cron factura el 10%
+            de reservas Takai-generadas a clientes sin mensualidad, y sin esta
+            sección no tendrían dónde pagarlos. */}
+        {(isCommission || statements.length > 0) && (
           <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: "12px", padding: "28px" }}>
             <h2 style={{ fontFamily: "Georgia,serif", fontSize: "18px", fontWeight: 400, color: GOLD, margin: "0 0 20px" }}>
               Estados de cuenta

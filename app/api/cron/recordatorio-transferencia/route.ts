@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { sendWhatsApp } from "@/lib/whatsapp"
+import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
   try {
     const { data: tenants, error: tenantsErr } = await supabase
       .from("tenants")
-      .select("id, transfer_timeout_hours")
+      .select("id")
       .eq("active", true)
 
     if (tenantsErr) throw tenantsErr
@@ -29,12 +30,12 @@ export async function GET(req: Request) {
     const twilioFrom = (process.env.TWILIO_WHATSAPP_FROM ?? "").replace("whatsapp:", "")
 
     for (const tenant of tenants) {
-      const timeoutHours = Number(tenant.transfer_timeout_hours) || 12
-
-      // Ventana de recordatorio: entre el 75% y el 200% del timeout desde la creación
-      // (evita recordar demasiado temprano o demasiado tarde)
-      const windowStart = new Date(Date.now() - timeoutHours * 2 * 3600 * 1000).toISOString()
-      const windowEnd   = new Date(Date.now() - timeoutHours * 0.75 * 3600 * 1000).toISOString()
+      // La misma ventana que usa cancelar-pendientes (3h flat). El recordatorio
+      // llega entre el 50% y el 100% del plazo — antes usaba el legacy de 12h y
+      // recordaba reservas que el cron ya había cancelado a las 3h.
+      const timeoutHours = AUTO_CANCEL_HOURS
+      const windowStart = new Date(Date.now() - timeoutHours * 3600 * 1000).toISOString()
+      const windowEnd   = new Date(Date.now() - timeoutHours * 0.5 * 3600 * 1000).toISOString()
 
       const { data: bookings, error: bookingsErr } = await supabase
         .from("bookings")

@@ -5,8 +5,20 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-07-31
-**Sesión:** Auditoría y cierre de la portada del directorio + flujo de referidos
+**Fecha:** 2026-08-03
+**Sesión:** Auditoría pre-propuesta Cámara de Melipeuco + nuevo modelo de precios (instrucción de Juan)
+
+**Sesión 2026-08-03 — Auditoría completa para la propuesta a la Cámara de Turismo de Melipeuco + cambio de modelo de cobro:**
+- **NUEVO MODELO DE PRECIOS (decisión de Juan 2026-08-03):** clientes nuevos = **$160.000 CLP de entrada única, CERO mensualidad, 10% solo sobre reservas generadas por Takai** (directorio/agente/afiliados; directas del dueño 0%). En BD: `billing_mode='subscription'` + `amount=0` + `plan='sin-mensualidad'` + `status='active'` sin trial. El 10% ya lo facturaba la pasada 2 de `generate-commission-statements` (commit b6405de). Modelo anterior de mensualidad retirado sin clientes activos. Los 3 fundadores en modo comisión NO cambian.
+- **Onboarding actualizado:** `/api/admin/onboard` crea la suscripción directamente en el modelo nuevo (active, sin trial, amount 0) — un cliente Melipeuco queda operativo y facturable al ingresar, sin pasos extra.
+- **P1 RESUELTO — facturación invisible para el 10%:** `/dashboard/facturacion` solo mostraba estados de cuenta si `billing_mode='commission'`; los clientes del modelo nuevo (subscription) recibían el email del statement pero no tenían dónde verlo/pagarlo. Ahora la sección aparece siempre que existan statements. `commission-pay` y `report-transfer` ya funcionaban sin guard de modo.
+- **P1 RESUELTO — contradicción de ventana de cancelación (afectaba turistas):** el cron cancela drafts a las 3h flat (`AUTO_CANCEL_HOURS`), pero el countdown de `pago-pendiente` mostraba 12h (`transfer_timeout_hours`) y el recordatorio WhatsApp usaba ventana de 9–24h (recordaba reservas ya canceladas). Nueva fuente única `lib/auto-cancel.ts` compartida por `cancelar-pendientes`, `bank-info` (countdown) y `recordatorio-transferencia` (ventana 1.5h–3h). `transfer_timeout_hours` queda legacy documentado.
+- **Guard nuevo:** `/api/billing/subscribe` rechaza planes con `amount<=0` (no se puede crear preapproval de $0 llamando la API directo). `canSubscribe` en facturación también lo excluye; UI muestra "Sin mensualidad — solo 10% de reservas generadas por Takai".
+- **emailTrialEnding:** eliminada la promesa hardcodeada "$19.990 CLP/mes de por vida" (precio obsoleto); ahora apunta a la página de Facturación.
+- **Directorio — Melipeuco agregado:** la propuesta promete "zona dedicada a Melipeuco" y el directorio no la tenía. Nuevo destino en `directorio/lib/destinos.ts` (Conguillío, Llaima, araucarias, teletrabajo) — se propaga solo a portada, sitemap y página estática. Las cabañas se asocian cuando `tenants.location_text` contiene "melipeuco".
+- **Limpieza:** eliminada carpeta vacía `app/api/ical/[cabinId]` (residuo sin route, untracked).
+- **Docs:** CLAUDE.md y AGENTS.md actualizados (gobernanza, precios, crons 3h, transfer_timeout_hours legacy, pasada 2 del 10%).
+- **Contraste propuesta Melipeuco vs sistema:** los 25 puntos de la propuesta verificados contra código — todos reales. Dependencias externas (no código): dominio B2C personalizado + Search Console para el SEO del directorio; migración 011 (pg_cron 15 min) para que la liberación de fechas sea realmente "a las 3h"; `google_review_url` o GBP por tenant para el link de reseña en Google.
 
 **Sesión 2026-07-31 — Directorio B2C y atribución de referentes (instrucción de Juan):**
 - **Copy público corregido:** eliminado el mensaje "Tu comisión sale del 10% de Takai — el propietario nunca paga extra". La portada ahora invita a viajeros, creadores de contenido, influencers y personas con comunidad a ganar una comisión por cada reserva confirmada generada por su recomendación. CTA: **"Inscríbete como referente"**, con solicitud dirigida a `contacto@takai.cl`.
@@ -365,6 +377,7 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 
 | Fecha | Qué se hizo |
 |-------|------------|
+| 2026-08-03 | Auditoría pre-propuesta Melipeuco. Nuevo modelo de precios ($160k entrada + 10% Takai, sin mensualidad) implementado en onboard/facturación/docs. Fix contradicción countdown 12h vs cancelación 3h (lib/auto-cancel.ts). Statements del 10% visibles/pagables para clientes subscription. Melipeuco agregado al directorio. |
 | 2026-07-31 | Auditoría y cierre de portada del directorio: nuevo programa de referidos, copy corregido, catálogo completo, propagación segura de `ref` y conservación de atribución al cambiar a una cabaña sugerida. Builds y QA visual desktop/móvil OK. |
 | 2026-06-12 | Auditoría total (solo lectura). Creados ESTADO-SISTEMA.md y actualizado CLAUDE.md. |
 | 2026-06-12 | Sprint seguridad: P0 auth, P1 (Twilio HMAC, XSS, loop, deleted_at MP), RPC atómico, índices BD. |

@@ -13,9 +13,9 @@ Evaluar siempre en este orden antes de escribir código:
 
 ---
 
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Qué es este sistema
 
@@ -479,7 +479,7 @@ Auditado leyendo el código fuente (INVENTARIO-REAL-2026-06.md, fusionado a este
 - 42 rutas API usan `SUPABASE_SERVICE_ROLE_KEY` (bypassa RLS por diseño, ok para server-side).
 
 ### Archivos muertos en raíz del repo — ✅ RESUELTO 2026-07-04 (instrucción de Juan)
-Los archivos listados (`diagnostico.txt`, `todo_el_sistema.txt`, etc.) ya no existían en el repo (borrados en sesión previa). En esta pasada se limpió lo que quedaba: gitlink roto `claude-webkit` (submódulo accidental sin `.gitmodules`), carpeta vacía `landing/`, y `tsconfig.tsbuildinfo` des-trackeado (+ `*.tsbuildinfo` en `.gitignore`).
+Los archivos listados (`diagnostico.txt`, `todo_el_sistema.txt`, etc.) ya no existían en el repo (borrados en sesión previa). En esta pasada se limpió lo que quedaba: gitlink roto `Codex-webkit` (submódulo accidental sin `.gitmodules`), carpeta vacía `landing/`, y `tsconfig.tsbuildinfo` des-trackeado (+ `*.tsbuildinfo` en `.gitignore`).
 
 ### Integraciones confirmadas como activas
 MercadoPago Marketplace (turistas→propietarios) ✅, Twilio/WhatsApp ✅, Resend ✅, FullCalendar ✅, Recharts ✅.

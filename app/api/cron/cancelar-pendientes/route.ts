@@ -5,13 +5,11 @@ import { getSupabaseAdmin } from "@/lib/supabase-server"
 import { logAudit } from "@/lib/audit"
 import { sendWhatsApp } from "@/lib/whatsapp"
 import { getResend, emailReservaCancelada } from "@/lib/resend"
-
-// Fuente única de verdad del umbral de auto-cancelación.
-// Los clientes pidieron 3h (antes el default por-tenant era 12h). El plan
-// PLAN_NOCHE_TAKAI.md es autoridad y fija 3h flat. Para garantizar la ventana
-// de 3h, este endpoint debe invocarse cada ~15 min (vía pg_cron + pg_net,
-// migración 011), no solo en el orquestador diario.
-const AUTO_CANCEL_HOURS = 3
+// Umbral de 3h flat (PLAN_NOCHE_TAKAI). Compartido con bank-info (countdown del
+// turista) y recordatorio-transferencia para que las tres piezas no se contradigan.
+// Para garantizar la ventana de 3h este endpoint debe invocarse cada ~15 min
+// (pg_cron + pg_net, migración 011), no solo en el orquestador diario.
+import { AUTO_CANCEL_HOURS } from "@/lib/auto-cancel"
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")

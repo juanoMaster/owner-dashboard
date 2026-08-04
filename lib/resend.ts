@@ -525,7 +525,7 @@ export function emailTrialEnding(data: {
         </table>
         <p style="margin:0 0 24px;font-family:${FONT_SANS};font-size:14px;color:${TEXT_MUTED};line-height:1.8;">
           Activa tu suscripción para seguir recibiendo reservas sin interrupciones.
-          El plan Fundador está congelado en <span style="color:${GOLD};font-weight:700;">$19.990 CLP/mes</span> de por vida.
+          Revisa el detalle de tu plan y precio en la página de Facturación.
         </p>
         <a href="${data.facturacion_url}" style="display:block;background:${GOLD};color:#0a0e14;text-decoration:none;padding:16px 32px;border-radius:6px;text-align:center;font-family:${FONT_SANS};font-weight:700;font-size:14px;letter-spacing:1px;">
           ACTIVAR SUSCRIPCIÓN &rarr;
