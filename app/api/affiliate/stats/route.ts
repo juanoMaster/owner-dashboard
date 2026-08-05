@@ -54,6 +54,30 @@ export async function GET(req: Request) {
     }
   })
 
+  // Catálogo para que el partner arme sus links sin escribir nada a mano.
+  // Solo alojamientos publicados y no suspendidos: no tiene sentido que
+  // promocione algo que el turista no puede reservar.
+  const { data: catalogo } = await supabase
+    .from("cabins")
+    .select("id, name, base_price_night, tenants!inner(slug, business_name, active, billing_status, manual_billing)")
+    .eq("active", true)
+    .eq("tenants.active", true)
+    .order("name")
+    .limit(200)
+
+  const cabanas = (catalogo || [])
+    .filter((c) => {
+      const t = c.tenants as any
+      return !(t.billing_status === "suspended" && !t.manual_billing)
+    })
+    .map((c) => ({
+      cabin_id: c.id,
+      cabin: c.name,
+      business: (c.tenants as any).business_name,
+      slug: (c.tenants as any).slug,
+      price: Number(c.base_price_night) || 0,
+    }))
+
   return NextResponse.json({
     affiliate: { name: affiliate.name, code: affiliate.code, commission_rate: rate, active: affiliate.active },
     summary: {
@@ -61,7 +85,11 @@ export async function GET(req: Request) {
       confirmed_count: rows.filter((r) => r.status === "confirmed").length,
       confirmed_total: confirmedTotal,
       earned: Math.round(earned * 100) / 100,
+      pending_payout: Math.round(
+        rows.filter((r) => r.status === "confirmed").reduce((s, r) => s + r.commission, 0) * 100
+      ) / 100,
     },
     bookings: rows,
+    cabanas,
   })
 }
