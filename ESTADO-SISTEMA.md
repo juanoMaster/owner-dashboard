@@ -300,9 +300,25 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 - **Prueba E2E completa del recorrido del influencer, contra producción:** partner creado por la API real del admin → recomienda un alojamiento con su link → el dueño se registra y queda atribuido → Juan aprueba y la landing publica → un turista reserva con el link (`booking_source=affiliate` + `affiliate_id`) → el dueño confirma → **el panel del partner muestra 1 reserva, $360.000 y $18.000 ganados (5% exacto)**. Todos los datos de prueba borrados; la BD quedó con los 7 tenants reales y sus 14 reservas intactas.
 - **Copy de la landing corregido** (`takai-landing`, commit `bea33dc`): eliminada la frase "Pagamos juntos"; eliminada **toda** mención a que la comisión del partner sale del 10% de Takai (ni referentes ni propietarios deben conocer esa estructura); el porcentaje del partner pasa a **5% publicado explícito**; nueva sección "Dos formas de ganar"; y se rehizo el simulador, que mostraba literalmente "Comisión Takai (10%)" y "se liquida de ahí".
 
+**Sesión 2026-08-05 — Liquidación de partners operativa (instrucción de Juan):**
+
+**Regla de negocio confirmada por Juan y ahora implementada:** traer un alojamiento se paga **una sola vez** y ahí termina la relación con ese centro. Si ese centro después recibe reservas sin el link del partner, el 10% es **íntegro de Takai**. El partner solo vuelve a ganar trayendo turistas por su link (5% por reserva, acumulable sin tope). Verificado en producción con dos reservas al mismo centro: la que pasó por el link pagó 5%, la que llegó sin link no pagó nada.
+
+- **Migración 016 aplicada:** `tenants.referral_fee_amount`, `tenants.referral_paid_at`, `bookings.affiliate_paid_at` + índice parcial. Sin esto no había forma de saber qué comisión ya se liquidó.
+- **`lib/referral.ts`:** tramos por tamaño del centro — 1 a 5 alojamientos $30.000, 6 a 10 $50.000, más de 10 **a convenir** (el monto lo escribe Juan; el sistema no lo inventa). `REFERIDO_DESDE` se deriva de los tramos para publicar "desde $X" sin repetir el número a mano.
+- **`/api/admin/affiliates` GET reescrito:** devuelve por partner los alojamientos traídos (con tramo y monto), las reservas generadas (con su 5%), el reparto del 10% (cuánto al partner, cuánto neto para Takai) y **cuánto hay que pagarle ahora**. Un centro no suma al total hasta estar publicado.
+- **`/api/admin/affiliates/pay` (nuevo):** marca pagado centro o reserva, acepta el monto acordado en los casos "a convenir", permite deshacer, y deja audit log.
+- **Tab Afiliados rediseñado:** total por pagar arriba en grande, tarjeta por partner con los dos bloques separados y botón de pago en cada línea.
+- **Panel del partner rehecho:** link principal del directorio, link para recomendar alojamientos y **link por cabaña con botón copiar** (antes tenía que armar las URLs a mano), más la explicación de que solo cuentan las reservas que pasan por su link.
+- **Prueba E2E en producción:** partner creado → dos centros referidos (3 cabañas → $30.000 automático; 12 cabañas → a convenir, se acordaron $120.000) → ambos aprobados y pagados → reserva de $320.000 por su link → 10% = $32.000 repartido en $16.000 partner / $16.000 neto Takai → liquidado. Total volvió a $0 con histórico de $166.000. Datos de prueba borrados; BD con 7 tenants reales y 14 reservas intactas.
+- **Landing actualizada** (`takai-landing`, commit `2c53141`): tramos "desde $30.000" con el detalle visible, eliminada la palabra **"nunca"** de la promesa de no cobrar mensualidad (ataba las manos para una eventual cuota anual), y aclarado que traer un alojamiento se paga una vez mientras el 5% solo aplica a reservas que pasan por el link del partner. También se commitearon los archivos sueltos de otra sesión (`.claude/`, `AGENTS.md`, `public/ia/` → la landing de la agencia quedó publicada en `takai.cl/ia/`).
+- **Documentos nuevos:** `TRASPASO-TAKAI-LANDING.md` (para pasarle al chat de la landing todo lo que cambió y sus pendientes) y `PROMPT-DIRECTORIO.md` (prompt maestro para lanzar el directorio en un chat dedicado).
+
+**Recomendación de modelo de cobro entregada a Juan (2026-08-05):** mantener entrada + 10% durante Melipeuco y los próximos meses — hoy el directorio aún no puede entregar el 10% (sin dominio y sin fotos), así que cobrar mensualidad sería cobrar por algo no prestado. Si más adelante hace falta ingreso recurrente, **cuota anual, no mensualidad pausable**: la pausa destruye la previsibilidad de caja y agrega estados de billing innecesarios. Gatillo para revisar: tres meses seguidos con reservas Takai-generadas sostenidas. El sistema ya soporta cobrar mensualidad por cliente cambiando un dato (`subscriptions.amount`), sin tocar código.
+
 ---
 
-## Pendientes para llegar al 100% (estado 2026-08-04)
+## Pendientes para llegar al 100% (estado 2026-08-05)
 
 ### Solo Juan puede hacerlo (no es código)
 1. **Dominio del directorio B2C** + verificarlo en Google Search Console. Hoy vive en `takai-directorio.vercel.app`; sin dominio propio el SEO no despega y la propuesta promete "que lo encuentren en Google".
