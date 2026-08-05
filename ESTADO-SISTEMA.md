@@ -293,6 +293,15 @@ Ejecutadas las 11 fases del `PLAN_NOCHE_TAKAI.md`. Detalle completo en `PROGRESO
 
 ---
 
+**Sesión 2026-08-04 (parte 2) — Programa de referidos operativo (instrucción de Juan):**
+
+- 🔴 **El programa de referidos era inoperable.** La API `/api/admin/affiliates` existía desde junio, pero **no había ninguna interfaz**: cuando alguien escribía por WhatsApp queriendo ser partner, no había forma de darlo de alta desde el panel. Nuevo componente `app/components/AfiliadosTab.tsx` (tab **Afiliados** en `/admin`): crear partner, listar, activar/desactivar y entregar sus 3 links con botón de copiar. El token se muestra **una sola vez** (en BD solo queda el hash).
+- 🆕 **Segunda vía de ingreso — comisión por traer alojamientos** (decisión de Juan): además del % por reservas de turistas, se paga una comisión por cada alojamiento que el partner incorpore. Requería tracking que no existía: **migración 015 aplicada** (`tenants.referred_by_affiliate_id` + índice parcial). `/registro` captura `?ref=` (persistido en `sessionStorage` por si el dueño recarga a mitad del wizard) y `/api/registro` lo resuelve contra afiliados activos. El tab **Altas** ahora muestra quién trajo cada alojamiento, que es lo que define a quién pagarle.
+- **Prueba E2E completa del recorrido del influencer, contra producción:** partner creado por la API real del admin → recomienda un alojamiento con su link → el dueño se registra y queda atribuido → Juan aprueba y la landing publica → un turista reserva con el link (`booking_source=affiliate` + `affiliate_id`) → el dueño confirma → **el panel del partner muestra 1 reserva, $360.000 y $18.000 ganados (5% exacto)**. Todos los datos de prueba borrados; la BD quedó con los 7 tenants reales y sus 14 reservas intactas.
+- **Copy de la landing corregido** (`takai-landing`, commit `bea33dc`): eliminada la frase "Pagamos juntos"; eliminada **toda** mención a que la comisión del partner sale del 10% de Takai (ni referentes ni propietarios deben conocer esa estructura); el porcentaje del partner pasa a **5% publicado explícito**; nueva sección "Dos formas de ganar"; y se rehizo el simulador, que mostraba literalmente "Comisión Takai (10%)" y "se liquida de ahí".
+
+---
+
 ## Pendientes para llegar al 100% (estado 2026-08-04)
 
 ### Solo Juan puede hacerlo (no es código)

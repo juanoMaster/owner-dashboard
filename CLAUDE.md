@@ -113,7 +113,8 @@ token (URL) → SHA256 → dashboard_links.token_hash → tenant_id → todos lo
 | `/api/admin/cabins` | GET/POST/DELETE | CRUD de cabañas (protegido por `ADMIN_TOKEN`) |
 | `/api/admin/onboard` | POST | Crea tenant + cabañas + dashboard_link en una operación (alta manual desde el admin) |
 | `/api/registro` | POST | **Público** — alta self-service: crea tenant `active=false` + cabañas + acceso + cobro `setup_fee` de $160.000; devuelve `init_point` de MP si paga con tarjeta |
-| `/api/admin/signups` | GET/POST | GET lista solicitudes pendientes (`active=false`) con cabañas y estado del pago; POST `{tenant_id}` aprueba: `active=true`, sub `active`, email de bienvenida con el token (protegido por `ADMIN_TOKEN`) |
+| `/api/admin/signups` | GET/POST | GET lista solicitudes pendientes (`active=false` **y** con cobro `setup_fee`) con cabañas, estado del pago y quién las refirió; POST `{tenant_id}` aprueba: `active=true`, sub `active`, email de bienvenida con el token (protegido por `ADMIN_TOKEN`) |
+| `/api/admin/affiliates` | GET/POST/PATCH | Partners del programa de referidos. POST crea y devuelve el token **una sola vez** (rate topado en 5%); PATCH activa/desactiva. UI: `/admin` → tab **Afiliados** (`AfiliadosTab.tsx`) |
 | `/api/admin/tokens` | GET/POST | Gestiona dashboard_links de un tenant |
 | `/api/admin/commissions` | PATCH | Actualiza estado de comisiones en reservas |
 | `/api/admin/billing` | POST | Suspende/activa billing de un tenant **manualmente** (`action: suspend\|activate`); actualiza `subscriptions.status` + `tenants.billing_status` (protegido por `ADMIN_TOKEN`) |
@@ -545,6 +546,14 @@ Extiende `/api/twilio/webhook` (rama "sin código"; la de booking codes quedó i
 
 ### Afiliados (Fase 7) — atribución cross-domain
 `/reservar` y la landing `[slug]` propagan `source`/`ref` vía `sessionStorage`. `/api/admin/affiliates` (crea+token, rate ≤ 5%), `/api/affiliate/stats` + `/dashboard/afiliado`.
+
+**Programa de referidos — DOS vías de comisión (decisión de Juan 2026-08-04):**
+1. **Por traer turistas:** 5% de cada reserva confirmada que llegue con su `?ref=`. Se atribuye en `/api/bookings` (`booking_source='affiliate'` + `affiliate_id`) y el partner lo ve en `/dashboard/afiliado`. El tope de 5% está en BD, API y `clampAffiliateRate()`.
+2. **Por traer alojamientos:** comisión única cuando un dueño se incorpora con su `?ref=` en `/registro`. Se guarda en `tenants.referred_by_affiliate_id` (migración 015) y se ve en `/admin` → tab **Altas** ("Lo trajo"). El pago se coordina y liquida **fuera del sistema** — no hay cálculo automático.
+
+**Regla de comunicación pública (Juan, 2026-08-04):** ni los partners ni los propietarios deben saber que la comisión del partner sale del 10% de Takai. En la landing solo se dice que ni el turista ni el propietario pagan más por la recomendación. El 5% sí se publica explícito; el monto por traer alojamientos se publica en pesos, no como porcentaje de la cuota de entrada.
+
+**Operativa cuando llega un partner nuevo:** `/admin` → tab **Afiliados** → crear (nombre, contacto, código, 5%) → copiar y enviarle los 3 links (recomendar cabañas, recomendar alojamientos, su panel). El token no se vuelve a mostrar: si lo pierde, hay que crear un partner nuevo.
 
 ### Retargeting (Fase 8), Reseñas (Fase 9), GBP (Fase 11)
 - `/api/cron/retargeting` (cohorte aniversario, opt-out + cap 90d) + `/api/email/unsubscribe` (HMAC, `lib/unsubscribe.ts`). En el orquestador `daily`.
