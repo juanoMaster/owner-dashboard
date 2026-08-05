@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect } from "react"
 import AuditClient from "./AuditClient"
 import NewClientOnboarding from "./NewClientOnboarding"
 import TenantFormFields, { tenantFormFromData, tenantFormToPayload, type TenantFormState } from "./TenantFormFields"
+import AfiliadosTab from "./AfiliadosTab"
 import { parseNotes } from "@/lib/parse-notes"
 
 // ── helpers ──────────────────────────────
@@ -170,7 +171,7 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
     } else alert(r.error || "Error al eliminar")
   }
 
-  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing", "Reseñas", "Altas"]
+  const tabs = ["Resumen", "Clientes", "Cabañas", "Reservas", "Tokens", "Auditoría", "Comisiones", "Billing", "Reseñas", "Altas", "Afiliados"]
 
   return (
     <div style={{ background: "#09070a", minHeight: "100vh", fontFamily: "sans-serif", color: "#e8d5f8" }}>
@@ -531,6 +532,9 @@ export default function AdminDashboard({ tenants: initTenants, cabins: initCabin
         {tab === 8 && <ReviewsTab adminToken={adminToken} />}
 
         {tab === 9 && <AltasTab adminToken={adminToken} />}
+
+        {tab === 10 && <AfiliadosTab adminToken={adminToken} />}
+
 
       </main>
 
@@ -1424,6 +1428,17 @@ function AltasTab({ adminToken }: any) {
               <div style={{ flex: "1 1 150px" }}><div style={dt}>WhatsApp</div><div style={dd}>{t.owner_whatsapp || "-"}</div></div>
               <div style={{ flex: "1 1 200px" }}><div style={dt}>Ubicacion</div><div style={dd}>{t.location_text || "-"}</div></div>
               <div style={{ flex: "1 1 140px" }}><div style={dt}>Estilo</div><div style={dd}>{t.template}</div></div>
+            </div>
+
+            {/* Quién trajo este alojamiento: define a quién le corresponde la
+                comisión por referir el centro. */}
+            <div style={{ background: t.affiliates ? "#12200f" : "#120c1c", border: "1px solid " + (t.affiliates ? "#2a5a24" : "#2d1f44"), borderRadius: "8px", padding: "10px 12px", marginBottom: "14px" }}>
+              <div style={dt}>Lo trajo</div>
+              <div style={{ ...dd, color: t.affiliates ? "#7ddc7d" : "#9a8ab8" }}>
+                {t.affiliates
+                  ? `${t.affiliates.name} (?ref=${t.affiliates.code}) — corresponde comisión por referir alojamiento`
+                  : "Nadie — llegó por su cuenta, sin comisión de referido"}
+              </div>
             </div>
 
             <div style={{ background: "#120c1c", border: "1px solid #2d1f44", borderRadius: "8px", padding: "12px", marginBottom: "14px" }}>

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 
 const BG = "#0d1a12"
 const CARD = "#162618"
@@ -88,8 +89,26 @@ function StepDots({ step }: { step: number }) {
   )
 }
 
-export default function RegistroPage() {
+function RegistroInner() {
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(0)
+  // Código del partner que trajo a este alojamiento (?ref=). Se guarda en
+  // sessionStorage porque el dueño puede tardar varios minutos en el wizard y
+  // recargar la página; sin esto se perdería la atribución de su comisión.
+  const [ref, setRef] = useState("")
+
+  useEffect(() => {
+    const fromUrl = (searchParams.get("ref") || "").trim().toLowerCase()
+    if (fromUrl) {
+      setRef(fromUrl)
+      try { sessionStorage.setItem("takai_ref_centro", fromUrl) } catch { /* modo privado */ }
+      return
+    }
+    try {
+      const saved = sessionStorage.getItem("takai_ref_centro")
+      if (saved) setRef(saved)
+    } catch { /* modo privado */ }
+  }, [searchParams])
   const [error, setError] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState<{ slug: string; pay_method: string } | null>(null)
@@ -178,6 +197,7 @@ export default function RegistroPage() {
           bank_account_holder: bankHolder,
           bank_rut: bankRut,
           pay_method: payMethod,
+          ref,
           cabins: cabins.map((c) => ({
             name: c.name,
             capacity: parseInt(c.capacity, 10),
@@ -453,5 +473,13 @@ export default function RegistroPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function RegistroPage() {
+  return (
+    <Suspense fallback={<div style={{ background: BG, minHeight: "100vh" }} />}>
+      <RegistroInner />
+    </Suspense>
   )
 }

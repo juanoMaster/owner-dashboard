@@ -67,6 +67,17 @@ export async function POST(req: Request) {
 
   const pay_method = body.pay_method === "transfer" ? "transfer" : "card"
 
+  // ── Referido: quién trajo este alojamiento (?ref= del influencer/partner) ──
+  // Se resuelve contra la tabla de afiliados; si el código no existe o está
+  // inactivo, el registro sigue igual pero sin atribuir a nadie.
+  let referredByAffiliateId: string | null = null
+  const refCode = typeof body.ref === "string" ? body.ref.trim().toLowerCase().slice(0, 32) : ""
+  if (refCode && /^[a-z0-9_-]+$/.test(refCode)) {
+    const { data: aff } = await supabase
+      .from("affiliates").select("id").eq("code", refCode).eq("active", true).maybeSingle()
+    if (aff) referredByAffiliateId = aff.id
+  }
+
   // ── Validación ─────────────────────────────────────────────────────────
   if (business_name.length < 2) {
     return NextResponse.json({ error: "Escribe el nombre de tu negocio." }, { status: 400 })
@@ -160,6 +171,7 @@ export async function POST(req: Request) {
       billing_status: SIGNUP_PENDING_STATUS,
       active: false,
       verified: false,
+      referred_by_affiliate_id: referredByAffiliateId,
     }])
     .select("id")
     .single()

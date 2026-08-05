@@ -42,7 +42,7 @@ export async function GET(req: Request) {
 
   const { data: tenants, error } = await supabase
     .from("tenants")
-    .select("id, business_name, owner_name, email_owner, owner_whatsapp, slug, location_text, latitude, longitude, template, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, created_at")
+    .select("id, business_name, owner_name, email_owner, owner_whatsapp, slug, location_text, latitude, longitude, template, bank_name, bank_account_type, bank_account_number, bank_account_holder, bank_rut, created_at, referred_by_affiliate_id, affiliates:referred_by_affiliate_id(name, code)")
     .in("id", feeTenantIds)
     .eq("active", false)
     .order("created_at", { ascending: false })
