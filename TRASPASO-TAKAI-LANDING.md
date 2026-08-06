@@ -66,6 +66,22 @@ el precio público de $160.000.
 
 ---
 
+### ⚠️ Mapa de dominios — takai.cl es SOLO el sistema de reservas
+Juan tiene tres sitios públicos y no se mezclan:
+
+- **`takai.cl`** (este repo) → **exclusivamente** el sistema de gestión de reservas.
+- **`ia.takai.cl`** (repo `IA-Takai-Agencia`) → la agencia de desarrollo web,
+  automatizaciones e IA. Tiene sus propios servicios y precios.
+- **Directorio B2C** → tendrá dominio propio, **nombre aún sin definir**.
+
+El panel (`owner-dashboard`) no es un sitio público: es la herramienta interna.
+
+**Ya ocurrió un error con esto:** al commitear archivos sueltos quedó publicada
+`takai.cl/ia/` con la landing de la agencia y precios equivocados. Juan pidió
+eliminarla y ya se borró (commit `f52f2f0`). **Nunca publicar contenido de la
+agencia dentro de takai.cl.** Si aparece un archivo en `public/` que no escribió
+esta sesión, revisar qué es antes de commitearlo.
+
 ## 2. Qué hay que saber del backend (para no prometer lo que no existe)
 
 - **5 plantillas de landing** para los clientes (antes 3): Clásico, Moderno,
