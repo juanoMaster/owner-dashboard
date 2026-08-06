@@ -5,8 +5,94 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-08-04
-**Sesión:** Auditoría de arquitectura + pruebas E2E reales contra producción
+**Fecha:** 2026-08-05
+**Sesión:** Directorio Turístico — diagnóstico, dirección de arte y Fase 0 (taxonomía de lugares)
+
+**Sesión 2026-08-05 — Arranque del Directorio Turístico Takai (instrucción de Juan):**
+
+Sesión de diagnóstico y diseño. **No se escribió código de UI a propósito**: la dirección
+de arte queda pendiente de aprobación de Juan.
+
+**Hallazgos verificados contra la BD de producción (no supuestos):**
+- 🔴 **El bloqueo real del directorio NO son las fotos, es la ubicación.** Los **7 tenants
+  tienen `location_text`, `latitude` y `longitude` en NULL**. Consecuencias en cadena:
+  (a) `isPublishable()` falla para TODAS las cabañas por geo y ubicación; (b)
+  `matchDestino(null)` devuelve `undefined`, así que ninguna cabaña se asocia a ningún
+  destino y las 5 páginas de destino están vacías por construcción; (c) el sitemap
+  desplegado tiene **6 URLs y cero fichas de cabaña** (verificado).
+- 🟢 **El directorio está a 2 campos de tener sus primeras fichas al aire.** `el-mirador`
+  ya cumple todo lo demás en sus 2 cabañas: **8 fotos exactas** cada una (el mínimo),
+  descripción de 89 y 166 caracteres, capacidad y precio. Solo faltan `location_text` +
+  GPS del tenant. La afirmación previa "ninguna cabaña real cumple el mínimo de 8 fotos"
+  quedó **desmentida** por los datos.
+- 🔴 **La ISR del directorio no existe en producción.** Todas las páginas leen
+  `searchParams` (para `?ref=`), lo que fuerza render dinámico en Next 14 y anula el
+  `export const revalidate = 3600`. Medido en producción: `Cache-Control: private,
+  no-cache, no-store` y `X-Vercel-Cache: MISS` en peticiones repetidas. Cada visita
+  ejecuta el dataset completo (tenants + cabins + reviews) contra Supabase. A 100+
+  centros es un problema de costo y de LCP. Arreglo: capturar `?ref=` fuera del render
+  del servidor (cookie/`sessionStorage` en cliente o middleware) para recuperar SSG/ISR.
+- 🔴 **`npm run build` del directorio no corre en local.** `directorio/.env.local` solo
+  tiene `VERCEL_OIDC_TOKEN`; sin credenciales Supabase, `generateStaticParams` de
+  `/cabana/[id]` aborta el build. Se está empujando a ciegas confiando en Vercel, contra
+  la regla del proyecto. Arreglo: `generateStaticParams` tolerante a falta de credenciales
+  (devolver `[]` y generar por demanda) + bajar las env vars reales.
+- 🟠 **`getCabinById()` llama a `getPublishedCabins()`**: trae el universo completo para
+  renderizar una sola ficha. Con 100 centros es N× el dataset por visita.
+- 🟠 **Cero `next/image`**: todas las fotos son `<img>` con `eslint-disable`, sin
+  optimización ni `sizes`, pese a que `next.config.js` ya tiene los `remotePatterns` de
+  Supabase. Es el mayor riesgo de LCP de un sitio fotográfico.
+- 🟠 **`affiliates` tiene 0 filas y `reviews` 0 aprobadas** (1 pendiente de moderar). La
+  propagación de `?ref=` está bien implementada, pero nunca se ejercitó contra un partner
+  real: `/api/bookings` busca el código en `affiliates` y, si no existe, deja
+  `booking_source='directory'` sin `affiliate_id` — silenciosamente correcto, no probado.
+- 🟢 **Privacidad pre-pago: cumple.** `directorio/lib/data.ts` solo selecciona `slug`,
+  `business_name`, `currency`, `location_text`, geo y `country`. Sin `owner_whatsapp`,
+  sin redes, sin guidebook.
+- 🟢 **`NEXT_PUBLIC_DIRECTORY_URL` está bien seteada en Vercel** (emite
+  `takai-directorio.vercel.app`, no el default `cabanasdelsur.cl` del código). El día del
+  dominio hay que redirigir 301 desde el dominio Vercel, que hoy es indexable.
+
+**Entregado:**
+- `supabase/migrations/017_places.sql` — **PREPARADA, NO APLICADA** (requiere OK de Juan).
+  Tabla `places` (region ← comuna ← localidad ← sector) con contenido editorial por lugar,
+  `tenants.place_id`, índices, RLS de lectura pública restringida a `active=true`, y CHECK
+  que impide slugs reservados (un lugar llamado `cabana` dejaría inalcanzables las fichas).
+  Semilla: 2 regiones + 5 comunas + Licán Ray como localidad de Villarrica, migrando el
+  contenido real de `destinos.ts`. `como_llegar`/`cuando_ir` quedan NULL: exigen distancias
+  verificables y no se inventan. **Sin backfill automático** — imposible con `location_text`
+  en NULL; el bloque de asignación manual va comentado al final del archivo.
+- `directorio/DIRECCION-DE-ARTE.md` — dirección de arte normativa: paleta con contraste
+  WCAG **medido** (se corrigió `tintaSuave` de `#6B7166` a `#63695E` porque el primero
+  daba 4.34:1 sobre papel hueso y no alcanzaba AA), tipografía (Fraunces + Archivo, con
+  fallback a Georgia), escala, grilla asimétrica, tratamiento fotográfico, microcopy con
+  datos, y checklist de aceptación de 9 puntos. **DECISIÓN 1 pendiente de Juan:** fondo
+  papel claro (recomendado, para que la foto se lea como foto y separe B2C de B2B) vs.
+  mantener el verde oscuro heredado del panel.
+
+**Bloqueos de contenido (solo Juan puede resolver):**
+1. `location_text` + GPS de los 3 clientes reales — **desbloquea las 2 primeras fichas hoy**.
+2. Fotografía profesional: majoaal tiene 1 foto por cabaña y descripción vacía; cacagual
+   2–4 fotos. Sin 8 fotos no se publican.
+3. Moderar la reseña pendiente (0 aprobadas hoy).
+4. Definir si `glamping-cacagual` (Ecuador/USD) entra a un directorio de cabañas de Chile.
+   Recomendación: queda fuera con `place_id` NULL.
+
+**Diseño de verticales futuros (documentado, NO implementado — punto 7 del encargo):**
+`places` es el eje común. Cada vertical futuro es una tabla propia que apunta a
+`place_id` y repite los mismos tres patrones: (a) **mínimos de publicación** al estilo
+`cabinPublishReadiness()` — sin fotos y sin datos completos no se publica; (b) **misma
+regla de privacidad** — cero contacto directo del negocio antes del pago, todo por el
+agente Takai; (c) **misma atribución** — `source` + `?ref=` viajando en toda navegación.
+Tablas propuestas: `restaurants` (con `menu` jsonb: ítems con precio, que es el contenido
+único que hoy nadie indexa bien en el sur), `tour_operators` (con `tours` y duración/precio)
+y `travel_agencies`. **Ni una línea antes de que el directorio de cabañas esté lleno y
+facturando** — la secuencia es la estrategia. Multi-idioma (inglés) para turismo receptivo:
+fase futura, decisión de Juan, anotada y no implementada.
+
+---
+
+**Sesión anterior:** 2026-08-04 — Auditoría de arquitectura + pruebas E2E reales contra producción
 
 **Sesión 2026-08-04 — Auditoría completa y batería E2E en producción (instrucción de Juan):**
 
